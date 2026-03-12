@@ -1,8 +1,8 @@
 @extends('layouts.app')
 
 @section('content')
-{{-- Alpine.js para gerir o Modal de Visualização --}}
-<div class="max-w-7xl mx-auto px-4 py-10" x-data="{ showModal: false, imgUrl: '', clienteNome: '' }">
+{{-- Alpine.js atualizado para incluir o número do WhatsApp --}}
+<div class="max-w-7xl mx-auto px-4 py-10" x-data="{ showModal: false, imgUrl: '', clienteNome: '', clienteWhatsapp: '' }">
     
     <div class="flex justify-between items-center mb-8">
         <div>
@@ -35,10 +35,29 @@
                 <tbody class="divide-y divide-gray-50 text-sm">
                     @forelse($reservas as $reserva)
                     <tr class="hover:bg-gray-50/50 transition-colors">
-                        {{-- Coluna Cliente --}}
+                        {{-- Coluna Cliente com WhatsApp --}}
                         <td class="p-6">
-                            <div class="font-bold text-gray-900">{{ $reserva->nome_cliente }}</div>
-                            <div class="text-[11px] text-sky-600 font-mono">{{ $reserva->whatsapp }}</div>
+                            <div class="flex items-center gap-3">
+                                <div>
+                                    <div class="font-bold text-gray-900">{{ $reserva->nome_cliente }}</div>
+                                    <div class="flex items-center gap-2">
+                                        <div class="text-[11px] text-sky-600 font-mono">{{ $reserva->whatsapp }}</div>
+                                        
+                                        @php
+                                            // Limpa o número para o link do WhatsApp (mantém apenas dígitos)
+                                            $phoneClean = preg_replace('/[^0-9]/', '', $reserva->whatsapp);
+                                        @endphp
+
+                                        <a href="https://wa.me/{{ $phoneClean }}?text=Olá {{ $reserva->nome_cliente }}, estamos a validar o seu pagamento para o evento {{ $reserva->tipoIngresso->evento->titulo ?? '' }}." 
+                                           target="_blank" 
+                                           class="text-green-500 hover:text-green-700 transition-colors">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
+                                                <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.301-.15-1.779-.879-2.053-.979-.275-.101-.476-.151-.675.15-.199.302-.771.979-.945 1.181-.174.201-.347.227-.649.076-.301-.151-1.274-.47-2.426-1.498-.897-.8-1.502-1.788-1.678-2.09-.175-.301-.019-.465.131-.614.136-.134.301-.352.451-.527.151-.176.201-.302.302-.503.101-.201.05-.377-.025-.527-.075-.151-.675-1.628-.925-2.229-.243-.584-.489-.505-.675-.514-.174-.009-.374-.011-.574-.011s-.525.076-.8.376c-.275.301-1.051 1.029-1.051 2.508 0 1.479 1.076 2.91 1.226 3.111.15.201 2.117 3.232 5.129 4.532.716.31 1.274.495 1.71.635.719.227 1.373.195 1.89.117.577-.087 1.779-.727 2.03-1.43.25-.702.25-1.303.174-1.43-.075-.127-.275-.201-.576-.351z"/>
+                                            </svg>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
                         </td>
 
                         {{-- Coluna Evento --}}
@@ -59,10 +78,10 @@
                             {{ number_format($reserva->total, 0, ',', '.') }} Kz
                         </td>
                         
-                        {{-- Coluna Comprovativo (Botão que abre o Modal) --}}
+                        {{-- Coluna Comprovativo --}}
                         <td class="p-6 text-center">
                             @if($reserva->comprovativo)
-                                <button @click="showModal = true; imgUrl = '{{ asset('storage/' . $reserva->comprovativo) }}'; clienteNome = '{{ $reserva->nome_cliente }}'" 
+                                <button @click="showModal = true; imgUrl = '{{ asset('storage/' . $reserva->comprovativo) }}'; clienteNome = '{{ $reserva->nome_cliente }}'; clienteWhatsapp = '{{ $phoneClean }}'" 
                                         class="bg-sky-50 text-sky-600 px-4 py-2 rounded-xl border border-sky-100 hover:bg-sky-600 hover:text-white transition-all font-black text-[10px] uppercase tracking-tighter">
                                     Ver Comprovativo 🖼️
                                 </button>
@@ -74,16 +93,14 @@
                         {{-- Coluna Acções --}}
                         <td class="p-6 text-right">
                             <div class="flex items-center justify-end gap-3">
-                                {{-- Botão Confirmar (Move para a lista de pagos) --}}
-                                <form action="{{ route('reservas.confirmar', $reserva->id) }}" method="POST">
+                                <form action="{{ route('reserva.confirmar', $reserva->id) }}" method="POST">
                                     @csrf
                                     <button type="submit" class="bg-green-600 text-white px-5 py-2.5 rounded-xl hover:bg-green-700 transition-all font-black text-[10px] uppercase shadow-md active:scale-95">
                                         Confirmar
                                     </button>
                                 </form>
 
-                                {{-- Botão Eliminar --}}
-                                <form action="{{ route('reservas.eliminar', $reserva->id) }}" method="POST" onsubmit="return confirm('Apagar esta reserva definitivamente?')">
+                                <form action="{{ route('reserva.eliminar', $reserva->id) }}" method="POST" onsubmit="return confirm('Apagar esta reserva definitivamente?')">
                                     @csrf @method('DELETE')
                                     <button type="submit" class="text-gray-300 hover:text-red-600 transition-colors p-2">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -116,7 +133,6 @@
         
         <div class="bg-white rounded-[40px] max-w-2xl w-full p-2 shadow-2xl overflow-hidden border border-white/20" @click.away="showModal = false">
             
-            {{-- Cabeçalho do Modal --}}
             <div class="flex justify-between items-center p-6">
                 <div>
                     <h3 class="font-black uppercase text-gray-900 text-[10px] tracking-[0.3em] italic">Validar_Pagamento.sys</h3>
@@ -125,20 +141,26 @@
                 <button @click="showModal = false" class="text-gray-400 hover:text-red-500 transition-colors text-2xl font-light">&times;</button>
             </div>
 
-            {{-- Imagem do Comprovativo (Lógica igual à Welcome) --}}
             <div class="rounded-[30px] overflow-hidden bg-gray-100 flex justify-center mx-2 mb-2 border border-gray-200">
                 <img :src="imgUrl" 
                      class="max-h-[70vh] w-auto object-contain shadow-inner"
                      onerror="this.src='https://placehold.co/600x800?text=Erro+ao+Carregar+Imagem'">
             </div>
 
-            {{-- Rodapé do Modal --}}
             <div class="p-6 flex gap-3">
                 <button @click="showModal = false" class="flex-1 bg-gray-100 text-gray-600 font-black py-4 rounded-2xl uppercase tracking-widest text-[10px] hover:bg-gray-200 transition-all">
                     Fechar
                 </button>
+                
+                {{-- Botão WhatsApp Dinâmico no Modal --}}
+                <a :href="'https://wa.me/' + clienteWhatsapp + '?text=Olá ' + clienteNome + ', estou analisando seu comprovativo.'" 
+                   target="_blank" 
+                   class="flex-1 bg-green-500 text-white font-black py-4 rounded-2xl uppercase tracking-widest text-[10px] text-center hover:bg-green-600 transition-all shadow-xl">
+                    WhatsApp 💬
+                </a>
+
                 <a :href="imgUrl" target="_blank" class="flex-1 bg-slate-900 text-white font-black py-4 rounded-2xl uppercase tracking-widest text-[10px] text-center hover:bg-sky-600 transition-all shadow-xl">
-                    Abrir Original
+                    Original 🖼️
                 </a>
             </div>
         </div>
@@ -147,7 +169,6 @@
 
 <style> 
     [x-cloak] { display: none !important; } 
-    /* Scrollbar personalizada para a tabela se for muito larga */
     .overflow-x-auto::-webkit-scrollbar { height: 4px; }
     .overflow-x-auto::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
 </style>

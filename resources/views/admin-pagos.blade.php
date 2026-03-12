@@ -17,14 +17,14 @@
                 {{ auth()->user()->role === 'admin' ? 'Faturamento Global' : 'Meu Faturamento' }}
             </p>
             <h3 class="text-2xl font-black text-white mt-2">
-                {{ number_format($pagos->sum('total'), 0, ',', '.') }} Kz
+                {{ number_format($pagamentos->sum('total'), 0, ',', '.') }} Kz
             </h3>
         </div>
         
         {{-- Card de Ingressos --}}
         <div class="post-card p-6 border-l-4 border-purple-500">
             <p class="text-[10px] font-black uppercase text-slate-500 tracking-widest">Bilhetes Vendidos</p>
-            <h3 class="text-2xl font-black text-white mt-2">{{ $pagos->count() }}</h3>
+            <h3 class="text-2xl font-black text-white mt-2">{{ $pagamentos->count() }}</h3>
         </div>
     </div>
 
@@ -40,16 +40,24 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach($pagos as $pago)
-                <tr class="border-b border-gray-50 hover:bg-gray-50/50 transition">
-                    <td class="p-6 font-bold text-gray-900">{{ $pago->nome_cliente }}</td>
-                    <td class="p-6 text-sm uppercase text-gray-600">{{ $pago->tipoIngresso->evento->titulo }}</td>
-                    <td class="p-6 text-center font-black text-gray-900">{{ $pago->quantidade }}</td>
-                    <td class="p-6 text-center font-bold text-green-600">{{ number_format($pago->total, 0, ',', '.') }} Kz</td>
-                    <td class="p-6 text-right text-xs text-gray-400 font-mono">{{ $pago->updated_at->format('d/m/Y H:i') }}</td>
-                </tr>
-                @endforeach
-            </tbody>
+    {{-- A variável enviada pelo Controller é $pagamentos --}}
+            @foreach($pagamentos as $pago)
+            <tr class="border-b border-gray-50 hover:bg-gray-50/50 transition">
+                {{-- Aqui usamos $pago (singular) para pegar os dados de cada linha --}}
+                <td class="p-6 font-bold text-gray-900">{{ $pago->nome_cliente }}</td>
+                <td class="p-6 text-sm uppercase text-gray-600">
+                    {{ $pago->tipoIngresso->evento->titulo ?? 'Evento não encontrado' }}
+                </td>
+                <td class="p-6 text-center font-black text-gray-900">{{ $pago->quantidade }}</td>
+                <td class="p-6 text-center font-bold text-green-600">
+                    {{ number_format($pago->total, 0, ',', '.') }} Kz
+                </td>
+                <td class="p-6 text-right text-xs text-gray-400 font-mono">
+                    {{ $pago->updated_at->format('d/m/Y H:i') }}
+                </td>
+            </tr>
+            @endforeach
+        </tbody>
         </table>
     </div>
 </div>

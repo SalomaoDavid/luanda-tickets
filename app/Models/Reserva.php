@@ -38,6 +38,11 @@ class Reserva extends Model
         return $this->belongsTo(TipoIngresso::class, 'tipo_ingresso_id');
     }
 
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
     // Se a tabela reservas não tem evento_id, o relacionamento passa pelo tipoIngresso
     public function evento()
     {

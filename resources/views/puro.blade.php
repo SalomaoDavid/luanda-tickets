@@ -1,155 +1,163 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="pt-br">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'Luanda Tickets')</title>
-    
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <meta charset="UTF-8">
+    <title>Luanda Tickets</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
     @livewireStyles
-
     <style>
-        .glass-panel {
-            background: rgba(15, 23, 42, 0.6) !important;
-            backdrop-filter: blur(20px) !important;
-            -webkit-backdrop-filter: blur(20px) !important;
-            border: 1px solid rgba(255, 255, 255, 0.1) !important;
-        }
-
-        * { -ms-overflow-style: none; scrollbar-width: none; }
-        *::-webkit-scrollbar { display: none; }
-
-        body {
-            background: #020617;
-            color: white;
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
-
-        .post-card { transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
         [x-cloak] { display: none !important; }
-
-        .bg-main-image {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            object-fit: cover; z-index: -20;
-            filter: brightness(0.6);
-        }
+        body { font-family: 'Inter', sans-serif; }
+        .glass { background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(18px); border-right: 1px solid rgba(59, 130, 246, 0.2); }
+        .active-link { color: #60a5fa; font-weight: 600; }
+        .hover-blue:hover { color: #60a5fa; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .page-transition { opacity: 0; transform: translateY(10px); animation: fadeIn 0.35s ease forwards; }
+        @keyframes fadeIn { to { opacity: 1; transform: translateY(0); } }
+        .btn-blue { background: #2563eb; color: white; padding: 8px 16px; border-radius: 12px; font-weight: 600; transition: 0.3s; }
+        .btn-blue:hover { background: #1d4ed8; }
     </style>
 </head>
-<body class="font-sans antialiased" x-data="{ sideMenu: false }">
-    <img src="{{ asset('images/luanda-noite.png') }}" class="bg-main-image" alt="Luanda Background">
+<body class="text-white relative bg-slate-900">
 
-    {{-- BARRA DE GESTÃO FLUTUANTE (Aparece apenas para Admin e Creator) --}}
-    @auth
-        @if(auth()->user()->role === 'admin' || auth()->user()->role === 'creator')
-            <div class="fixed top-6 right-6 z-[100] flex gap-3">
-                
-                {{-- Botão de Notificações/Mensagens rápido --}}
-                <a href="{{ route('mensagens.index') }}" class="glass-panel p-4 rounded-2xl hover:bg-sky-500/20 transition border border-white/10">
-                    <svg class="w-5 h-5 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
-                </a>
+@php $isHome = request()->routeIs('home'); @endphp
 
-                            
-                           {{-- Menu de Administração --}}
-                    <div x-data="{ open: false }" class="relative">
-                        <button @click="open = !open" class="glass-panel px-6 py-4 rounded-2xl flex items-center gap-3 border border-white/10 hover:border-sky-500/50 transition">
-                            <span class="text-[10px] font-black uppercase tracking-[0.2em] italic">Painel {{ ucfirst(auth()->user()->role) }}</span>
-                            <svg class="w-4 h-4 text-sky-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                            </svg>
-                        </button>
+<div class="fixed inset-0 -z-10">
+    <img src="{{ asset('images/luanda-noite.png') }}" class="w-full h-full object-cover brightness-50">
+</div>
 
-                        <div x-show="open" 
-                            x-transition:enter="transition ease-out duration-200"
-                            x-transition:enter-start="opacity-0 scale-95"
-                            x-transition:enter-end="opacity-100 scale-100"
-                            @click.away="open = false" 
-                            x-cloak 
-                            class="absolute right-0 mt-3 w-64 glass-panel rounded-[2rem] p-4 shadow-2xl border border-white/10 backdrop-blur-3xl z-[110]">
-                            
-                            <div class="flex flex-col gap-1">
-                                {{-- SEÇÃO: GESTÃO DE EVENTOS --}}
-                                <p class="px-4 py-2 text-[8px] font-black text-slate-500 uppercase tracking-widest">Gestão de Eventos</p>
-                                
-                                {{-- Criar Evento --}}
-                                <a href="{{ route('admin.eventos.criar') }}" class="flex items-center gap-3 px-4 py-3 hover:bg-sky-500 rounded-xl transition group">
-                                    <svg class="w-4 h-4 text-sky-400 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                                    <span class="text-[10px] font-bold uppercase tracking-wider group-hover:text-white text-slate-300">Criar Novo Evento</span>
-                                </a>
+<header class="glass fixed top-0 left-0 right-0 h-16 flex items-center justify-between px-10 z-50">
+    <a href="{{ route('home') }}" class="text-xl font-bold">
+        <span class="text-blue-400">Luanda</span> <span class="text-white">bilhetes</span>
+    </a>
 
-                                {{-- Meus Eventos / Lista --}}
-                                <a href="{{ route('admin.eventos') }}" class="flex items-center gap-3 px-4 py-3 hover:bg-sky-500 rounded-xl transition group text-slate-300">
-                                    <svg class="w-4 h-4 text-sky-400 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
-                                    <span class="text-[10px] font-bold uppercase tracking-wider group-hover:text-white">{{ auth()->user()->role === 'admin' ? 'Todos Eventos' : 'Meus Eventos' }}</span>
-                                </a>
+    <div class="hidden md:flex space-x-6 text-gray-300 items-center">
+        <a href="{{ route('home') }}" class="{{ request()->routeIs('home') ? 'active-link' : 'hover-blue' }}">Ínicio</a>
+        <a href="{{ route('eventos.todos') }}" class="{{ request()->routeIs('eventos.*') ? 'active-link' : 'hover-blue' }}">Explorar</a>
+        <a href="{{ route('noticias.index') }}" class="{{ request()->routeIs('noticias.*') ? 'active-link' : 'hover-blue' }}">Notícias</a>
+        @auth <a href="{{ route('mensagens.index') }}" class="{{ request()->routeIs('mensagens.*') ? 'active-link' : 'hover-blue' }}">Mensagens</a> @endauth
+        <form action="{{ route('eventos.todos') }}" method="GET">
+            <input type="text" name="search" placeholder="Buscar..." class="px-3 py-1 rounded-lg text-black text-sm focus:outline-none">
+        </form>
+    </div>
 
-                                {{-- SEÇÃO: FINANCEIRO --}}
-                                <div class="h-px bg-white/5 my-2"></div>
-                                <p class="px-4 py-2 text-[8px] font-black text-slate-500 uppercase tracking-widest">Financeiro & Reservas</p>
+    <div class="flex items-center space-x-4">
+        @guest
+            <a href="{{ route('login') }}" class="px-4 py-2 rounded-lg border border-blue-400 text-blue-400 hover:bg-blue-400 hover:text-white transition">Entrar</a>
+            <a href="{{ route('register') }}" class="btn-blue">Cadastrar</a>
+        @endguest
 
-                                {{-- Admin Pagos --}}
-                                <a href="{{ route('admin.pagos') }}" class="flex items-center gap-3 px-4 py-3 hover:bg-sky-500 rounded-xl transition group text-slate-300">
-                                    <svg class="w-4 h-4 text-green-500 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                    <span class="text-[10px] font-bold uppercase tracking-wider group-hover:text-white">Admin Pagos</span>
-                                </a>
-
-                                {{-- Admin Reservas --}}
-                                <a href="{{ route('admin.reservas') }}" class="flex items-center gap-3 px-4 py-3 hover:bg-sky-500 rounded-xl transition group text-slate-300">
-                                    <svg class="w-4 h-4 text-yellow-500 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2-2v12a2 2 0 002 2z"/></svg>
-                                    <span class="text-[10px] font-bold uppercase tracking-wider group-hover:text-white">Admin Reservas</span>
-                                </a>
-
-                                {{-- SEÇÃO EXCLUSIVA: ADMIN --}}
-                                @if(auth()->user()->role === 'admin')
-                                    <div class="h-px bg-white/5 my-2"></div>
-                                    <p class="px-4 py-2 text-[8px] font-black text-sky-500 uppercase tracking-widest text-slate-300">Administração Total</p>
-                                    
-                                    {{-- Usuários --}}
-                                    <a href="{{ route('admin.usuarios.index') }}" class="flex items-center gap-3 px-4 py-3 hover:bg-sky-500 rounded-xl transition group text-slate-300">
-                                        <svg class="w-4 h-4 text-sky-400 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
-                                        <span class="text-[10px] font-bold uppercase tracking-wider group-hover:text-white">Gerir Usuários</span>
-                                    </a>
-
-                                    {{-- Sincronizar Notícias --}}
-                                    <a href="{{ route('noticias.sincronizar') }}" class="flex items-center gap-3 px-4 py-3 hover:bg-sky-500 rounded-xl transition group text-slate-300">
-                                        <svg class="w-4 h-4 text-sky-400 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m13 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                                        <span class="text-[10px] font-bold uppercase tracking-wider group-hover:text-white">Sincronizar Notícias</span>
-                                    </a>
-                                @endif
-                            </div>
-                        </div>
-                    </div>             
+        @auth
+        @php
+            $user = auth()->user();
+            $unread = $user->unreadNotifications->count();
+        @endphp
+        <div x-data="{ open: false }" class="relative">
+            <button @click="open = !open" class="relative focus:outline-none">
+                <img src="{{ $user->avatar ? asset('storage/' . $user->avatar) : 'https://ui-avatars.com/api/?name=' . urlencode($user->name) }}" class="w-10 h-10 rounded-full object-cover border-2 border-blue-400">
+                @if($unread > 0) <span class="absolute -top-1 -right-1 bg-red-600 text-xs px-1.5 rounded-full">{{ $unread }}</span> @endif
+            </button>
+            <div x-show="open" x-cloak @click.away="open = false" x-transition class="absolute right-0 mt-3 w-56 bg-white text-gray-800 rounded-2xl shadow-2xl overflow-hidden z-[60]">
+                <div class="p-4 border-b">
+                    <p class="font-semibold">{{ explode(' ', $user->name)[0] }}</p>
+                    <p class="text-sm text-gray-500">{{ ucfirst($user->role) }}</p>
+                </div>
+                <a href="{{ route('profile.edit') }}" class="block px-4 py-3 hover:bg-blue-50">Perfil</a>
+                <form method="POST" action="{{ route('logout') }}"> @csrf <button class="w-full text-left px-4 py-3 hover:bg-red-100 text-red-600">Sair</button></form>
             </div>
+        </div>
+        @endauth
+    </div>
+</header>
+
+@if($isHome)
+  <div class="flex pt-16 h-screen overflow-hidden">
+     <aside class="w-72 glass fixed left-0 top-16 bottom-0 p-6 
+              overflow-y-auto no-scrollbar flex flex-col">
+
+    @auth
+    @php
+        $user = auth()->user();
+        $firstName = explode(' ', $user->name)[0];
+        $role = ucfirst($user->role);
+    @endphp
+
+    <div class="mb-8 text-center">
+        <img src="{{ $user->avatar 
+        ? asset('storage/' . $user->avatar) 
+        : 'https://ui-avatars.com/api/?name=' . urlencode($user->name) . '&background=0ea5e9&color=fff&size=128' }}"
+        class="w-20 h-20 mx-auto rounded-full object-cover border-4 border-blue-400 shadow-lg">
+
+        <p class="mt-3 font-semibold text-lg uppercase tracking-wider text-white">
+            {{ $firstName }}
+        </p>
+
+        <p class="text-sm text-gray-400">
+            {{ $role }}
+        </p>
+    </div>
+    @endauth
+
+    <p class="text-gray-400 text-xs mb-2 font-bold uppercase">Geral</p>
+    <nav class="flex flex-col space-y-3 mb-6 text-gray-300">
+        <a href="{{ route('home') }}" class="block hover-blue">🏠 Início</a>
+        <a href="{{ route('eventos.todos') }}" class="block hover-blue">🎟 Eventos</a>
+
+        @auth
+        <a href="{{ route('mensagens.index') }}" class="block hover-blue">💬 Mensagens</a>
+        <a href="{{ route('profile.edit') }}" class="block hover-blue">👤 Perfil</a>
+        @endauth
+    </nav>
+
+    @auth
+        {{-- MENU PARA ADMIN --}}
+        @if($user->role === 'admin')
+            <p class="text-gray-400 text-xs mb-2 font-bold uppercase border-t border-gray-700 pt-4">Administração</p>
+            <nav class="flex flex-col space-y-3 mb-6 text-gray-300">
+                <a href="{{ route('admin.dashboard') }}" class="block hover-blue">📊 Dashboard</a>
+                <a href="{{ route('admin.usuarios.index') }}" class="block hover-blue">👥 Usuários</a>
+                <a href="{{ route('admin.eventos') }}" class="block hover-blue">🎫 Gerenciar Eventos</a>
+                <a href="{{ route('admin.reservas') }}" class="block hover-blue">📦 Reservas Gerais</a>
+                <a href="{{ route('admin.pagos') }}" class="block hover-blue">💰 Pagamentos</a>
+                <a href="{{ route('admin.scanner') }}" class="block hover-blue">📸 Validar Bilhete</a>
+            </nav>
+
+        {{-- MENU PARA CRIADOR --}}
+        @elseif($user->role === 'creator')
+            <p class="text-gray-400 text-xs mb-2 font-bold uppercase border-t border-gray-700 pt-4">Painel Criador</p>
+            <nav class="flex flex-col space-y-3 mb-6 text-gray-300">
+                <a href="{{ route('admin.eventos') }}" class="block hover-blue">📋 Meus Eventos</a>
+                <a href="{{ route('admin.eventos.criar') }}" class="block hover-blue">➕ Criar Evento</a>
+                <a href="{{ route('admin.reservas') }}" class="block hover-blue">📦 Minhas Reservas</a>
+                <a href="{{ route('admin.pagos') }}" class="block hover-blue">💰 Meus Ganhos</a>
+            </nav>
         @endif
     @endauth
 
-    <div class="relative z-10">
+   </aside>
+    <main class="flex-1 ml-72 mr-72 overflow-y-auto no-scrollbar p-10 page-transition">
         @yield('content')
         {{ $slot ?? '' }}
-    </div>
+    </main>
+    <aside class="w-72 glass fixed right-0 top-16 bottom-0 p-6">
+        <h2 class="text-xl font-bold mb-6 text-blue-400">Populares</h2>
+        @foreach(\App\Models\Evento::latest()->take(3)->get() as $ev)
+            <a href="{{ route('evento.detalhes', $ev->id) }}" class="block bg-gray-800 p-4 rounded-2xl mb-4 text-sm">{{ $ev->titulo }}</a>
+        @endforeach
+    </aside>
+</div>
+@else
+<div class="pt-20 min-h-screen page-transition">
+    <main class="max-w-6xl mx-auto p-10">
+        @yield('content')
+        {{ $slot ?? '' }}
+    </main>
+</div>
+@endif
 
-    {{-- MODAL DE LOGIN --}}
-    <div id="loginModal" class="fixed inset-0 bg-black/90 backdrop-blur-xl z-[9999] hidden flex items-center justify-center p-4">
-        <div class="glass-panel p-10 rounded-[40px] max-w-sm w-full text-center border border-white/20">
-            <h3 class="text-white font-black text-xl uppercase italic mb-6">Acesso Restrito</h3>
-            <p class="text-slate-400 text-xs mb-8">Faça login para interagir com a comunidade Luanda Tickets.</p>
-            <div class="flex flex-col gap-3">
-                <a href="{{ route('login') }}" class="block w-full py-4 bg-sky-500 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-sky-400 transition">Entrar Agora</a>
-                <button onclick="document.getElementById('loginModal').classList.add('hidden')" class="text-slate-500 font-black text-[10px] uppercase py-2 text-slate-300">Voltar</button>
-            </div>
-        </div>
-    </div>
-
-    @livewireScripts
-    @stack('scripts')
-
-    <script>
-        function openLoginModal() {
-            document.getElementById('loginModal').classList.remove('hidden');
-        }
-    </script>
+@livewireScripts
 </body>
 </html>
 
@@ -171,173 +179,160 @@
 @section('title', 'Luanda Tickets - Rede Social de Entretenimento')
 
 @section('content')
-<div class="px-4">
-    <div class="main-grid">
-        
-        <aside class="left-sidebar">
-            <div class="sticky top-24 space-y-2">
-                <nav class="space-y-1">
-                    <a href="{{ route('home') }}" class="flex items-center gap-4 text-sky-500 font-black text-xs uppercase p-4 bg-sky-500/10 rounded-2xl border border-sky-500/20 transition-all">
-                        <span class="text-xl">🏠</span> Feed de Eventos
-                    </a>
-                    <a href="{{ route('eventos.todos') }}" class="flex items-center gap-4 text-slate-400 font-black text-xs uppercase p-4 hover:bg-white/5 hover:text-white rounded-2xl transition-all">
-                        <span class="text-xl">🎫</span> Explorar Bilhetes
-                    </a>
-                    <a href="#" class="flex items-center gap-4 text-slate-400 font-black text-xs uppercase p-4 hover:bg-white/5 hover:text-white rounded-2xl transition-all">
-                        <span class="text-xl">⭐</span> Artistas VIP
-                    </a>
-                    <a href="{{ route('noticias.index') }}" class="flex items-center gap-4 text-slate-400 font-black text-xs uppercase p-4 hover:bg-white/5 hover:text-white rounded-2xl transition-all">
-                        <span class="text-xl">📰</span> Notícias
-                    </a>
-                </nav>
 
-                <div class="px-4 py-8 border-t border-white/5 mt-4">
-                    <p class="text-[8px] text-slate-600 uppercase font-black tracking-[0.3em]">Luanda Tickets &bull; 2026</p>
-                </div>
+<!-- Espaço de publicação -->
+<div class="bg-white p-4 rounded-3xl shadow-xl">
+    <form method="POST" action="{{ route('social.publicar') }}">
+        @csrf
+        <textarea name="conteudo" placeholder="O que estás a pensar?"
+                  class="w-full bg-gray-100 text-gray-800 p-3 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  rows="2"></textarea>
+
+        <div class="flex justify-between items-center mt-3">
+            <div class="text-gray-400 text-sm">
+                📷 Foto | 🎥 Vídeo | 🎟 Evento
             </div>
-        </aside>
+            <button type="submit" class="bg-blue-500 text-white px-5 py-1.5 rounded-xl font-semibold hover:scale-105 transition">
+                Publicar
+            </button>
+        </div>
+    </form>
+</div>
 
-        <main>
-            <div class="flex gap-6 overflow-x-auto pb-8 no-scrollbar">
-                @foreach($eventos->take(8) as $e)
-                <div class="flex flex-col items-center gap-2 min-w-[80px] group cursor-pointer">
-                    <div class="story-circle group-hover:scale-105 transition-transform">
-                        <img src="{{ asset('storage/' . $e->imagem_capa) }}" class="story-img">
-                    </div>
-                    <span class="text-[9px] text-slate-400 font-bold uppercase tracking-tighter truncate w-16 text-center group-hover:text-sky-400 transition-colors">{{ $e->titulo }}</span>
-                </div>
-                @endforeach
+<!-- Stories / Eventos em Carrossel -->
+<div class="relative overflow-hidden my-4">
+    <div id="stories-track" class="flex space-x-6 pb-4 transition-transform duration-500 ease-in-out">
+        @foreach($eventos as $evento)
+        <div class="text-center flex-shrink-0">
+            <div class="w-20 h-20 rounded-full border-4 border-blue-400 overflow-hidden shadow-lg">
+                <img src="{{ $evento->imagem_capa ? asset('storage/' . $evento->imagem_capa) : 'https://picsum.photos/200' }}"
+                     class="w-full h-full object-cover">
             </div>
-
-            @foreach($eventos as $evento)
-            <article class="post-card">
-                <div class="p-4 flex items-center justify-between">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-full bg-sky-900 flex items-center justify-center font-black text-sky-400 text-xs italic border border-sky-500/30 shadow-inner">LT</div>
-                        <div>
-                            <div class="flex items-center">
-                                <h5 class="text-white font-black text-[11px] uppercase italic">Luanda Tickets Oficial</h5>
-                                <span class="verified-badge">✓</span>
-                            </div>
-                            <span class="text-[9px] text-slate-500 uppercase tracking-widest">Postado em Luanda</span>
-                        </div>
-                    </div>
-                    <button class="text-slate-500 hover:text-white transition">•••</button>
-                </div>
-
-                <div class="relative group">
-                    <img src="{{ asset('storage/' . $evento->imagem_capa) }}" class="w-full aspect-video object-cover transition-all duration-700 group-hover:brightness-75">
-                    <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center backdrop-blur-sm">
-                        <a href="{{ route('evento.detalhes', $evento->id) }}" class="bg-white text-black px-8 py-3 rounded-full font-black text-[10px] uppercase tracking-widest scale-90 group-hover:scale-100 transition shadow-2xl hover:bg-sky-500 hover:text-white">Adquirir Pass</a>
-                    </div>
-                </div>
-
-                <div class="p-6">
-                    <div class="flex items-center justify-between mb-6">
-                        <div class="flex gap-6">
-                            <button onclick="openModal(event)" class="flex items-center gap-2 text-white/70 hover:text-red-500 transition font-black text-xs">❤️ <span>{{ $evento->curtidas->count() }}</span></button>
-                            <button onclick="openModal(event)" class="flex items-center gap-2 text-white/70 hover:text-sky-500 transition font-black text-xs">💬 <span>12</span></button>
-                            <button class="flex items-center gap-2 text-white/70 hover:text-green-500 transition font-black text-xs">🔗</button>
-                        </div>
-                        <div class="photo-stack flex items-center">
-                            <img src="https://i.pravatar.cc/100?u=1">
-                            <img src="https://i.pravatar.cc/100?u=2">
-                            <img src="https://i.pravatar.cc/100?u=3">
-                            <span class="text-[9px] text-slate-500 ml-2 font-black uppercase">+{{ rand(20, 100) }} Vão</span>
-                        </div>
-                    </div>
-
-                    <h3 class="text-2xl font-black text-white italic uppercase tracking-tighter mb-2">{{ $evento->titulo }}</h3>
-                    <p class="text-slate-400 text-xs leading-relaxed mb-6 line-clamp-2 italic">{{ $evento->descricao }}</p>
-
-                    <div class="bg-white/5 rounded-2xl p-4 border border-white/5">
-                        <div class="flex items-center gap-2 mb-2">
-                            <span class="text-[10px] font-black text-sky-400 uppercase italic">Destaque</span>
-                            <span class="verified-badge">✓</span>
-                        </div>
-                        <p class="text-[11px] text-slate-300 italic">"Garante já o teu lugar, os bilhetes estão a voar! 🚀"</p>
-                    </div>
-                </div>
-            </article>
-            @endforeach
-        </main>
-
-        <aside class="right-sidebar">
-            <div class="sticky top-24 space-y-6">
-                <div class="post-card p-6">
-                    <h3 class="text-white font-black text-[10px] uppercase italic tracking-[0.2em] mb-6 text-sky-500">// EM_ALTA_LUANDA</h3>
-                    <div class="space-y-4">
-                        @foreach($eventos->take(4) as $index => $trend)
-                        <div class="trending-item group cursor-pointer border-b border-white/5 pb-2 last:border-0">
-                            <p class="text-[9px] text-slate-500 font-black uppercase italic">{{ $index + 1 }} º • {{ $trend->categoria->nome ?? 'Show' }}</p>
-                            <h5 class="text-white font-black text-xs uppercase group-hover:text-sky-500 transition italic truncate">{{ $trend->titulo }}</h5>
-                            <span class="text-[9px] text-sky-500/50 font-black uppercase">{{ rand(100, 500) }} Menções</span>
-                        </div>
-                        @endforeach
-                    </div>
-                </div>
-
-                <div class="post-card p-6">
-                    <h3 class="text-white font-black text-[10px] uppercase italic tracking-[0.2em] mb-6 text-sky-500">// ARTISTAS_VIP</h3>
-                    <div class="space-y-4">
-                        <div class="flex items-center justify-between group">
-                            <div class="flex items-center gap-3">
-                                <div class="relative">
-                                    <img src="https://i.pravatar.cc/100?u=c4" class="w-9 h-9 rounded-full border border-sky-500/50 group-hover:scale-110 transition-transform">
-                                    <span class="absolute bottom-0 right-0 w-2 h-2 bg-green-500 rounded-full border border-[#020617]"></span>
-                                </div>
-                                <div>
-                                    <h6 class="text-white font-black text-[10px] uppercase flex items-center">C4 Pedro <span class="verified-badge">✓</span></h6>
-                                    <span class="text-[8px] text-slate-500 uppercase">Ativo agora</span>
-                                </div>
-                            </div>
-                            <button onclick="openModal(event)" class="text-[9px] font-black text-sky-500 uppercase border border-sky-500/20 px-3 py-1 rounded-lg hover:bg-sky-500 hover:text-white transition-all">Seguir</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </aside>
-
+            <p class="mt-1 text-sm text-gray-800 truncate w-20">{{ $evento->titulo }}</p>
+        </div>
+        @endforeach
     </div>
 </div>
 
-{{-- MODAL DE ACESSO RESTRITO --}}
-<div id="loginModal" class="fixed inset-0 bg-black/90 backdrop-blur-xl z-[2000] hidden flex items-center justify-center p-4">
-    <div class="bg-slate-900 border border-white/10 p-10 rounded-[40px] max-w-sm w-full text-center shadow-2xl relative overflow-hidden">
-        <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-sky-500 to-transparent"></div>
-        <div class="w-20 h-20 bg-sky-500/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-sky-500/20">
-            <span class="text-4xl">🔑</span>
+<!-- Posts -->
+@foreach($eventos as $evento)
+<div class="bg-white rounded-3xl shadow-2xl overflow-hidden mb-6">
+
+    <!-- Cabeçalho: foto do criador + nome + data -->
+    <div class="flex items-center space-x-3 p-4">
+        <img src="{{ $evento->user && $evento->user->avatar
+            ? asset('storage/' . $evento->user->avatar)
+            : 'https://ui-avatars.com/api/?name=' . urlencode($evento->user->name ?? 'U') . '&background=0ea5e9&color=fff&size=128' }}"
+             class="w-11 h-11 rounded-full border-2 border-blue-400 object-cover">
+        <div>
+            <h3 class="font-bold text-sm text-gray-900">
+                {{ $evento->user ? $evento->user->name : 'Usuário' }}
+            </h3>
+            <p class="text-xs text-gray-400">
+                {{ \Carbon\Carbon::parse($evento->data_evento)->diffForHumans() }}
+            </p>
         </div>
-        <h3 class="text-white font-black text-xl uppercase italic mb-2 tracking-tighter">Entrada Restrita</h3>
-        <p class="text-slate-400 text-[10px] mb-8 uppercase tracking-[0.1em] leading-relaxed">
-            Faz login na tua conta para interagir com o feed e reservar os teus bilhetes.
+    </div>
+
+    <!-- PARTE SUPERIOR: Foto do evento + título sobreposto -->
+    <div class="relative">
+        @if($evento->imagem_capa)
+            <img src="{{ asset('storage/' . $evento->imagem_capa) }}" class="w-full h-56 object-cover">
+        @else
+            <div class="w-full h-56 bg-gradient-to-br from-blue-600 to-blue-900 flex items-center justify-center">
+                <span class="text-white text-4xl">🎟</span>
+            </div>
+        @endif
+
+        <!-- Título sobre a foto -->
+        <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent px-5 py-4">
+            <h2 class="text-white text-lg font-bold drop-shadow">{{ $evento->titulo }}</h2>
+        </div>
+    </div>
+
+    <!-- PARTE INFERIOR: Informações + ações -->
+    <div class="p-5">
+
+        <!-- Detalhes do evento -->
+        <div class="flex flex-col space-y-1 text-sm text-gray-500 mb-4">
+            <span>📍 {{ $evento->localizacao ?? 'Local não informado' }}</span>
+            <span>📅 {{ \Carbon\Carbon::parse($evento->data_evento)->format('d/m/Y') }}</span>
+            <span>🕐 {{ \Carbon\Carbon::parse($evento->data_evento)->format('H:i') }}</span>
+        </div>
+
+        <!-- Descrição -->
+        <p class="text-gray-600 text-sm leading-relaxed line-clamp-2 mb-4">
+            {{ $evento->descricao }}
         </p>
-        <div class="space-y-3">
-            <a href="{{ route('login') }}" class="block w-full py-4 bg-sky-500 text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-sky-400 transition-all shadow-lg shadow-sky-500/20">Fazer Login</a>
-            <button onclick="closeModal()" class="block w-full py-4 text-slate-600 font-black text-[10px] uppercase tracking-[0.2em] hover:text-white transition">Fechar</button>
+
+        <!-- Ações -->
+        <div class="flex justify-between items-center text-gray-500 text-sm border-t pt-4">
+
+            <div class="flex flex-col space-y-2">
+                <!-- Botão curtir -->
+                <form method="POST" action="{{ route('evento.curtir', $evento->id) }}">
+                    @csrf
+                    <button type="submit" class="hover:text-blue-500 transition duration-300">
+                        👍 Curtir ({{ $evento->curtidas->count() }})
+                    </button>
+                </form>
+
+                <!-- Fotos dos utilizadores que curtiram -->
+                @if($evento->usuariosQueCurtiram->count() > 0)
+                <div class="flex items-center">
+                    @foreach($evento->usuariosQueCurtiram->take(5) as $user)
+                    <img src="{{ $user->avatar
+                        ? asset('storage/' . $user->avatar)
+                        : 'https://ui-avatars.com/api/?name=' . urlencode($user->name) . '&background=0ea5e9&color=fff&size=64' }}"
+                         class="w-6 h-6 rounded-full border-2 border-white object-cover -ml-1 first:ml-0"
+                         title="{{ $user->name }}">
+                    @endforeach
+
+                    @if($evento->usuariosQueCurtiram->count() > 5)
+                        <span class="text-xs text-gray-400 ml-2">+{{ $evento->usuariosQueCurtiram->count() - 5 }}</span>
+                    @endif
+                </div>
+                @endif
+            </div>
+
+            <button class="hover:text-blue-500 transition duration-300">
+                💬 Comentar
+            </button>
+
+            <a href="{{ route('evento.detalhes', $evento->id) }}"
+               class="bg-blue-500 text-white px-4 py-1.5 rounded-xl font-semibold hover:scale-105 transition">
+                🎟 Comprar
+            </a>
         </div>
+
     </div>
 </div>
+@endforeach
 
 <script>
-    function openModal(e) {
-        @guest
-            if(e) e.preventDefault();
-            document.getElementById('loginModal').classList.remove('hidden');
-        @else
-            console.log("Ação permitida");
-        @endguest
-    }
+    document.addEventListener('DOMContentLoaded', function () {
+        const track = document.getElementById('stories-track');
+        const itemWidth = 104;
+        let currentIndex = 0;
+        const totalItems = track.children.length;
 
-    function closeModal() {
-        document.getElementById('loginModal').classList.add('hidden');
-    }
+        setInterval(() => {
+            if (totalItems <= 1) return;
 
-    window.onclick = function(event) {
-        let modal = document.getElementById('loginModal');
-        if (event.target == modal) {
-            closeModal();
-        }
-    }
+            currentIndex++;
+
+            if (currentIndex >= totalItems) {
+                currentIndex = 0;
+                track.style.transition = 'none';
+                track.style.transform = `translateX(0px)`;
+                return;
+            }
+
+            track.style.transition = 'transform 0.5s ease-in-out';
+            track.style.transform = `translateX(-${currentIndex * itemWidth}px)`;
+
+        }, 2500);
+    });
 </script>
 @endsection
+

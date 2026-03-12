@@ -12,7 +12,7 @@ class Conversation extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['sender_id', 'receiver_id', 'titulo', 'tipo', 'evento_id'];
+    protected $fillable = ['sender_id', 'receiver_id', 'titulo', 'tipo', 'evento_id', 'is_blocked', 'blocked_by'];
 
     /**
      * Retorna a outra pessoa da conversa

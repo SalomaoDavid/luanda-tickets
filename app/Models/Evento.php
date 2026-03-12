@@ -10,6 +10,7 @@ class Evento extends Model
     use HasFactory;
 
     protected $fillable = [
+        'user_id',
         'categoria_id', 
         'titulo', 
         'descricao', 
@@ -50,6 +51,21 @@ class Evento extends Model
         return $this->belongsToMany(User::class, 'curtidas')->withTimestamps();
     }
     // app/Models/Evento.php
+
+    public function user()
+    {
+        return $this->belongsTo(\App\Models\User::class);
+    }
+    
+    public function comentarios()
+    {
+        return $this->hasMany(Comentario::class)->whereNull('parent_id')->with('user', 'respostas', 'likes')->latest();
+    }
+
+    public function usuariosQueComentaram()
+    {
+        return $this->belongsToMany(User::class, 'comentarios', 'evento_id', 'user_id')->distinct();
+    }
 }
 
  

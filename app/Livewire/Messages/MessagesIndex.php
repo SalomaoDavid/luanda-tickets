@@ -7,7 +7,7 @@ use App\Models\Conversation;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
-class MessagesIndex extends Component // Corrigido de Components para Component
+class MessagesIndex extends Component 
 {
     public $selectedConversation;
     public $searchUser = '';
@@ -15,22 +15,32 @@ class MessagesIndex extends Component // Corrigido de Components para Component
 
     protected $listeners = ['refresh' => '$refresh', 'refresh-list' => '$refresh'];
 
+            
     public function mount($conversation = null)
-    {
-        if (request()->has('user_id')) {
-            $this->startChat(request('user_id'));
+{
+    // Bypass total: Lendo direto da URL do navegador
+    $urlUserId = $_GET['user_id'] ?? null;
+    $urlEventoId = $_GET['evento_id'] ?? null;
+
+    if ($urlUserId && $urlUserId != auth()->id()) {
+        // Chamamos o startChat e forçamos a execução
+        $this->startChat($urlUserId, $urlEventoId);
+        
+        // Se a conversa foi preenchida, não fazemos mais nada
+        if ($this->selectedConversation) {
             return;
         }
-
-        if ($conversation) {
-            $this->selectedConversation = Conversation::find($conversation);
-        } else {
-            // Pega a conversa que teve a mensagem mais recente
-            $this->selectedConversation = auth()->user()->conversations()
-                ->orderBy('updated_at', 'desc')
-                ->first();
-        }
     }
+
+    // Se o bypass falhar ou não houver parâmetros, segue a vida normal
+    if ($conversation) {
+        $this->selectedConversation = \App\Models\Conversation::find($conversation);
+    } else {
+        $this->selectedConversation = auth()->user()->conversations()
+            ->orderBy('updated_at', 'desc')
+            ->first();
+    }
+}
 
     public function updatedSearchUser($value)
     {
@@ -64,38 +74,48 @@ class MessagesIndex extends Component // Corrigido de Components para Component
         }
     }
 
-    public function toggleBlock($conversationId)
-    {
-        $conv = Conversation::find($conversationId);
-        if ($conv) {
-            // Inverte o status de bloqueio (requer coluna is_blocked na tabela conversations)
-            $conv->update(['is_blocked' => !$conv->is_blocked]);
-            $this->dispatch('refresh-list');
+    
+            public function startChat($userId, $eventoId = null)
+        {
+            $authId = auth()->id();
+            $authUser = auth()->user();
+
+            // --- LÓGICA DE DECISÃO PRIORIZANDO O EVENTO ---
+            $tipoDefinido = 'pessoal'; 
+
+            if ($eventoId) {
+                // Se existe um ID de evento, o contexto É o evento (Venda/Interesse)
+                $tipoDefinido = 'evento'; 
+            } elseif ($authUser->role === 'admin') {
+                // Se não for evento e for admin, é um aviso oficial
+                $tipoDefinido = 'aviso_admin'; 
+            }
+
+            // 2. Busca a conversa existente
+            $conversation = \App\Models\Conversation::where('evento_id', $eventoId)
+                ->where(function($q) use ($authId, $userId) {
+                    $q->where(function($inner) use ($authId, $userId) {
+                        $inner->where('sender_id', $authId)->where('receiver_id', $userId);
+                    })->orWhere(function($inner) use ($authId, $userId) {
+                        $inner->where('sender_id', $userId)->where('receiver_id', $authId);
+                    });
+                })->first();
+
+            // 3. Criação com o título específico de "Evento"
+            if (!$conversation) {
+                $evento = \App\Models\Evento::find($eventoId);
+                
+                $conversation = \App\Models\Conversation::create([
+                    'sender_id'   => $authId,
+                    'receiver_id' => $userId,
+                    'evento_id'   => $eventoId,
+                    'titulo'      => $evento ? "Interesse: " . $evento->titulo : "Conversa sobre Evento",
+                    'tipo'        => $tipoDefinido,
+                ]);
+            }
+
+            $this->selectedConversation = $conversation;
         }
-    }
-
-    public function startChat($userId)
-    {
-        $authId = auth()->id();
-
-        $conversation = Conversation::where(function($query) use ($authId, $userId) {
-            $query->where('sender_id', $authId)->where('receiver_id', $userId);
-        })->orWhere(function($query) use ($authId, $userId) {
-            $query->where('sender_id', $userId)->where('receiver_id', $authId);
-        })->first();
-
-        if (!$conversation) {
-            $conversation = Conversation::create([
-                'sender_id' => $authId,
-                'receiver_id' => $userId,
-            ]);
-        }
-
-        $this->searchUser = '';
-        $this->searchResults = [];
-        $this->selectedConversation = $conversation;
-        $this->dispatch('refresh-list');
-    }
 
     public function render()
     {

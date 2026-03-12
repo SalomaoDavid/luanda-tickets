@@ -88,4 +88,18 @@ class User extends Authenticatable
     {
         return $this->last_seen && $this->last_seen->diffInMinutes(now()) < 5;
     }
+    public function eventos()
+    {
+        return $this->hasMany(\App\Models\Evento::class);
+    }
+
+    public function postagens()
+    {
+        return $this->hasMany(\App\Models\Postagem::class);
+    }
+
+    public function eventosCurtidos()
+    {
+        return $this->belongsToMany(\App\Models\Evento::class, 'curtidas', 'user_id', 'evento_id')->withTimestamps();
+    }
 }

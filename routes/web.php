@@ -5,6 +5,7 @@ use App\Http\Controllers\SiteController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\NewsController;
 use App\Http\Controllers\BookingController;
+use App\Http\Controllers\ReservaController;
 use App\Http\Controllers\SocialController;
 use App\Http\Controllers\AdminEventoController;
 use App\Http\Controllers\Admin\UserController;
@@ -36,16 +37,23 @@ Route::middleware(['auth', 'verified'])->group(function () {
     })->name('dashboard');
 
     // Interações
+    Route::post('/evento/{id}/comentar', [SocialController::class, 'comentar'])->name('evento.comentar')->middleware('auth');
+    Route::post('/comentario/{id}/like', [SocialController::class, 'toggleLikeComentario'])->name('comentario.like')->middleware('auth');
+    Route::delete('/comentario/{id}', [SocialController::class, 'eliminarComentario'])->name('comentario.eliminar')->middleware('auth');
     Route::post('/evento/{id}/curtir', [SocialController::class, 'toggleCurtida'])->name('evento.curtir');
     Route::post('/evento/{id}/dislike', [SocialController::class, 'toggleDislike'])->name('evento.dislike');
-    Route::post('/evento-detalhes', [BookingController::class, 'guardarReserva'])->name('reserva.guardar');
+    Route::post('/evento-detalhes', [ReservaController::class, 'store'])->name('reserva.guardar');
     Route::post('/social/publicar', [SocialController::class, 'publicar'])->name('social.publicar');
+    Route::delete('/post/{id}/eliminar', [SocialController::class, 'eliminarPost'])->name('post.eliminar');
 
     // Perfil do Usuário
+    Route::get('/u/{id}', [ProfileController::class, 'show'])->name('profile.show');
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-    Route::get('/mensagens/{conversation?}', \App\Livewire\Messages\MessagesIndex::class)->name('mensagens.index');
+    Route::get('/mensagens/{conversation?}', \App\Livewire\Messages\MessagesIndex::class)
+    ->where('conversation', '[0-9]+') // Garante que o parâmetro seja um número
+    ->name('mensagens.index');
 });
 
 /*

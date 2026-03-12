@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileUpdateRequest;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -19,6 +20,36 @@ class ProfileController extends Controller
         return view('profile.edit', [
             'user' => $request->user(),
         ]);
+    }
+
+    public function show($id): View
+    {
+        $user = User::findOrFail($id);
+        $isOwner = auth()->id() === $user->id;
+        
+        $postagens = $user->postagens()->latest()->get();
+
+        if ($user->role === 'admin') {
+            $eventos = \App\Models\Evento::latest()->get();
+            $statsLabel = 'Total Eventos';
+            $statsCount = $eventos->count();
+            $statsLabel2 = 'Utilizadores';
+            $statsCount2 = User::count();
+        } elseif ($user->role === 'creator') {
+            $eventos = $user->eventos()->latest()->get();
+            $statsLabel = 'Eventos';
+            $statsCount = $eventos->count();
+            $statsLabel2 = 'Seguidores';
+            $statsCount2 = 0;
+        } else {
+            $eventos = $user->eventosCurtidos()->latest()->get();
+            $statsLabel = 'Curtidos';
+            $statsCount = $eventos->count();
+            $statsLabel2 = 'Seguidores';
+            $statsCount2 = 0;
+        }
+
+        return view('profile.show', compact('user', 'isOwner', 'postagens', 'eventos', 'statsLabel', 'statsCount', 'statsLabel2', 'statsCount2'));
     }
 
     /**
@@ -69,5 +100,5 @@ class ProfileController extends Controller
 
         return Redirect::to('/');
     }
-
+    
 }

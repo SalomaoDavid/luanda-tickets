@@ -23,6 +23,7 @@ class ChatBox extends Component
     {
         if ($conversation && $conversation->exists) {
             $this->conversation = $conversation;
+            $this->messageBody = ''; // Garante campo limpo
             $this->markAsRead();
         }
     }
@@ -59,20 +60,24 @@ class ChatBox extends Component
     {
         if (!$this->conversation) return;
 
-        // Forçamos a atualização direta no modelo carregado
+        $userId = auth()->id();
+
+        // Só quem bloqueou pode desbloquear
+        if ($this->conversation->is_blocked && $this->conversation->blocked_by !== $userId) {
+            return; // Não faz nada — não foi tu que bloqueaste
+        }
+
         $this->conversation->is_blocked = !$this->conversation->is_blocked;
+        $this->conversation->blocked_by = $this->conversation->is_blocked ? $userId : null;
         $this->conversation->save();
 
-        // Limpa o corpo da mensagem se bloqueou
         if ($this->conversation->is_blocked) {
             $this->messageBody = '';
         }
 
-        // Refresh sincronizado
-        $this->dispatch('refresh-list'); // Atualiza a sidebar (MessagesIndex)
-        $this->dispatch('$refresh');      // Força o ChatBox a renderizar de novo
+        $this->dispatch('refresh-list');
+        $this->dispatch('$refresh');
     }
-
     /**
      * Limpa as mensagens (Mantém a conversa na lista)
      */

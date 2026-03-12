@@ -66,4 +66,26 @@ class BookingController extends Controller
 
     return view('admin-pagos', compact('pagamentos'));
 }
+
+public function adminReservas()
+{
+    $user = auth()->user();
+    
+    // Inicia a query buscando reservas pendentes
+    $query = \App\Models\Reserva::where('status', 'pendente');
+
+    // Se não for admin, filtra para mostrar apenas reservas dos eventos deste criador
+    if ($user->role !== 'admin') {
+        $query->whereHas('tipoIngresso.evento', function($q) use ($user) {
+            $q->where('user_id', $user->id);
+        });
+    }
+
+    $reservas = $query->with(['tipoIngresso.evento', 'user'])
+                      ->orderBy('created_at', 'desc')
+                      ->get();
+
+    return view('admin-reservas', compact('reservas'));
+}
+
 }

@@ -3,6 +3,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Curtida;
 use App\Models\Dislike;
+use App\Models\Postagem;
+use App\Models\Comentario;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 
@@ -68,4 +70,47 @@ class SocialController extends Controller
 
             return redirect()->back()->with('success', 'Post publicado com sucesso!');
         }
+
+        public function eliminarPost($id)
+        {
+            $post = \App\Models\Postagem::findOrFail($id);
+
+            // Só o dono pode eliminar
+            if ($post->user_id !== auth()->id()) {
+                return redirect()->back()->with('error', 'Não tens permissão para eliminar este post.');
+            }
+
+            $post->delete();
+
+            return redirect()->back()->with('success', 'Post eliminado com sucesso!');
+        }   
+        public function comentar(Request $request, $eventoId)
+    {
+        $request->validate(['corpo' => 'required|string|max:500']);
+
+        Comentario::create([
+            'evento_id' => $eventoId,
+            'user_id'   => auth()->id(),
+            'parent_id' => $request->parent_id ?? null,
+            'corpo'     => $request->corpo,
+        ]);
+
+        return back();
+    }
+
+    public function toggleLikeComentario($id)
+    {
+        $comentario = \App\Models\Comentario::findOrFail($id);
+        $comentario->likes()->toggle(auth()->id());
+        return back();
+    }
+
+    public function eliminarComentario($id)
+    {
+        $comentario = \App\Models\Comentario::findOrFail($id);
+        if ($comentario->user_id === auth()->id()) {
+            $comentario->delete();
+        }
+        return back();
+    }
 }

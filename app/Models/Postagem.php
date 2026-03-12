@@ -9,6 +9,7 @@ class Postagem extends Model
 {
     //
     use HasFactory;
+    protected $table = 'postagens';
 
     protected $fillable = ['user_id', 'conteudo', 'imagem'];
 
