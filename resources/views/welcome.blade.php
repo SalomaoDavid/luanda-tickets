@@ -112,8 +112,13 @@
                 <div class="flex flex-col space-y-2">
                     <form method="POST" action="{{ route('evento.curtir', $evento->id) }}">
                         @csrf
-                        <button type="submit" class="hover:text-blue-500 transition duration-300">
-                            👍 Curtir ({{ $evento->curtidas->count() }})
+                        <button 
+                            onclick="toggleCurtida({{ $evento->id }}, this)"
+                            data-curtido="{{ $evento->usuariosQueCurtiram->contains(auth()->id()) ? 'true' : 'false' }}"
+                            data-total="{{ $evento->curtidas->count() }}"
+                            class="hover:text-blue-500 transition duration-300 {{ $evento->usuariosQueCurtiram->contains(auth()->id()) ? 'text-blue-500' : '' }}">
+                            👍 <span class="curtida-texto-{{ $evento->id }}">{{ $evento->usuariosQueCurtiram->contains(auth()->id()) ? 'Curtido' : 'Curtir' }}</span> 
+                            (<span class="curtida-count-{{ $evento->id }}">{{ $evento->curtidas->count() }}</span>)
                         </button>
                     </form>
 
@@ -146,186 +151,178 @@
             </div>
         </div>
     </div>
+          {{-- ═══════════════════════════════════════
+                MODAL COMENTÁRIOS
+            ═══════════════════════════════════════ --}}
+        <div id="modal-comentarios-{{ $evento->id }}"
+            class="hidden fixed inset-0 z-[9999] items-center justify-center"
+            style="background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);">
+            <div class="w-full max-w-lg mx-4 rounded-3xl overflow-hidden flex flex-col"
+                style="max-height: 80vh; background: rgba(15,23,42,0.97); border: 1px solid rgba(59,130,246,0.2);">
 
-    {{-- ═══════════════════════════════════════
-         MODAL COMENTÁRIOS
-    ═══════════════════════════════════════ --}}
-    <div id="modal-comentarios-{{ $evento->id }}"
-         class="hidden fixed inset-0 z-[9999] items-center justify-center"
-         style="background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);">
-        <div class="w-full max-w-lg mx-4 rounded-3xl overflow-hidden flex flex-col"
-             style="max-height: 80vh; background: rgba(15,23,42,0.97); border: 1px solid rgba(59,130,246,0.2);">
+                {{-- Header modal --}}
+                <div class="flex justify-between items-center px-6 py-4"
+                    style="border-bottom: 1px solid rgba(59,130,246,0.15);">
+                    <h3 class="font-black text-white text-sm uppercase tracking-widest">
+                        💬 Comentários ({{ $evento->comentarios->count() }})
+                    </h3>
+                    <button onclick="fecharModalComentarios('modal-comentarios-{{ $evento->id }}')"
+                            class="text-gray-400 hover:text-white text-xl font-bold transition">✕</button>
+                </div>
 
-            {{-- Header modal --}}
-            <div class="flex justify-between items-center px-6 py-4"
-                 style="border-bottom: 1px solid rgba(59,130,246,0.15);">
-                <h3 class="font-black text-white text-sm uppercase tracking-widest">
-                    💬 Comentários ({{ $evento->comentarios->count() }})
-                </h3>
-                <button onclick="fecharModalComentarios('modal-comentarios-{{ $evento->id }}')"
-                        class="text-gray-400 hover:text-white text-xl font-bold transition">✕</button>
-            </div>
+                {{-- Lista de comentários --}}
+                <div class="flex-1 overflow-y-auto px-6 py-4 space-y-5"
+                    style="scrollbar-width: thin; scrollbar-color: rgba(59,130,246,0.3) transparent;">
 
-            {{-- Lista de comentários --}}
-            <div class="flex-1 overflow-y-auto px-6 py-4 space-y-5"
-                 style="scrollbar-width: thin; scrollbar-color: rgba(59,130,246,0.3) transparent;">
-
-                @forelse($evento->comentarios as $comentario)
-                <div class="flex gap-3" id="comentario-{{ $comentario->id }}">
-                    <a href="{{ route('profile.show', $comentario->user->id) }}" class="flex-shrink-0">
-                        <img src="{{ $comentario->user->avatar
-                            ? asset('storage/' . $comentario->user->avatar)
-                            : 'https://ui-avatars.com/api/?name=' . urlencode($comentario->user->name) . '&background=0ea5e9&color=fff&size=64' }}"
-                             class="w-9 h-9 rounded-full object-cover border-2 border-blue-400">
-                    </a>
-                    <div class="flex-1">
-                        {{-- Balão do comentário --}}
-                        <div class="rounded-2xl rounded-tl-sm px-4 py-3"
-                             style="background: rgba(30,41,59,0.9); border: 1px solid rgba(59,130,246,0.1);">
-                            <div class="flex justify-between items-start gap-2">
-                                <a href="{{ route('profile.show', $comentario->user->id) }}"
-                                   class="font-bold text-white text-xs hover:text-blue-400 transition">
-                                    {{ $comentario->user->name }}
-                                </a>
-                                @if(auth()->id() === $comentario->user_id)
-                                <form method="POST" action="{{ route('comentario.eliminar', $comentario->id) }}">
-                                    @csrf @method('DELETE')
-                                    <button type="submit" class="text-gray-600 hover:text-red-400 transition text-xs">🗑</button>
-                                </form>
-                                @endif
+                    @forelse($evento->comentarios as $comentario)
+                    <div class="flex gap-3" id="comentario-{{ $comentario->id }}">
+                        <a href="{{ route('profile.show', $comentario->user->id) }}" class="flex-shrink-0">
+                            <img src="{{ $comentario->user->avatar
+                                ? asset('storage/' . $comentario->user->avatar)
+                                : 'https://ui-avatars.com/api/?name=' . urlencode($comentario->user->name) . '&background=0ea5e9&color=fff&size=64' }}"
+                                class="w-9 h-9 rounded-full object-cover border-2 border-blue-400">
+                        </a>
+                        <div class="flex-1">
+                            <div class="rounded-2xl rounded-tl-sm px-4 py-3"
+                                style="background: rgba(30,41,59,0.9); border: 1px solid rgba(59,130,246,0.1);">
+                                <div class="flex justify-between items-start gap-2">
+                                    <a href="{{ route('profile.show', $comentario->user->id) }}"
+                                    class="font-bold text-white text-xs hover:text-blue-400 transition">
+                                        {{ $comentario->user->name }}
+                                    </a>
+                                    @if(auth()->id() === $comentario->user_id)
+                                    <form method="POST" action="{{ route('comentario.eliminar', $comentario->id) }}">
+                                        @csrf @method('DELETE')
+                                        <button type="submit" class="text-gray-600 hover:text-red-400 transition text-xs">🗑</button>
+                                    </form>
+                                    @endif
+                                </div>
+                                <p class="text-gray-200 text-sm mt-1 leading-relaxed">{{ $comentario->corpo }}</p>
                             </div>
-                            <p class="text-gray-200 text-sm mt-1 leading-relaxed">{{ $comentario->corpo }}</p>
-                        </div>
 
-                        {{-- Ações do comentário --}}
-                        <div class="flex items-center gap-4 mt-1.5 ml-1">
-                            <span class="text-gray-500 text-[10px]">{{ $comentario->created_at->diffForHumans() }}</span>
-
-                            {{-- Like comentário --}}
-                            <form method="POST" action="{{ route('comentario.like', $comentario->id) }}" class="inline">
-                                @csrf
-                                <button type="submit"
-                                        class="text-[11px] font-bold transition {{ $comentario->jaGostei() ? 'text-blue-400' : 'text-gray-500 hover:text-blue-400' }}">
-                                    👍 {{ $comentario->likes->count() > 0 ? $comentario->likes->count() : '' }}
+                            <div class="flex items-center gap-4 mt-1.5 ml-1">
+                                <span class="text-gray-500 text-[10px]">{{ $comentario->created_at->diffForHumans() }}</span>
+                                <form method="POST" action="{{ route('comentario.like', $comentario->id) }}" class="inline">
+                                    @csrf
+                                    <button type="submit"
+                                            class="text-[11px] font-bold transition {{ $comentario->jaGostei() ? 'text-blue-400' : 'text-gray-500 hover:text-blue-400' }}">
+                                        👍 {{ $comentario->likes->count() > 0 ? $comentario->likes->count() : '' }}
+                                    </button>
+                                </form>
+                                @auth
+                                <button onclick="toggleResposta('resposta-form-{{ $comentario->id }}')"
+                                        class="text-[11px] font-bold text-gray-500 hover:text-blue-400 transition">
+                                    Responder
                                 </button>
-                            </form>
+                                @endauth
+                            </div>
 
-                            {{-- Responder --}}
                             @auth
-                            <button onclick="toggleResposta('resposta-form-{{ $comentario->id }}')"
-                                    class="text-[11px] font-bold text-gray-500 hover:text-blue-400 transition">
-                                Responder
-                            </button>
+                            <div id="resposta-form-{{ $comentario->id }}" class="hidden mt-2">
+                                <form method="POST" action="{{ route('evento.comentar', $evento->id) }}" class="flex gap-2">
+                                    @csrf
+                                    <input type="hidden" name="parent_id" value="{{ $comentario->id }}">
+                                    <img src="{{ auth()->user()->avatar
+                                        ? asset('storage/' . auth()->user()->avatar)
+                                        : 'https://ui-avatars.com/api/?name=' . urlencode(auth()->user()->name) . '&background=0ea5e9&color=fff&size=64' }}"
+                                        class="w-7 h-7 rounded-full object-cover border border-blue-400 flex-shrink-0">
+                                    <input type="text" name="corpo" placeholder="Escreve uma resposta..."
+                                        class="flex-1 rounded-xl px-3 py-1.5 text-xs text-white placeholder-gray-500 outline-none"
+                                        style="background: rgba(30,41,59,0.8); border: 1px solid rgba(59,130,246,0.2);">
+                                    <button type="submit"
+                                            class="text-white text-xs font-bold px-3 py-1.5 rounded-xl transition"
+                                            style="background: linear-gradient(135deg, #2563eb, #1d4ed8);">
+                                        ➤
+                                    </button>
+                                </form>
+                            </div>
                             @endauth
-                        </div>
 
-                        {{-- Form responder --}}
-                        @auth
-                        <div id="resposta-form-{{ $comentario->id }}" class="hidden mt-2">
-                            <form method="POST" action="{{ route('evento.comentar', $evento->id) }}" class="flex gap-2">
-                                @csrf
-                                <input type="hidden" name="parent_id" value="{{ $comentario->id }}">
-                                <img src="{{ auth()->user()->avatar
-                                    ? asset('storage/' . auth()->user()->avatar)
-                                    : 'https://ui-avatars.com/api/?name=' . urlencode(auth()->user()->name) . '&background=0ea5e9&color=fff&size=64' }}"
-                                     class="w-7 h-7 rounded-full object-cover border border-blue-400 flex-shrink-0">
-                                <input type="text" name="corpo" placeholder="Escreve uma resposta..."
-                                       class="flex-1 rounded-xl px-3 py-1.5 text-xs text-white placeholder-gray-500 outline-none"
-                                       style="background: rgba(30,41,59,0.8); border: 1px solid rgba(59,130,246,0.2);">
-                                <button type="submit"
-                                        class="text-white text-xs font-bold px-3 py-1.5 rounded-xl transition"
-                                        style="background: linear-gradient(135deg, #2563eb, #1d4ed8);">
-                                    ➤
-                                </button>
-                            </form>
-                        </div>
-                        @endauth
-
-                        {{-- Respostas --}}
-                        @if($comentario->respostas->count() > 0)
-                        <div class="mt-3 space-y-3 pl-2"
-                             style="border-left: 2px solid rgba(59,130,246,0.2);">
-                            @foreach($comentario->respostas as $resposta)
-                            <div class="flex gap-2">
-                                <a href="{{ route('profile.show', $resposta->user->id) }}" class="flex-shrink-0">
-                                    <img src="{{ $resposta->user->avatar
-                                        ? asset('storage/' . $resposta->user->avatar)
-                                        : 'https://ui-avatars.com/api/?name=' . urlencode($resposta->user->name) . '&background=0ea5e9&color=fff&size=64' }}"
-                                         class="w-7 h-7 rounded-full object-cover border border-blue-400">
-                                </a>
-                                <div class="flex-1">
-                                    <div class="rounded-2xl rounded-tl-sm px-3 py-2"
-                                         style="background: rgba(30,41,59,0.6); border: 1px solid rgba(59,130,246,0.08);">
-                                        <div class="flex justify-between items-start">
-                                            <a href="{{ route('profile.show', $resposta->user->id) }}"
-                                               class="font-bold text-white text-[11px] hover:text-blue-400 transition">
-                                                {{ $resposta->user->name }}
-                                            </a>
-                                            @if(auth()->id() === $resposta->user_id)
-                                            <form method="POST" action="{{ route('comentario.eliminar', $resposta->id) }}">
-                                                @csrf @method('DELETE')
-                                                <button type="submit" class="text-gray-600 hover:text-red-400 transition text-[10px]">🗑</button>
-                                            </form>
-                                            @endif
+                            @if($comentario->respostas->count() > 0)
+                            <div class="mt-3 space-y-3 pl-2"
+                                style="border-left: 2px solid rgba(59,130,246,0.2);">
+                                @foreach($comentario->respostas as $resposta)
+                                <div class="flex gap-2">
+                                    <a href="{{ route('profile.show', $resposta->user->id) }}" class="flex-shrink-0">
+                                        <img src="{{ $resposta->user->avatar
+                                            ? asset('storage/' . $resposta->user->avatar)
+                                            : 'https://ui-avatars.com/api/?name=' . urlencode($resposta->user->name) . '&background=0ea5e9&color=fff&size=64' }}"
+                                            class="w-7 h-7 rounded-full object-cover border border-blue-400">
+                                    </a>
+                                    <div class="flex-1">
+                                        <div class="rounded-2xl rounded-tl-sm px-3 py-2"
+                                            style="background: rgba(30,41,59,0.6); border: 1px solid rgba(59,130,246,0.08);">
+                                            <div class="flex justify-between items-start">
+                                                <a href="{{ route('profile.show', $resposta->user->id) }}"
+                                                class="font-bold text-white text-[11px] hover:text-blue-400 transition">
+                                                    {{ $resposta->user->name }}
+                                                </a>
+                                                @if(auth()->id() === $resposta->user_id)
+                                                <form method="POST" action="{{ route('comentario.eliminar', $resposta->id) }}">
+                                                    @csrf @method('DELETE')
+                                                    <button type="submit" class="text-gray-600 hover:text-red-400 transition text-[10px]">🗑</button>
+                                                </form>
+                                                @endif
+                                            </div>
+                                            <p class="text-gray-300 text-xs mt-0.5 leading-relaxed">{{ $resposta->corpo }}</p>
                                         </div>
-                                        <p class="text-gray-300 text-xs mt-0.5 leading-relaxed">{{ $resposta->corpo }}</p>
-                                    </div>
-                                    <div class="flex items-center gap-3 mt-1 ml-1">
-                                        <span class="text-gray-500 text-[10px]">{{ $resposta->created_at->diffForHumans() }}</span>
-                                        <form method="POST" action="{{ route('comentario.like', $resposta->id) }}" class="inline">
-                                            @csrf
-                                            <button type="submit"
-                                                    class="text-[10px] font-bold transition {{ $resposta->jaGostei() ? 'text-blue-400' : 'text-gray-500 hover:text-blue-400' }}">
-                                                👍 {{ $resposta->likes->count() > 0 ? $resposta->likes->count() : '' }}
-                                            </button>
-                                        </form>
+                                        <div class="flex items-center gap-3 mt-1 ml-1">
+                                            <span class="text-gray-500 text-[10px]">{{ $resposta->created_at->diffForHumans() }}</span>
+                                            <form method="POST" action="{{ route('comentario.like', $resposta->id) }}" class="inline">
+                                                @csrf
+                                                <button type="submit"
+                                                        class="text-[10px] font-bold transition {{ $resposta->jaGostei() ? 'text-blue-400' : 'text-gray-500 hover:text-blue-400' }}">
+                                                    👍 {{ $resposta->likes->count() > 0 ? $resposta->likes->count() : '' }}
+                                                </button>
+                                            </form>
+                                        </div>
                                     </div>
                                 </div>
+                                @endforeach
                             </div>
-                            @endforeach
+                            @endif
+
                         </div>
-                        @endif
-
                     </div>
+                    @empty
+                    <div class="text-center py-8 text-gray-600">
+                        <p class="text-2xl mb-2">💬</p>
+                        <p class="text-xs font-black uppercase tracking-widest">Sem comentários ainda</p>
+                        <p class="text-xs mt-1">Sê o primeiro a comentar!</p>
+                    </div>
+                    @endforelse
                 </div>
-                @empty
-                <div class="text-center py-8 text-gray-600">
-                    <p class="text-2xl mb-2">💬</p>
-                    <p class="text-xs font-black uppercase tracking-widest">Sem comentários ainda</p>
-                    <p class="text-xs mt-1">Sê o primeiro a comentar!</p>
+
+                {{-- Input novo comentário --}}
+                @auth
+                <div class="px-6 py-4" style="border-top: 1px solid rgba(59,130,246,0.15);">
+                    <form id="form-comentario-{{ $evento->id }}" class="flex gap-3 items-center"
+                        onsubmit="enviarComentario(event, {{ $evento->id }})">
+                        @csrf
+                        <img src="{{ auth()->user()->avatar
+                            ? asset('storage/' . auth()->user()->avatar)
+                            : 'https://ui-avatars.com/api/?name=' . urlencode(auth()->user()->name) . '&background=0ea5e9&color=fff&size=64' }}"
+                            class="w-9 h-9 rounded-full object-cover border-2 border-blue-400 flex-shrink-0">
+                        <input type="text" name="corpo" placeholder="Escreve um comentário..."
+                            class="flex-1 rounded-2xl px-4 py-2.5 text-sm text-white placeholder-gray-500 outline-none transition"
+                            style="background: rgba(30,41,59,0.8); border: 1px solid rgba(59,130,246,0.2);">
+                        <button type="submit"
+                                class="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold transition hover:scale-105 flex-shrink-0"
+                                style="background: linear-gradient(135deg, #2563eb, #1d4ed8); box-shadow: 0 4px 15px rgba(37,99,235,0.3);">
+                            ➤
+                        </button>
+                    </form>
                 </div>
-                @endforelse
-            </div>
+                @else
+                <div class="px-6 py-4 text-center" style="border-top: 1px solid rgba(59,130,246,0.15);">
+                    <a href="{{ route('login') }}" class="text-blue-400 text-sm font-bold hover:text-blue-300 transition">
+                        Entra para comentar →
+                    </a>
+                </div>
+                @endauth
 
-            {{-- Input novo comentário --}}
-            @auth
-            <div class="px-6 py-4" style="border-top: 1px solid rgba(59,130,246,0.15);">
-                <form method="POST" action="{{ route('evento.comentar', $evento->id) }}" class="flex gap-3 items-center">
-                    @csrf
-                    <img src="{{ auth()->user()->avatar
-                        ? asset('storage/' . auth()->user()->avatar)
-                        : 'https://ui-avatars.com/api/?name=' . urlencode(auth()->user()->name) . '&background=0ea5e9&color=fff&size=64' }}"
-                         class="w-9 h-9 rounded-full object-cover border-2 border-blue-400 flex-shrink-0">
-                    <input type="text" name="corpo" placeholder="Escreve um comentário..."
-                           class="flex-1 rounded-2xl px-4 py-2.5 text-sm text-white placeholder-gray-500 outline-none transition"
-                           style="background: rgba(30,41,59,0.8); border: 1px solid rgba(59,130,246,0.2);">
-                    <button type="submit"
-                            class="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold transition hover:scale-105 flex-shrink-0"
-                            style="background: linear-gradient(135deg, #2563eb, #1d4ed8); box-shadow: 0 4px 15px rgba(37,99,235,0.3);">
-                        ➤
-                    </button>
-                </form>
             </div>
-            @else
-            <div class="px-6 py-4 text-center" style="border-top: 1px solid rgba(59,130,246,0.15);">
-                <a href="{{ route('login') }}" class="text-blue-400 text-sm font-bold hover:text-blue-300 transition">
-                    Entra para comentar →
-                </a>
-            </div>
-            @endauth
-
         </div>
-    </div>
 
     {{-- Modal curtidas --}}
     <div id="modal-curtidas-{{ $evento->id }}"
@@ -454,6 +451,116 @@
             });
         });
     });
+
+    // ── Toggle Curtida AJAX ──────────────────────────────────
+    async function toggleCurtida(eventoId, btn) {
+        const token = document.querySelector('meta[name="csrf-token"]')?.content 
+            || '{{ csrf_token() }}';
+
+        try {
+            const res = await fetch(`/eventos/${eventoId}/curtir`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': token,
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json',
+                }
+            });
+
+            if (res.status === 401) {
+                window.location.href = '{{ route("login") }}';
+                return;
+            }
+
+            const data = await res.json();
+
+            // Atualiza o botão
+            const texto = document.querySelector(`.curtida-texto-${eventoId}`);
+            const count = document.querySelector(`.curtida-count-${eventoId}`);
+
+            if (data.curtido) {
+                btn.classList.add('text-blue-500');
+                texto.textContent = 'Curtido';
+            } else {
+                btn.classList.remove('text-blue-500');
+                texto.textContent = 'Curtir';
+            }
+
+            count.textContent = data.total;
+
+        } catch (e) {
+            console.error('Erro ao curtir:', e);
+        }
+    }
+    // ── Enviar Comentário AJAX ───────────────────────────────
+    async function enviarComentario(e, eventoId) {
+        e.preventDefault();
+
+        const form = document.getElementById(`form-comentario-${eventoId}`);
+        const input = form.querySelector('input[name="corpo"]');
+        const corpo = input.value.trim();
+
+        if (!corpo) return;
+
+        const token = document.querySelector('meta[name="csrf-token"]')?.content
+            || '{{ csrf_token() }}';
+
+        try {
+            const res = await fetch(`/eventos/${eventoId}/comentar`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': token,
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                },
+                body: JSON.stringify({ corpo })
+            });
+
+            if (res.status === 401) {
+                window.location.href = '{{ route("login") }}';
+                return;
+            }
+
+            const data = await res.json();
+
+            // Adiciona o comentário à lista sem recarregar
+            const lista = document.querySelector(`#modal-comentarios-${eventoId} .flex-1.overflow-y-auto`);
+            const vazio = lista.querySelector('.text-center.py-8');
+            if (vazio) vazio.remove();
+
+            const html = `
+            <div class="flex gap-3">
+                <a href="{{ route('profile.show', auth()->id()) }}" class="flex-shrink-0">
+                    <img src="{{ auth()->user()->avatar ? asset('storage/' . auth()->user()->avatar) : 'https://ui-avatars.com/api/?name=' . urlencode(auth()->user()->name) . '&background=0ea5e9&color=fff&size=64' }}"
+                        class="w-9 h-9 rounded-full object-cover border-2 border-blue-400">
+                </a>
+                <div class="flex-1">
+                    <div class="rounded-2xl rounded-tl-sm px-4 py-3" style="background: rgba(30,41,59,0.9); border: 1px solid rgba(59,130,246,0.1);">
+                        <p class="font-bold text-white text-xs">{{ auth()->user()->name }}</p>
+                        <p class="text-gray-200 text-sm mt-1">${corpo}</p>
+                    </div>
+                    <span class="text-gray-500 text-[10px] ml-1">agora mesmo</span>
+                </div>
+            </div>`;
+
+            lista.insertAdjacentHTML('beforeend', html);
+            lista.scrollTop = lista.scrollHeight;
+
+            // Limpa o input
+            input.value = '';
+
+            // Atualiza o contador
+            const contador = document.querySelector(`#modal-comentarios-${eventoId} h3`);
+            if (contador) {
+                const atual = parseInt(contador.textContent.match(/\d+/)?.[0] || 0);
+                contador.textContent = `💬 Comentários (${atual + 1})`;
+            }
+
+        } catch (err) {
+            console.error('Erro ao comentar:', err);
+        }
+    }
 </script>
 
 @endsection

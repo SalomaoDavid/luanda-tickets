@@ -10,15 +10,33 @@ class Evento extends Model
     use HasFactory;
 
     protected $fillable = [
-        'user_id',
-        'categoria_id', 
-        'titulo', 
-        'descricao', 
-        'localizacao', 
-        'data_evento', 
-        'imagem_capa', 
-        'lotacao_maxima', 
-        'status'
+    'user_id',
+    'categoria_id',
+    'subcategoria_id',
+    'titulo',
+    'descricao',
+    'localizacao',
+    'municipio',
+    'provincia',
+    'data_evento',
+    'data_fim',
+    'hora_inicio',
+    'hora_fim',
+    'multiplos_dias',
+    'online',
+    'link_externo',
+    'imagem_capa',
+    'lotacao_maxima',
+    'ingressos_por_pessoa',
+    'lista_espera',
+    'privado',
+    'aprovacao_manual',
+    'permitir_comentarios',
+    'participantes_publicos',
+    'notif_nova_inscricao',
+    'notif_lembrete_24h',
+    'notif_resumo_semanal',
+    'status',
     ];
 
     // Relacionamento com a Categoria
@@ -65,6 +83,10 @@ class Evento extends Model
     public function usuariosQueComentaram()
     {
         return $this->belongsToMany(User::class, 'comentarios', 'evento_id', 'user_id')->distinct();
+    }
+        public function subcategoria()
+    {
+        return $this->belongsTo(Subcategoria::class);
     }
 }
 

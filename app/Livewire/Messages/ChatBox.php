@@ -2,6 +2,8 @@
 
 namespace App\Livewire\Messages;
 
+use App\Models\User;
+use App\Notifications\NewMessageNotification;
 use Livewire\Component;
 use App\Models\Conversation;
 use App\Models\Message;
@@ -106,10 +108,18 @@ class ChatBox extends Component
             ->where('user_id', '!=', auth()->id())
             ->whereNull('read_at')
             ->update(['read_at' => now()]);
-            
+
+        // Marca notificações desta conversa como lidas
+        auth()->user()->unreadNotifications()
+            ->get()
+            ->filter(fn($n) =>
+                $n->type === 'App\Notifications\NewMessageNotification' &&
+                ($n->data['conversation_id'] ?? null) == $this->conversation->id
+            )
+            ->each->markAsRead();
+
         $this->dispatch('refresh-list');
     }
-
     /**
      * Envia mensagem com trava de bloqueio
      */
@@ -117,22 +127,36 @@ class ChatBox extends Component
     {
         if (empty(trim($this->messageBody)) || !$this->conversation) return;
 
-        // Verificação final de bloqueio
-        if ($this->conversation->is_blocked) {
-            return; 
-        }
+        if ($this->conversation->is_blocked) return;
 
-        Message::create([
+        $message = Message::create([
             'conversation_id' => $this->conversation->id,
-            'user_id' => auth()->id(),
-            'body' => $this->messageBody,
+            'user_id'         => auth()->id(),
+            'body'            => $this->messageBody,
         ]);
 
         $this->conversation->touch();
         $this->messageBody = '';
-        
+
         $this->dispatch('scroll-down');
         $this->dispatch('refresh-list');
+
+        // Só notifica se o destinatário não leu ainda (não está na conversa)
+        $receiverId = $this->conversation->sender_id === auth()->id()
+            ? $this->conversation->receiver_id
+            : $this->conversation->sender_id;
+
+        $hasUnread = $this->conversation->messages()
+            ->where('user_id', auth()->id())
+            ->whereNull('read_at')
+            ->exists();
+
+        if ($hasUnread) {
+            $receiver = \App\Models\User::find($receiverId);
+            if ($receiver) {
+                $receiver->notify(new \App\Notifications\NewMessageNotification($message));
+            }
+        }
     }
 
     public function render()

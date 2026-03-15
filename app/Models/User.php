@@ -20,6 +20,7 @@ class User extends Authenticatable
         'password',
         'avatar',
         'role',
+        'bio',
         'is_verified',
         'last_seen',
     ];
@@ -101,5 +102,20 @@ class User extends Authenticatable
     public function eventosCurtidos()
     {
         return $this->belongsToMany(\App\Models\Evento::class, 'curtidas', 'user_id', 'evento_id')->withTimestamps();
+    }
+    /**
+ * Seguidores — quem me segue
+ */
+    public function seguidores()
+    {
+        return $this->belongsToMany(User::class, 'seguidores', 'seguido_id', 'seguidor_id')->withTimestamps();
+    }
+
+    /**
+     * Seguindo — quem eu sigo
+     */
+    public function seguindo()
+    {
+        return $this->belongsToMany(User::class, 'seguidores', 'seguidor_id', 'seguido_id')->withTimestamps();
     }
 }

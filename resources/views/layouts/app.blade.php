@@ -1,8 +1,9 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt">
 <head>
     <meta charset="UTF-8">
     <title>Luanda Tickets</title>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.tailwindcss.com"></script>
     @livewireStyles
@@ -55,6 +56,10 @@
             $user = auth()->user();
             $unread = $user->unreadNotifications->count();
         @endphp
+
+        {{-- Sino de Notificações --}}
+        <livewire:notification-bell />
+
         <div x-data="{ open: false }" class="relative">
             <button @click="open = !open" class="relative focus:outline-none">
                 <img src="{{ $user->avatar ? asset('storage/' . $user->avatar) : 'https://ui-avatars.com/api/?name=' . urlencode($user->name) }}" class="w-10 h-10 rounded-full object-cover border-2 border-blue-400">

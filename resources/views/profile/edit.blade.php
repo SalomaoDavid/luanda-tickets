@@ -6,10 +6,10 @@
 <style>
 :root {
   --bg:      #06090f;
-  --s1:      rgba(255,255,255,0.04);
-  --s2:      rgba(255,255,255,0.07);
-  --s3:      rgba(255,255,255,0.10);
-  --border:  rgba(255,255,255,0.08);
+  --s1:      #0d1526;
+  --s2:      #111827;
+  --s3:      #162032;
+  --border:  rgba(6,182,212,0.15);
   --accent:  #06b6d4;
   --accent2: #0ea5e9;
   --gold:    #f59e0b;
@@ -80,7 +80,7 @@
 .cover-edit-btn:hover { border-color: rgba(6,182,212,.35); color: var(--accent); }
 
 .ava-section {
-  background: var(--s1); border-top: 1px solid var(--border);
+  background: #0d1526; border-top: 1px solid rgba(6,182,212,.15);
   padding: 0 24px 22px;
   display: flex; align-items: flex-end; gap: 18px; flex-wrap: wrap;
 }
@@ -305,7 +305,7 @@ select.form-input { cursor: pointer; }
         <div class="ava-info">
             <div class="ava-name">{{ auth()->user()->name }}</div>
             <div class="ava-handle">
-                {{ strtolower(str_replace(' ', '.', auth()->user()->name)) }} ·
+                @php $h = strtolower(preg_replace('/\s+/', '.', trim(auth()->user()->name))); @endphp&#64;{{ $h }} ·
                 <span style="color:var(--green)">● Online</span>
             </div>
         </div>
@@ -412,6 +412,18 @@ select.form-input { cursor: pointer; }
                         <span class="form-error">{{ $message }}</span>
                     @enderror
                 </div>
+            </div>
+
+            {{-- Campo Bio --}}
+            <div class="form-group" style="margin-top:16px;">
+                <label class="form-label">Bio <span style="color:var(--muted);font-weight:400;">(aparece no teu perfil público)</span></label>
+                <textarea name="bio" class="form-input" rows="3" maxlength="300"
+                          placeholder="Ex: Apaixonada por eventos culturais em Luanda 🇦🇴 · Organizadora de festas e concertos · Cais de Luanda é o meu sítio favorito 🌊"
+                          oninput="markDirty(); this.nextElementSibling.textContent = this.value.length + '/300 caracteres'">{{ old('bio', auth()->user()->bio) }}</textarea>
+                <span style="font-size:11px;color:var(--muted);margin-top:3px;">{{ strlen(auth()->user()->bio ?? '') }}/300 caracteres</span>
+                @error('bio')
+                    <span class="form-error">{{ $message }}</span>
+                @enderror
             </div>
 
             @if(auth()->user()->email_verified_at === null)

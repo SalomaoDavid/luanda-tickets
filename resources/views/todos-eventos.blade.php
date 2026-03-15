@@ -246,34 +246,40 @@
         </div>
     </form>
 </div>
+      {{-- CATEGORIAS --}}
+    @php $catAtiva = request('categoria'); $subAtiva = request('subcategoria'); @endphp
+    <div class="sec-head">
+        <div class="sec-title"><div class="sec-icon cyan">🗂</div> Categorias</div>
+    </div>
+    <div class="cat-grid" style="grid-template-columns: repeat({{ min($categorias->count(), 7) }}, 1fr);">
+        @foreach($categorias as $cat)
+        <a href="{{ route('eventos.todos', ['categoria' => $cat->id]) }}"
+        class="cat-card {{ (string)$catAtiva === (string)$cat->id ? 'active' : '' }}">
+            <div class="cat-emoji">{{ $cat->emoji }}</div>
+            <div class="cat-name">{{ $cat->nome }}</div>
+            <div class="cat-count">
+                {{ $eventos->filter(fn($e) => $e->categoria_id === $cat->id)->count() }} eventos
+            </div>
+        </a>
+        @endforeach
+    </div>
 
-{{-- CATEGORIAS --}}
-@php
-    $cats = [
-        ['slug'=>'musica',  'emoji'=>'🎵', 'nome'=>'Música',      'class'=>'musica'],
-        ['slug'=>'arte',    'emoji'=>'🎨', 'nome'=>'Arte',         'class'=>'arte'],
-        ['slug'=>'festa',   'emoji'=>'🎉', 'nome'=>'Festas',       'class'=>'festa'],
-        ['slug'=>'desporto','emoji'=>'⚽', 'nome'=>'Desporto',     'class'=>'sport'],
-        ['slug'=>'gastronomia','emoji'=>'🍽','nome'=>'Gastronomia','class'=>'food'],
-        ['slug'=>'negocios','emoji'=>'💼', 'nome'=>'Negócios',     'class'=>'negocio'],
-    ];
-    $catAtiva = request('categoria');
-@endphp
-<div class="sec-head">
-    <div class="sec-title"><div class="sec-icon cyan">🗂</div> Categorias</div>
-</div>
-<div class="cat-grid">
-    @foreach($cats as $cat)
-    <a href="{{ route('eventos.todos', ['categoria' => $cat['slug']]) }}"
-       class="cat-card {{ $cat['class'] }} {{ $catAtiva === $cat['slug'] ? 'active' : '' }}">
-        <div class="cat-emoji">{{ $cat['emoji'] }}</div>
-        <div class="cat-name">{{ $cat['nome'] }}</div>
-        <div class="cat-count">
-            {{ $eventos->filter(fn($e) => strtolower(optional($e->categoria)->nome ?? '') === $cat['slug'])->count() }} eventos
-        </div>
-    </a>
-    @endforeach
-</div>
+    {{-- SUBCATEGORIAS --}}
+    @if($catAtiva && $categorias->firstWhere('id', $catAtiva)?->subcategorias->count() > 0)
+    @php $catSelec = $categorias->firstWhere('id', $catAtiva); @endphp
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px;">
+        <a href="{{ route('eventos.todos', ['categoria' => $catAtiva]) }}"
+        class="fchip {{ !$subAtiva ? 'active' : '' }}">
+            Todas as {{ $catSelec->nome }}
+        </a>
+        @foreach($catSelec->subcategorias as $sub)
+        <a href="{{ route('eventos.todos', ['categoria' => $catAtiva, 'subcategoria' => $sub->id]) }}"
+        class="fchip {{ (string)$subAtiva === (string)$sub->id ? 'active' : '' }}">
+            {{ $sub->nome }}
+        </a>
+        @endforeach
+    </div>
+    @endif
 
 {{-- FILTROS --}}
 <div class="filters-wrap">
@@ -344,32 +350,25 @@
     </div>
 </div>
 <div class="events-grid">
-    @foreach($eventos as $index => $evento)
+   @foreach($eventos as $index => $evento)
     @php
-        $categoria  = optional($evento->categoria)->nome ?? 'Evento';
-        $preco      = optional($evento->tiposIngresso->sortBy('preco')->first())->preco ?? 0;
-        $lotacao    = $evento->lotacao_maxima ?? 0;
-        $vendidos   = optional($evento->tiposIngresso)->sum('quantidade_vendida') ?? 0;
-        $pct        = $lotacao > 0 ? round(($vendidos / $lotacao) * 100) : 0;
-        $barClass   = $pct >= 80 ? 'crit' : ($pct >= 50 ? 'warn' : 'ok');
-
-        $catEmoji = match(strtolower($categoria)) {
-            'música','musica'    => '🎵',
-            'arte'               => '🎨',
-            'festa','festas'     => '🎉',
-            'desporto','sport'   => '⚽',
-            'gastronomia','food' => '🍽',
-            'negócios','negocios'=> '💼',
-            default              => '🎟'
-        };
-        $catColor = match(strtolower($categoria)) {
-            'música','musica'    => 'var(--accent)',
-            'arte'               => 'var(--purple)',
-            'festa','festas'     => 'var(--gold)',
-            'desporto','sport'   => 'var(--green)',
-            'gastronomia','food' => '#f97316',
-            'negócios','negocios'=> 'var(--accent2)',
-            default              => 'var(--accent)'
+        $categoria        = optional($evento->categoria)->nome ?? 'Evento';
+        $subcategoriaNome = optional($evento->subcategoria)->nome ?? null;
+        $preco            = optional($evento->tiposIngresso->sortBy('preco')->first())->preco ?? 0;
+        $lotacao          = $evento->lotacao_maxima ?? 0;
+        $vendidos         = optional($evento->tiposIngresso)->sum('quantidade_vendida') ?? 0;
+        $pct              = $lotacao > 0 ? round(($vendidos / $lotacao) * 100) : 0;
+        $barClass         = $pct >= 80 ? 'crit' : ($pct >= 50 ? 'warn' : 'ok');
+        $catEmoji         = optional($evento->categoria)->emoji ?? '🎟';
+        $catColor         = match(true) {
+            str_contains($categoria, 'Show')        => 'var(--accent)',
+            str_contains($categoria, 'Festival')    => 'var(--gold)',
+            str_contains($categoria, 'Viagem')      => 'var(--accent2)',
+            str_contains($categoria, 'Desporto')    => 'var(--green)',
+            str_contains($categoria, 'Conferência') => 'var(--purple)',
+            str_contains($categoria, 'Workshop')    => '#f97316',
+            str_contains($categoria, 'Cultura')     => '#ec4899',
+            default                                 => 'var(--accent)'
         };
     @endphp
 
@@ -398,16 +397,16 @@
                 </form>
             </div>
             <div class="ev-date-pill">
-                📅 {{ \Carbon\Carbon::parse($evento->data_evento)->translatedFormat('D, d M') }} · {{ \Carbon\Carbon::parse($evento->data_evento)->format('H:i') }}
+                📅 {{ \Carbon\Carbon::parse($evento->data_evento)->translatedFormat('D, d M') }} · {{ $evento->hora_inicio ? \Illuminate\Support\Str::substr($evento->hora_inicio, 0, 5) : \Carbon\Carbon::parse($evento->data_evento)->format('H:i') }}
             </div>
         </div>
 
         <div class="ev-body">
-            <div class="ev-cat" style="color:{{ $catColor }}">{{ $catEmoji }} {{ $categoria }}</div>
+            <div class="ev-cat" style="color:{{ $catColor }}">{{ $catEmoji }} {{ $subcategoriaNome ?? $categoria }}</div>
             <div class="ev-title">{{ $evento->titulo }}</div>
             <div class="ev-info">
                 <div class="ev-info-row">📍 {{ $evento->localizacao ?? 'Local não informado' }}</div>
-                <div class="ev-info-row">🕐 {{ \Carbon\Carbon::parse($evento->data_evento)->format('H:i') }}</div>
+                <div class="ev-info-row">🕐 {{ $evento->hora_inicio ? \Illuminate\Support\Str::substr($evento->hora_inicio, 0, 5) : \Carbon\Carbon::parse($evento->data_evento)->format('H:i') }}</div>
             </div>
 
             {{-- PILHA CURTIDAS --}}
@@ -642,7 +641,7 @@
     $porData = $eventos->groupBy(fn($e) => \Carbon\Carbon::parse($e->data_evento)->format('Y-m-d'))
                        ->sortKeys()->take(3);
 @endphp
-<div class="sec-head">
+  <div class="sec-head">
     <div class="sec-title"><div class="sec-icon cyan">📅</div> Por Data de Realização</div>
 </div>
 <div class="timeline">
@@ -668,16 +667,23 @@
         <div class="timeline-row">
             @foreach($evsDia as $ev)
             @php
-                $p = optional($ev->tiposIngresso->sortBy('preco')->first())->preco ?? 0;
-                $emoji = match(strtolower(optional($ev->categoria)->nome ?? '')) {
-                    'música','musica' => '🎵', 'arte' => '🎨', 'festa' => '🎉',
-                    'desporto' => '⚽', 'gastronomia' => '🍽', 'negócios' => '💼', default => '🎟'
-                };
+                $p     = optional($ev->tiposIngresso->sortBy('preco')->first())->preco ?? 0;
+                $emoji = optional($ev->categoria)->emoji ?? '🎟';
+                $hora  = $ev->hora_inicio
+                    ? \Illuminate\Support\Str::substr($ev->hora_inicio, 0, 5)
+                    : \Carbon\Carbon::parse($ev->data_evento)->format('H:i');
             @endphp
             <a href="{{ route('evento.detalhes', $ev->id) }}" class="tl-card">
-                <div class="tl-card-emoji">{{ $emoji }}</div>
+                <div class="tl-card-emoji">
+                    @if($ev->imagem_capa)
+                        <img src="{{ asset('storage/'.$ev->imagem_capa) }}"
+                             style="width:46px;height:46px;border-radius:10px;object-fit:cover;">
+                    @else
+                        {{ $emoji }}
+                    @endif
+                </div>
                 <div class="tl-card-info">
-                    <div class="tl-card-time">{{ \Carbon\Carbon::parse($ev->data_evento)->format('H:i') }}</div>
+                    <div class="tl-card-time">{{ $hora }}</div>
                     <div class="tl-card-name">{{ $ev->titulo }}</div>
                     <div class="tl-card-place">📍 {{ $ev->localizacao }}</div>
                     <div class="tl-card-price" style="{{ $p == 0 ? 'color:var(--green)' : '' }}">
@@ -692,7 +698,6 @@
 </div>
 
 @endif
-
 <script>
     // Categorias
     document.querySelectorAll('.cat-card').forEach(card => {
