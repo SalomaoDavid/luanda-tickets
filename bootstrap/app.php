@@ -12,11 +12,15 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        
-        // REGISTRO DO MIDDLEWARE ADMIN
-        // Aqui dizemos ao Laravel: "Quando eu usar 'admin' nas rotas, use esta classe"
+
+        // MIDDLEWARE ADMIN (alias para rotas)
         $middleware->alias([
             'admin' => \App\Http\Middleware\AdminMiddleware::class,
+        ]);
+
+        // LAST SEEN — corre em cada request web
+        $middleware->web(append: [
+            \App\Http\Middleware\UpdateUserLastSeen::class,
         ]);
 
     })

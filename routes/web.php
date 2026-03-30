@@ -7,6 +7,8 @@ use App\Http\Controllers\NewsController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\ReservaController;
 use App\Http\Controllers\SocialController;
+use App\Http\Controllers\PostagemController;
+use App\Http\Controllers\TicketController;
 use App\Http\Controllers\AdminEventoController;
 use App\Http\Controllers\Admin\UserController;
 use Illuminate\Support\Facades\Route;
@@ -16,6 +18,14 @@ use Illuminate\Support\Facades\Route;
 | 1. ROTAS PÚBLICAS (Acessíveis por qualquer pessoa)
 |--------------------------------------------------------------------------
 */
+Route::get('/meus-bilhetes/{pedido_id}', [TicketController::class, 'download'])
+->name('bilhetes.download')
+->middleware('auth');
+// Rota para baixar um único bilhete
+Route::get('/bilhete/download/{id}', [TicketController::class, 'downloadIndividual'])
+->name('bilhete.individual.download')
+->middleware('auth');
+
 Route::get('/', [EventController::class, 'index'])->name('home');
 Route::get('/evento/{id}', [EventController::class, 'show'])->name('evento.detalhes');
 Route::get('/explorar', [EventController::class, 'todosEventos'])->name('eventos.todos');
@@ -44,6 +54,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/evento/{id}/dislike', [SocialController::class, 'toggleDislike'])->name('evento.dislike');
     Route::post('/evento-detalhes', [ReservaController::class, 'store'])->name('reserva.guardar');
     Route::post('/social/publicar', [SocialController::class, 'publicar'])->name('social.publicar');
+    // Reações nas postagens
+    Route::post('/postagens/{id}/reagir/{tipo}', [PostagemController::class, 'toggleReacao'])->name('postagem.reagir');
+
+    // Comentários nas postagens
+    Route::post('/postagens/{id}/comentar', [PostagemController::class, 'comentar'])->name('postagem.comentar');
+    Route::delete('/postagens/comentarios/{id}', [PostagemController::class, 'eliminarComentario'])->name('postagem.comentario.eliminar');
     Route::delete('/post/{id}/eliminar', [SocialController::class, 'eliminarPost'])->name('post.eliminar');
 
     // Perfil do Usuário
@@ -71,6 +87,9 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     Route::get('/usuarios', [UserController::class, 'index'])->name('admin.usuarios.index');
     Route::patch('/usuarios/{user}/role', [UserController::class, 'updateRole'])->name('admin.usuarios.role');
     Route::patch('/usuarios/{user}/verify', [UserController::class, 'toggleVerify'])->name('admin.usuarios.verify');
+    // web.php
+    Route::patch('/admin/usuarios/{id}/suspend', [AdminUsuarioController::class, 'suspend'])->name('admin.usuarios.suspend');
+    Route::delete('/admin/usuarios/{id}', [AdminUsuarioController::class, 'destroy'])->name('admin.usuarios.destroy');
 
     // Sincronizador de Notícias
     Route::get('/noticias/sincronizar', [NewsController::class, 'sincronizar'])->name('noticias.sincronizar');

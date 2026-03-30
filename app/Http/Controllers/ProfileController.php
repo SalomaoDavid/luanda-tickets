@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileUpdateRequest;
 use App\Models\User;
+use App\Models\Bilhete;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -22,32 +23,86 @@ class ProfileController extends Controller
 
     public function show($id): View
     {
-        $user = User::findOrFail($id);
+        // ✅ Select específico — só colunas necessárias para o perfil
+        $user = User::select('id','name','email','avatar','bio','role','is_verified','last_seen','created_at')
+            ->findOrFail($id);
+
         $isOwner = auth()->id() === $user->id;
-        $postagens = $user->postagens()->latest()->get();
+
+        // ✅ Select específico nas postagens
+        $postagens = $user->postagens()
+            ->select('id','user_id','conteudo','imagem','created_at')
+            ->latest()
+            ->get();
+
+        // ✅ Select específico nos bilhetes + relações leves
+        $bilhetes = Bilhete::whereHas('pedido', function ($q) use ($id) {
+                $q->where('user_id', $id)->where('status', 'pago');
+            })
+            ->with([
+                'evento:id,titulo,localizacao,data_evento',
+                'tipoIngresso:id,nome,preco',
+            ])
+            ->select('id','pedido_id','evento_id','tipo_ingressos_id','codigo_unico','validado_em','created_at')
+            ->latest()
+            ->get();
 
         if ($user->role === 'admin') {
-            $eventos = \App\Models\Evento::latest()->get();
-            $statsLabel = 'Total Eventos';
-            $statsCount = $eventos->count();
+            // ✅ Eager loading com select específico para eventos do admin
+            $eventos = \App\Models\Evento::with([
+                    'categoria:id,nome',
+                    'tiposIngresso:id,evento_id,nome,preco,quantidade_disponivel',
+                    'curtidas:id,evento_id,user_id',
+                    'usuariosQueCurtiram:id,name,avatar',
+                ])
+                ->select('id','user_id','categoria_id','titulo','descricao','localizacao','data_evento','imagem_capa','lotacao_maxima','status','created_at')
+                ->latest()
+                ->get();
+
+            $statsLabel  = 'Total Eventos';
+            $statsCount  = $eventos->count();
             $statsLabel2 = 'Utilizadores';
-            $statsCount2 = User::count();
+            // ✅ Cache para contagem de utilizadores (muda raramente)
+            $statsCount2 = \Illuminate\Support\Facades\Cache::remember('total_users_count', 300, fn() => User::count());
+
         } elseif ($user->role === 'creator') {
-            $eventos = $user->eventos()->latest()->get();
-            $statsLabel = 'Eventos';
-            $statsCount = $eventos->count();
+            $eventos = $user->eventos()
+                ->with([
+                    'categoria:id,nome',
+                    'tiposIngresso:id,evento_id,nome,preco,quantidade_disponivel',
+                    'curtidas:id,evento_id,user_id',
+                    'usuariosQueCurtiram:id,name,avatar',
+                ])
+                ->select('id','user_id','categoria_id','titulo','descricao','localizacao','data_evento','imagem_capa','lotacao_maxima','status','created_at')
+                ->latest()
+                ->get();
+
+            $statsLabel  = 'Eventos';
+            $statsCount  = $eventos->count();
             $statsLabel2 = 'Seguidores';
             $statsCount2 = 0;
+
         } else {
-            $eventos = $user->eventosCurtidos()->latest()->get();
-            $statsLabel = 'Curtidos';
-            $statsCount = $eventos->count();
+            // ✅ Utilizador normal — eventos curtidos com select específico
+            $eventos = $user->eventosCurtidos()
+                ->with([
+                    'categoria:id,nome',
+                    'tiposIngresso:id,evento_id,nome,preco,quantidade_disponivel',
+                    'curtidas:id,evento_id,user_id',
+                    'usuariosQueCurtiram:id,name,avatar',
+                ])
+                ->select('eventos.id','eventos.user_id','eventos.categoria_id','eventos.titulo','eventos.descricao','eventos.localizacao','eventos.data_evento','eventos.imagem_capa','eventos.lotacao_maxima','eventos.status','eventos.created_at')
+                ->latest('eventos.created_at')
+                ->get();
+
+            $statsLabel  = 'Curtidos';
+            $statsCount  = $eventos->count();
             $statsLabel2 = 'Seguidores';
             $statsCount2 = 0;
         }
 
         return view('profile.show', compact(
-            'user', 'isOwner', 'postagens', 'eventos',
+            'user', 'isOwner', 'postagens', 'eventos', 'bilhetes',
             'statsLabel', 'statsCount', 'statsLabel2', 'statsCount2'
         ));
     }

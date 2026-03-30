@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Pedido extends Model
 {
-    protected $fillable = ['user_id', 'total_pago', 'metodo_pagamento', 'status', 'comprovativo_path'];
+    protected $fillable = ['user_id', 'reserva_id', 'total_pago', 'metodo_pagamento', 'status', 'comprovativo_path'];
 
     public function user()
     {

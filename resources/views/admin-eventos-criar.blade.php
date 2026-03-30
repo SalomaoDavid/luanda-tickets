@@ -13,58 +13,100 @@
 *{box-sizing:border-box;margin:0;padding:0;}
 .criar-page{background:var(--bg);min-height:100vh;font-family:'DM Sans',sans-serif;color:var(--t1);}
 
-/* TOPBAR */
-.criar-topbar{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:16px;padding:14px 32px;background:var(--s1);border-bottom:1px solid var(--b2);}
+/* ── TOPBAR ── */
+.criar-topbar{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--s1);border-bottom:1px solid var(--b2);flex-wrap:wrap;}
+@media(min-width:768px){.criar-topbar{gap:16px;padding:14px 32px;flex-wrap:nowrap;}}
 .logo{display:flex;align-items:center;gap:9px;}
-.logo-k{width:28px;height:28px;border-radius:8px;background:var(--acc2);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:14px;color:#fff;}
+.logo-k{width:28px;height:28px;border-radius:8px;background:var(--acc2);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:14px;color:#fff;flex-shrink:0;}
 .logo-n{font-family:'Syne',sans-serif;font-weight:700;font-size:15px;color:var(--t1);}
-.tb-div{width:1px;height:16px;background:var(--b3);}
-.back-link{font-size:13px;color:var(--t3);text-decoration:none;transition:color .15s;}
+.tb-div{width:1px;height:16px;background:var(--b3);display:none;}
+@media(min-width:640px){.tb-div{display:block;}}
+.back-link{font-size:13px;color:var(--t3);text-decoration:none;transition:color .15s;display:none;}
+@media(min-width:640px){.back-link{display:inline;}}
 .back-link:hover{color:var(--t2);}
-.page-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--t1);}
-.tb-actions{margin-left:auto;display:flex;align-items:center;gap:8px;}
-.btn-ghost{padding:7px 16px;border-radius:9px;border:1px solid var(--b2);background:transparent;font-size:13px;color:var(--t2);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;text-decoration:none;display:inline-flex;align-items:center;}
+.page-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--t1);display:none;}
+@media(min-width:640px){.page-title{display:block;}}
+.tb-actions{margin-left:auto;display:flex;align-items:center;gap:6px;}
+@media(min-width:768px){.tb-actions{gap:8px;}}
+.btn-ghost{padding:7px 12px;border-radius:9px;border:1px solid var(--b2);background:transparent;font-size:12px;color:var(--t2);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;text-decoration:none;display:inline-flex;align-items:center;}
+@media(min-width:768px){.btn-ghost{padding:7px 16px;font-size:13px;}}
 .btn-ghost:hover{background:var(--s2);color:var(--t1);}
-.btn-primary{padding:7px 20px;border-radius:9px;background:var(--acc2);border:none;font-size:13px;font-weight:500;color:#fff;cursor:pointer;font-family:'DM Sans',sans-serif;display:inline-flex;align-items:center;gap:6px;transition:opacity .15s;}
+.btn-primary{padding:7px 14px;border-radius:9px;background:var(--acc2);border:none;font-size:12px;font-weight:500;color:#fff;cursor:pointer;font-family:'DM Sans',sans-serif;display:inline-flex;align-items:center;gap:5px;transition:opacity .15s;}
+@media(min-width:768px){.btn-primary{padding:7px 20px;font-size:13px;gap:6px;}}
 .btn-primary:hover{opacity:.85;}
-.btn-publish{padding:7px 20px;border-radius:9px;background:var(--green);border:none;font-size:13px;font-weight:600;color:#052e16;cursor:pointer;font-family:'DM Sans',sans-serif;display:none;align-items:center;gap:6px;transition:opacity .15s;}
+.btn-publish{padding:7px 14px;border-radius:9px;background:var(--green);border:none;font-size:12px;font-weight:600;color:#052e16;cursor:pointer;font-family:'DM Sans',sans-serif;display:none;align-items:center;gap:5px;transition:opacity .15s;}
+@media(min-width:768px){.btn-publish{padding:7px 20px;font-size:13px;gap:6px;}}
 .btn-publish:hover{opacity:.85;}
 
-/* STEPS */
-.criar-steps{display:flex;align-items:center;padding:0 32px;background:var(--s1);border-bottom:1px solid var(--b1);}
-.step-item{display:flex;align-items:center;gap:8px;padding:13px 0;cursor:pointer;}
-.step-num{width:24px;height:24px;border-radius:50%;border:1.5px solid var(--t3);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--t3);flex-shrink:0;transition:all .2s;font-family:'Syne',sans-serif;}
+/* ── STEPS ── */
+.criar-steps{display:flex;align-items:center;padding:0 16px;background:var(--s1);border-bottom:1px solid var(--b1);overflow-x:auto;scrollbar-width:none;}
+.criar-steps::-webkit-scrollbar{display:none;}
+@media(min-width:768px){.criar-steps{padding:0 32px;}}
+.step-item{display:flex;align-items:center;gap:6px;padding:11px 0;cursor:pointer;flex-shrink:0;}
+@media(min-width:768px){.step-item{gap:8px;padding:13px 0;}}
+.step-num{width:22px;height:22px;border-radius:50%;border:1.5px solid var(--t3);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--t3);flex-shrink:0;transition:all .2s;font-family:'Syne',sans-serif;}
+@media(min-width:768px){.step-num{width:24px;height:24px;font-size:11px;}}
 .step-num.active{border-color:var(--acc);color:var(--acc);background:var(--acc-bg);}
 .step-num.done{border-color:var(--green);color:var(--green);background:rgba(52,211,153,.1);}
-.step-lbl{font-size:12px;font-weight:600;color:var(--t3);white-space:nowrap;transition:color .2s;}
+.step-lbl{font-size:11px;font-weight:600;color:var(--t3);white-space:nowrap;transition:color .2s;}
+@media(min-width:768px){.step-lbl{font-size:12px;}}
 .step-lbl.active{color:var(--acc);}
 .step-lbl.done{color:var(--green);}
-.step-line{flex:1;height:1px;background:var(--b2);margin:0 10px;min-width:16px;transition:background .2s;}
+.step-line{flex:1;height:1px;background:var(--b2);margin:0 6px;min-width:12px;transition:background .2s;}
+@media(min-width:768px){.step-line{margin:0 10px;min-width:16px;}}
 .step-line.done{background:var(--green);}
 
-/* PROGRESS */
-.prog-wrap{display:flex;align-items:center;gap:16px;padding:7px 32px;background:var(--s1);border-bottom:1px solid var(--b1);}
+/* ── PROGRESS ── */
+.prog-wrap{display:flex;align-items:center;gap:12px;padding:7px 16px;background:var(--s1);border-bottom:1px solid var(--b1);}
+@media(min-width:768px){.prog-wrap{gap:16px;padding:7px 32px;}}
 .prog-track{flex:1;height:3px;border-radius:999px;background:var(--b2);overflow:hidden;}
 .prog-fill{height:100%;border-radius:999px;background:var(--acc);transition:width .4s cubic-bezier(.4,0,.2,1);}
-.prog-lbl{font-size:12px;color:var(--t3);white-space:nowrap;}
+.prog-lbl{font-size:11px;color:var(--t3);white-space:nowrap;}
+@media(min-width:768px){.prog-lbl{font-size:12px;}}
 
-/* LAYOUT */
-.criar-layout{display:flex;align-items:flex-start;}
-.form-col{flex:1;min-width:0;padding:32px;max-width:700px;}
-.aside-col{width:280px;flex-shrink:0;padding:32px 32px 32px 0;position:sticky;top:112px;}
+/* ── LAYOUT ── */
+.criar-layout{display:flex;align-items:flex-start;flex-direction:column;}
+@media(min-width:1024px){.criar-layout{flex-direction:row;}}
+.form-col{width:100%;padding:20px 16px;min-width:0;}
+@media(min-width:768px){.form-col{padding:32px;}}
+@media(min-width:1024px){.form-col{flex:1;max-width:700px;}}
 
-/* CARDS */
-.form-card{background:var(--s1);border:1px solid var(--b2);border-radius:16px;padding:26px;margin-bottom:18px;}
+/* ASIDE — escondido em mobile, sticky em desktop */
+.aside-col{display:none;}
+@media(min-width:1024px){
+    .aside-col{display:block;width:280px;flex-shrink:0;padding:32px 32px 32px 0;position:sticky;top:112px;}
+}
+
+/* ── MOBILE PREVIEW DRAWER ── */
+.mob-preview-btn{
+    display:flex;align-items:center;gap:8px;width:100%;padding:11px 16px;
+    background:var(--s1);border:1px solid var(--b2);border-radius:12px;
+    color:var(--t2);font-size:13px;font-family:'DM Sans',sans-serif;cursor:pointer;
+    margin-bottom:16px; transition:all .2s;
+}
+.mob-preview-btn:hover{border-color:var(--acc);color:var(--acc);}
+@media(min-width:1024px){.mob-preview-btn{display:none;}}
+
+.drawer-overlay{display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.75);backdrop-filter:blur(4px);}
+.drawer-overlay.open{display:flex;align-items:flex-end;}
+.drawer-box{width:100%;background:var(--s1);border:1px solid var(--b2);border-radius:20px 20px 0 0;padding:20px 16px 32px;max-height:85vh;overflow-y:auto;}
+.drawer-handle{width:36px;height:4px;border-radius:2px;background:var(--b3);margin:0 auto 18px;}
+
+/* ── CARDS ── */
+.form-card{background:var(--s1);border:1px solid var(--b2);border-radius:14px;padding:18px;margin-bottom:14px;}
+@media(min-width:768px){.form-card{border-radius:16px;padding:26px;margin-bottom:18px;}}
 .form-card:last-child{margin-bottom:0;}
-.card-head{display:flex;align-items:flex-start;gap:14px;margin-bottom:22px;padding-bottom:18px;border-bottom:1px solid var(--b1);}
-.card-icon{width:36px;height:36px;border-radius:10px;background:var(--acc-bg);border:1px solid var(--acc2);display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;}
-.card-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:var(--t1);margin-bottom:2px;}
-.card-sub{font-size:12.5px;color:var(--t3);}
+.card-head{display:flex;align-items:flex-start;gap:12px;margin-bottom:18px;padding-bottom:16px;border-bottom:1px solid var(--b1);}
+@media(min-width:768px){.card-head{gap:14px;margin-bottom:22px;padding-bottom:18px;}}
+.card-icon{width:32px;height:32px;border-radius:9px;background:var(--acc-bg);border:1px solid var(--acc2);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;}
+@media(min-width:768px){.card-icon{width:36px;height:36px;font-size:17px;}}
+.card-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--t1);margin-bottom:2px;}
+.card-sub{font-size:12px;color:var(--t3);}
 
-/* FIELDS */
-.field{margin-bottom:18px;}
+/* ── FIELDS ── */
+.field{margin-bottom:16px;}
 .field:last-child{margin-bottom:0;}
-.field label{display:block;font-size:11px;font-weight:700;color:var(--t3);letter-spacing:.07em;text-transform:uppercase;margin-bottom:7px;}
+.field label{display:block;font-size:11px;font-weight:700;color:var(--t3);letter-spacing:.07em;text-transform:uppercase;margin-bottom:6px;}
 .req{color:var(--acc);}
 .field input[type=text],
 .field input[type=date],
@@ -72,111 +114,131 @@
 .field input[type=number],
 .field input[type=url],
 .field textarea,
-.field select{width:100%;padding:10px 13px;background:var(--s2);border:1px solid var(--b2);border-radius:10px;font-size:13.5px;color:var(--t1);font-family:'DM Sans',sans-serif;outline:none;transition:border-color .15s,background .15s;-webkit-appearance:none;appearance:none;}
+.field select{width:100%;padding:10px 13px;background:var(--s2);border:1px solid var(--b2);border-radius:10px;font-size:13px;color:var(--t1);font-family:'DM Sans',sans-serif;outline:none;transition:border-color .15s,background .15s;-webkit-appearance:none;appearance:none;}
 .field input:focus,.field textarea:focus,.field select:focus{border-color:var(--acc);background:var(--s3);}
 .field input::placeholder,.field textarea::placeholder{color:var(--t3);}
 .field select option{background:var(--s2);}
-.field textarea{resize:vertical;min-height:95px;line-height:1.7;}
+.field textarea{resize:vertical;min-height:90px;line-height:1.7;}
 .char-count{text-align:right;font-size:11px;color:var(--t3);margin-top:4px;}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.grid2{display:grid;grid-template-columns:1fr;gap:12px;}
+@media(min-width:480px){.grid2{grid-template-columns:1fr 1fr;gap:14px;}}
 .error-msg{font-size:12px;color:var(--red);margin-top:5px;}
 
-/* TOGGLE */
-.tog-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--b1);}
+/* ── TOGGLE ── */
+.tog-row{display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:1px solid var(--b1);}
 .tog-row:last-child{border-bottom:none;padding-bottom:0;}
-.tog-info .tog-lbl{font-size:13.5px;color:var(--t1);}
-.tog-info .tog-desc{font-size:12px;color:var(--t3);margin-top:2px;}
-.tog-btn{width:36px;height:20px;border-radius:999px;background:var(--t3);border:none;cursor:pointer;position:relative;flex-shrink:0;transition:background .2s;margin-left:16px;}
+.tog-info .tog-lbl{font-size:13px;color:var(--t1);}
+.tog-info .tog-desc{font-size:11.5px;color:var(--t3);margin-top:2px;}
+.tog-btn{width:36px;height:20px;border-radius:999px;background:var(--t3);border:none;cursor:pointer;position:relative;flex-shrink:0;transition:background .2s;margin-left:12px;}
 .tog-btn.on{background:var(--acc);}
 .tog-btn::after{content:'';width:14px;height:14px;border-radius:50%;background:#fff;position:absolute;top:3px;left:3px;transition:left .18s;}
 .tog-btn.on::after{left:19px;}
 
-/* CATEGORIAS */
-.cat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;}
-.cat-tile{padding:15px 7px;border-radius:10px;border:1px solid var(--b2);background:var(--s2);cursor:pointer;text-align:center;transition:all .18s;}
+/* ── CATEGORIAS ── */
+.cat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+@media(min-width:480px){.cat-grid{grid-template-columns:repeat(4,1fr);gap:9px;}}
+.cat-tile{padding:12px 6px;border-radius:10px;border:1px solid var(--b2);background:var(--s2);cursor:pointer;text-align:center;transition:all .18s;}
+@media(min-width:768px){.cat-tile{padding:15px 7px;}}
 .cat-tile:hover{border-color:var(--b3);transform:translateY(-1px);}
 .cat-tile.sel{border-color:var(--acc);background:var(--acc-bg);}
-.cat-em{font-size:22px;display:block;margin-bottom:6px;}
-.cat-nm{font-size:11.5px;font-weight:600;color:var(--t2);font-family:'Syne',sans-serif;transition:color .15s;}
+.cat-em{font-size:20px;display:block;margin-bottom:5px;}
+@media(min-width:768px){.cat-em{font-size:22px;}}
+.cat-nm{font-size:11px;font-weight:600;color:var(--t2);font-family:'Syne',sans-serif;transition:color .15s;}
 .cat-tile:hover .cat-nm,.cat-tile.sel .cat-nm{color:var(--acc);}
-.sub-section{margin-top:18px;padding:18px;background:var(--s2);border-radius:10px;border:1px solid var(--b2);display:none;}
+.sub-section{margin-top:16px;padding:16px;background:var(--s2);border-radius:10px;border:1px solid var(--b2);display:none;}
 .sub-section.show{display:block;}
 .sub-header{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
-.sub-em{font-size:20px;}
+.sub-em{font-size:18px;}
 .sub-name{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--t1);}
 .sub-lbl{font-size:10.5px;font-weight:700;color:var(--t3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:9px;}
 .sub-chips{display:flex;flex-wrap:wrap;gap:7px;}
-.sub-chip{padding:7px 14px;border-radius:999px;border:1px solid var(--b2);background:var(--s1);font-size:13px;color:var(--t2);cursor:pointer;transition:all .15s;font-family:'DM Sans',sans-serif;}
+.sub-chip{padding:6px 12px;border-radius:999px;border:1px solid var(--b2);background:var(--s1);font-size:12px;color:var(--t2);cursor:pointer;transition:all .15s;font-family:'DM Sans',sans-serif;}
 .sub-chip:hover{border-color:var(--acc);color:var(--acc);}
 .sub-chip.sel{background:var(--acc2);border-color:var(--acc2);color:#fff;}
-.sel-confirm{margin-top:14px;padding:11px 15px;background:var(--acc-bg);border:1px solid var(--acc2);border-radius:10px;display:none;align-items:center;gap:9px;}
+.sel-confirm{margin-top:14px;padding:10px 14px;background:var(--acc-bg);border:1px solid var(--acc2);border-radius:10px;display:none;align-items:center;gap:9px;}
 .sel-confirm.show{display:flex;}
 .sel-check{width:18px;height:18px;border-radius:50%;background:var(--acc2);display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;flex-shrink:0;}
 
-/* COVER */
+/* ── COVER ── */
 .cover-zone{border:1.5px dashed var(--b3);border-radius:11px;cursor:pointer;overflow:hidden;transition:all .2s;}
 .cover-zone:hover{border-color:var(--acc);background:var(--acc-bg);}
-.cover-empty{padding:40px 20px;text-align:center;}
-.cover-icon-box{width:48px;height:48px;border-radius:13px;background:var(--s2);border:1px solid var(--b2);display:flex;align-items:center;justify-content:center;font-size:22px;margin:0 auto 12px;}
-.cover-empty p{font-size:13.5px;color:var(--t2);margin-bottom:4px;}
-.cover-empty small{font-size:11.5px;color:var(--t3);}
-.cover-preview{height:180px;position:relative;display:none;}
+.cover-empty{padding:32px 20px;text-align:center;}
+@media(min-width:768px){.cover-empty{padding:40px 20px;}}
+.cover-icon-box{width:44px;height:44px;border-radius:12px;background:var(--s2);border:1px solid var(--b2);display:flex;align-items:center;justify-content:center;font-size:20px;margin:0 auto 10px;}
+.cover-empty p{font-size:13px;color:var(--t2);margin-bottom:4px;}
+.cover-empty small{font-size:11px;color:var(--t3);}
+.cover-preview{height:160px;position:relative;display:none;}
+@media(min-width:768px){.cover-preview{height:180px;}}
 .cover-preview img{width:100%;height:100%;object-fit:cover;}
 .cover-ov{position:absolute;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .2s;}
 .cover-zone:hover .cover-ov{opacity:1;}
-.cover-chg{padding:8px 16px;border-radius:8px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);color:#fff;font-size:12.5px;font-family:'DM Sans',sans-serif;cursor:pointer;}
+.cover-chg{padding:8px 16px;border-radius:8px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);color:#fff;font-size:12px;font-family:'DM Sans',sans-serif;cursor:pointer;}
 
-/* GALERIA */
-.galeria-zone{border:1.5px dashed var(--b3);border-radius:11px;cursor:pointer;overflow:hidden;transition:all .2s;padding:28px 20px;text-align:center;}
+/* ── GALERIA ── */
+.galeria-zone{border:1.5px dashed var(--b3);border-radius:11px;cursor:pointer;overflow:hidden;transition:all .2s;padding:24px 20px;text-align:center;}
+@media(min-width:768px){.galeria-zone{padding:28px 20px;}}
 .galeria-zone:hover{border-color:var(--acc);background:var(--acc-bg);}
-.galeria-zone p{font-size:13.5px;color:var(--t2);margin-bottom:4px;}
-.galeria-zone small{font-size:11.5px;color:var(--t3);}
+.galeria-zone p{font-size:13px;color:var(--t2);margin-bottom:4px;}
+.galeria-zone small{font-size:11px;color:var(--t3);}
 .galeria-preview{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;}
-.galeria-thumb{width:72px;height:72px;border-radius:8px;object-fit:cover;border:1px solid var(--b2);}
+.galeria-thumb{width:64px;height:64px;border-radius:8px;object-fit:cover;border:1px solid var(--b2);}
+@media(min-width:768px){.galeria-thumb{width:72px;height:72px;}}
 
-/* TICKETS */
-.tk-headers{display:grid;grid-template-columns:2fr 1fr 1fr 1fr 34px;gap:10px;padding-bottom:8px;margin-bottom:10px;border-bottom:1px solid var(--b2);}
-.tk-headers span{font-size:10.5px;font-weight:700;color:var(--t3);letter-spacing:.07em;text-transform:uppercase;}
-.tk-row{display:grid;grid-template-columns:2fr 1fr 1fr 1fr 34px;gap:10px;margin-bottom:9px;align-items:center;}
+/* ── BILHETES ── */
+.tk-headers{display:none;}
+@media(min-width:640px){
+    .tk-headers{display:grid;grid-template-columns:2fr 1fr 1fr 1fr 34px;gap:10px;padding-bottom:8px;margin-bottom:10px;border-bottom:1px solid var(--b2);}
+    .tk-headers span{font-size:10px;font-weight:700;color:var(--t3);letter-spacing:.07em;text-transform:uppercase;}
+}
+.tk-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--b1);}
+@media(min-width:640px){.tk-row{grid-template-columns:2fr 1fr 1fr 1fr 34px;gap:10px;margin-bottom:9px;padding-bottom:0;border-bottom:none;align-items:center;}}
 .tk-row input{padding:9px 12px;background:var(--s2);border:1px solid var(--b2);border-radius:9px;font-size:13px;color:var(--t1);font-family:'DM Sans',sans-serif;outline:none;width:100%;transition:border-color .15s;}
 .tk-row input:focus{border-color:var(--acc);}
 .tk-row input::placeholder{color:var(--t3);}
-.tk-taxa{padding:9px 12px;background:var(--s3);border:1px solid var(--b1);border-radius:9px;font-size:13px;color:var(--t3);font-family:'DM Sans',sans-serif;text-align:center;}
+.tk-taxa{padding:9px 12px;background:var(--s3);border:1px solid var(--b1);border-radius:9px;font-size:12px;color:var(--t3);font-family:'DM Sans',sans-serif;text-align:center;}
+.tk-row-mobile-label{font-size:10px;font-weight:700;color:var(--t3);letter-spacing:.07em;text-transform:uppercase;margin-bottom:4px;display:block;}
+@media(min-width:640px){.tk-row-mobile-label{display:none;}}
+.tk-nome-col{grid-column:1/-1;}
+@media(min-width:640px){.tk-nome-col{grid-column:auto;}}
 .rm-btn{width:34px;height:38px;border-radius:8px;border:1px solid var(--b2);background:transparent;color:var(--t3);cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;}
 .rm-btn:hover{border-color:var(--red);color:var(--red);background:rgba(248,113,113,.07);}
+.rm-btn-mobile{grid-column:1/-1;justify-self:end;}
+@media(min-width:640px){.rm-btn-mobile{grid-column:auto;justify-self:auto;}}
 .add-tk-btn{width:100%;padding:9px;border-radius:9px;border:1.5px dashed var(--b2);background:transparent;font-size:13px;color:var(--t3);cursor:pointer;margin-top:4px;font-family:'DM Sans',sans-serif;transition:all .15s;}
 .add-tk-btn:hover{border-color:var(--acc);color:var(--acc);}
 .taxa-note{font-size:12px;color:var(--t3);margin-top:10px;padding:10px 14px;background:var(--s2);border-radius:8px;border:1px solid var(--b1);}
 
-/* STATUS */
-.status-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;}
-.status-tile{padding:13px 10px;border-radius:10px;border:1px solid var(--b2);background:var(--s2);cursor:pointer;text-align:center;transition:all .18s;}
+/* ── STATUS ── */
+.status-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.status-tile{padding:12px 8px;border-radius:10px;border:1px solid var(--b2);background:var(--s2);cursor:pointer;text-align:center;transition:all .18s;}
+@media(min-width:768px){.status-tile{padding:13px 10px;}}
 .status-tile:hover{border-color:var(--b3);}
 .status-tile.sel-rascunho{border-color:#facc15;background:rgba(250,204,21,.08);}
 .status-tile.sel-publicado{border-color:var(--green);background:rgba(52,211,153,.08);}
 .status-tile.sel-encerrado{border-color:var(--red);background:rgba(248,113,113,.08);}
-.status-em{font-size:20px;display:block;margin-bottom:5px;}
-.status-nm{font-size:12px;font-weight:600;font-family:'Syne',sans-serif;color:var(--t2);}
+.status-em{font-size:18px;display:block;margin-bottom:5px;}
+.status-nm{font-size:11px;font-weight:600;font-family:'Syne',sans-serif;color:var(--t2);}
 
-/* REVIEW */
-.rev-item{display:flex;align-items:center;gap:13px;padding:13px;background:var(--s2);border-radius:11px;border:1px solid var(--b2);margin-bottom:9px;}
-.rev-icon{width:34px;height:34px;border-radius:9px;background:var(--acc-bg);border:1px solid var(--acc2);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+/* ── REVIEW ── */
+.rev-item{display:flex;align-items:center;gap:12px;padding:12px;background:var(--s2);border-radius:11px;border:1px solid var(--b2);margin-bottom:9px;}
+.rev-icon{width:32px;height:32px;border-radius:9px;background:var(--acc-bg);border:1px solid var(--acc2);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;}
 .rev-body{flex:1;min-width:0;}
 .rev-title{font-size:13px;font-weight:600;color:var(--t1);font-family:'Syne',sans-serif;}
 .rev-val{font-size:12px;color:var(--t3);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .rev-edit{font-size:12px;color:var(--acc);cursor:pointer;white-space:nowrap;background:none;border:none;}
 .rev-edit:hover{text-decoration:underline;}
-.pub-center{text-align:center;padding:24px 0 18px;}
-.pub-em{font-size:44px;display:block;margin-bottom:10px;}
-.pub-title{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--t1);margin-bottom:5px;}
+.pub-center{text-align:center;padding:20px 0 16px;}
+.pub-em{font-size:40px;display:block;margin-bottom:10px;}
+.pub-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:var(--t1);margin-bottom:5px;}
+@media(min-width:768px){.pub-title{font-size:20px;}}
 .pub-sub{font-size:13px;color:var(--t3);}
 
-/* ASIDE */
+/* ── ASIDE (desktop only) ── */
 .aside-lbl{font-size:10px;font-weight:700;color:var(--t3);letter-spacing:.12em;text-transform:uppercase;margin-bottom:11px;}
 .prev-card{background:var(--s1);border:1px solid var(--b2);border-radius:15px;overflow:hidden;}
 .prev-cover{height:140px;display:flex;align-items:center;justify-content:center;font-size:50px;position:relative;background:linear-gradient(135deg,#1e1b4b,#4c1d95);}
 .prev-cover-tag{position:absolute;top:9px;left:9px;background:rgba(0,0,0,.6);border:1px solid rgba(255,255,255,.12);color:#fff;font-size:10px;font-weight:700;padding:2px 8px;border-radius:5px;font-family:'Syne',sans-serif;display:none;}
-.prev-body{padding:15px;}
+.prev-body{padding:14px;}
 .prev-cat{font-size:10px;font-weight:700;color:var(--acc);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;font-family:'Syne',sans-serif;}
 .prev-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;line-height:1.35;margin-bottom:9px;}
 .prev-meta-row{display:flex;gap:6px;align-items:center;font-size:12px;color:var(--t2);margin-bottom:4px;}
@@ -189,18 +251,16 @@
 .tip-item{display:flex;gap:9px;align-items:flex-start;margin-bottom:11px;}
 .tip-item:last-child{margin-bottom:0;}
 .tip-dot{width:5px;height:5px;border-radius:50%;background:var(--acc);flex-shrink:0;margin-top:5px;}
-.tip-text{font-size:12.5px;color:var(--t2);line-height:1.55;}
+.tip-text{font-size:12px;color:var(--t2);line-height:1.55;}
 
-/* PANELS */
+/* ── PANELS ── */
 .step-panel{display:none;}
 .step-panel.active{display:block;}
-.alert-error{background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.3);color:var(--red);border-radius:10px;padding:12px 16px;margin-bottom:18px;font-size:13px;}
+.alert-error{background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.3);color:var(--red);border-radius:10px;padding:12px 16px;margin-bottom:16px;font-size:13px;}
 </style>
 
-@section('content')
-<style>
-    main { max-width: 100% !important; padding: 0 !important; }
-</style>
+<style>main{max-width:100%!important;padding:0!important;}</style>
+
 <div class="criar-page">
 
     {{-- TOPBAR --}}
@@ -219,7 +279,7 @@
                 <span id="btn-next-lbl">Continuar</span> →
             </button>
             <button type="submit" form="form-criar" class="btn-publish" id="btn-publish">
-                🚀 Guardar evento
+                🚀 Guardar
             </button>
         </div>
     </div>
@@ -242,10 +302,7 @@
     </div>
 
     {{-- FORM --}}
-    <form id="form-criar"
-          method="POST"
-          action="{{ route('admin.eventos.guardar') }}"
-          enctype="multipart/form-data">
+    <form id="form-criar" method="POST" action="{{ route('admin.eventos.guardar') }}" enctype="multipart/form-data" novalidate>
         @csrf
 
         <div class="criar-layout">
@@ -254,17 +311,21 @@
             <div class="form-col">
 
                 @if($errors->any())
-                    <div class="alert-error">
-                        <strong>Corrige os seguintes erros:</strong>
-                        <ul style="margin-top:6px;padding-left:16px;">
-                            @foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach
-                        </ul>
-                    </div>
+                <div class="alert-error">
+                    <strong>Corrige os seguintes erros:</strong>
+                    <ul style="margin-top:6px;padding-left:16px;">
+                        @foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach
+                    </ul>
+                </div>
                 @endif
+
+                {{-- Botão pré-visualização mobile --}}
+                <button type="button" class="mob-preview-btn" onclick="abrirDrawerPreview()">
+                    👁 Ver pré-visualização
+                </button>
 
                 {{-- ══ P1: INFORMAÇÕES ══ --}}
                 <div class="step-panel active" id="p1">
-
                     <div class="form-card">
                         <div class="card-head">
                             <div class="card-icon">📝</div>
@@ -378,7 +439,6 @@
 
                 {{-- ══ P2: CATEGORIA + CAPA + GALERIA ══ --}}
                 <div class="step-panel" id="p2">
-
                     <div class="form-card">
                         <div class="card-head">
                             <div class="card-icon">🗂️</div>
@@ -448,7 +508,6 @@
 
                 {{-- ══ P3: BILHETES ══ --}}
                 <div class="step-panel" id="p3">
-
                     <div class="form-card">
                         <div class="card-head">
                             <div class="card-icon">🎟️</div>
@@ -463,11 +522,23 @@
                         </div>
                         <div id="tk-list">
                             <div class="tk-row" id="tkr-0">
-                                <input type="text"   name="ingressos[0][nome]"       placeholder="Ex: Geral">
-                                <input type="number" name="ingressos[0][preco]"      placeholder="0" min="0" oninput="calcTaxa(this,0)">
-                                <div class="tk-taxa" id="taxa-0">0 Kz</div>
-                                <input type="number" name="ingressos[0][quantidade]" placeholder="100" min="1">
-                                <button type="button" class="rm-btn" onclick="removeTicket('tkr-0')">✕</button>
+                                <div class="tk-nome-col">
+                                    <span class="tk-row-mobile-label">Tipo de bilhete</span>
+                                    <input type="text" name="ingressos[0][nome]" placeholder="Ex: Geral">
+                                </div>
+                                <div>
+                                    <span class="tk-row-mobile-label">Preço base (Kz)</span>
+                                    <input type="number" name="ingressos[0][preco]" placeholder="0" min="0" oninput="calcTaxa(this,0)">
+                                </div>
+                                <div>
+                                    <span class="tk-row-mobile-label">Taxa (10%)</span>
+                                    <div class="tk-taxa" id="taxa-0">0 Kz</div>
+                                </div>
+                                <div>
+                                    <span class="tk-row-mobile-label">Quantidade</span>
+                                    <input type="number" name="ingressos[0][quantidade]" placeholder="100" min="1">
+                                </div>
+                                <button type="button" class="rm-btn rm-btn-mobile" onclick="removeTicket('tkr-0')">✕</button>
                             </div>
                         </div>
                         <button type="button" class="add-tk-btn" onclick="addTicket()">+ Adicionar tipo de bilhete</button>
@@ -507,25 +578,23 @@
 
                 {{-- ══ P4: DEFINIÇÕES ══ --}}
                 <div class="step-panel" id="p4">
-
                     <div class="form-card">
                         <div class="card-head">
                             <div class="card-icon">🔒</div>
                             <div><div class="card-title">Visibilidade e acesso</div><div class="card-sub">Controla quem vê e participa no evento</div></div>
                         </div>
                         @foreach([
-                            ['privado',               'Evento privado',                 'Visível apenas com link direto',         false],
-                            ['aprovacao_manual',       'Aprovação manual de inscrições', 'Confirmas cada pedido manualmente',     false],
-                            ['permitir_comentarios',   'Permitir comentários',           'Participantes podem comentar',          true],
-                            ['participantes_publicos', 'Lista de participantes pública', 'Outros utilizadores podem ver quem vai',true],
+                            ['privado','Evento privado','Visível apenas com link direto',false],
+                            ['aprovacao_manual','Aprovação manual de inscrições','Confirmas cada pedido manualmente',false],
+                            ['permitir_comentarios','Permitir comentários','Participantes podem comentar',true],
+                            ['participantes_publicos','Lista de participantes pública','Outros utilizadores podem ver quem vai',true],
                         ] as [$field,$label,$desc,$default])
                             <div class="tog-row">
                                 <div class="tog-info">
                                     <div class="tog-lbl">{{ $label }}</div>
                                     <div class="tog-desc">{{ $desc }}</div>
                                 </div>
-                                <button type="button"
-                                        class="tog-btn {{ old($field,$default?1:0)?'on':'' }}"
+                                <button type="button" class="tog-btn {{ old($field,$default?1:0)?'on':'' }}"
                                         onclick="toggleField(this,'{{ $field }}')"></button>
                                 <input type="hidden" name="{{ $field }}" id="{{ $field }}"
                                        value="{{ old($field,$default?1:0) }}">
@@ -539,17 +608,16 @@
                             <div><div class="card-title">Notificações</div><div class="card-sub">Quando queres receber alertas?</div></div>
                         </div>
                         @foreach([
-                            ['notif_nova_inscricao','Nova inscrição',     'Alerta quando alguém se inscrever',  true],
-                            ['notif_lembrete_24h',  'Lembrete 24h antes','Envio automático aos participantes', true],
-                            ['notif_resumo_semanal','Resumo semanal',     'Relatório de inscrições por semana', false],
+                            ['notif_nova_inscricao','Nova inscrição','Alerta quando alguém se inscrever',true],
+                            ['notif_lembrete_24h','Lembrete 24h antes','Envio automático aos participantes',true],
+                            ['notif_resumo_semanal','Resumo semanal','Relatório de inscrições por semana',false],
                         ] as [$field,$label,$desc,$default])
                             <div class="tog-row">
                                 <div class="tog-info">
                                     <div class="tog-lbl">{{ $label }}</div>
                                     <div class="tog-desc">{{ $desc }}</div>
                                 </div>
-                                <button type="button"
-                                        class="tog-btn {{ old($field,$default?1:0)?'on':'' }}"
+                                <button type="button" class="tog-btn {{ old($field,$default?1:0)?'on':'' }}"
                                         onclick="toggleField(this,'{{ $field }}')"></button>
                                 <input type="hidden" name="{{ $field }}" id="{{ $field }}"
                                        value="{{ old($field,$default?1:0) }}">
@@ -566,7 +634,6 @@
                             <div class="pub-title">Tudo pronto!</div>
                             <div class="pub-sub">Revê os detalhes e escolhe o estado do evento</div>
                         </div>
-
                         <div class="rev-item">
                             <div class="rev-icon">📝</div>
                             <div class="rev-body"><div class="rev-title">Informações</div><div class="rev-val" id="rev-info">—</div></div>
@@ -582,8 +649,6 @@
                             <div class="rev-body"><div class="rev-title">Bilhetes</div><div class="rev-val" id="rev-bilhetes">—</div></div>
                             <button type="button" class="rev-edit" onclick="goStep(3)">Editar →</button>
                         </div>
-
-                        {{-- Estado do evento --}}
                         <div style="margin-top:20px;padding-top:20px;border-top:1px solid var(--b1);">
                             <div style="font-size:11px;font-weight:700;color:var(--t3);letter-spacing:.07em;text-transform:uppercase;margin-bottom:12px;">Estado do evento</div>
                             <div class="status-grid">
@@ -602,8 +667,6 @@
                             </div>
                             <input type="hidden" name="status" id="inp-status" value="{{ old('status','publicado') }}">
                         </div>
-
-                        {{-- Termos --}}
                         <div class="tog-row" style="margin-top:20px;padding-top:20px;border-top:1px solid var(--b1);">
                             <div class="tog-info">
                                 <div class="tog-lbl">Concordo com os termos de publicação</div>
@@ -618,7 +681,7 @@
 
             </div>
 
-            {{-- ASIDE --}}
+            {{-- ASIDE (desktop) --}}
             <div class="aside-col">
                 <div class="aside-lbl">Pré-visualização</div>
                 <div class="prev-card">
@@ -660,6 +723,37 @@
         </div>
     </form>
 </div>
+
+{{-- DRAWER PRÉ-VISUALIZAÇÃO (mobile) --}}
+<div class="drawer-overlay" id="drawer-preview" onclick="if(event.target===this) fecharDrawerPreview()">
+    <div class="drawer-box">
+        <div class="drawer-handle"></div>
+        <p style="font-size:11px;font-weight:700;color:var(--t3);letter-spacing:.12em;text-transform:uppercase;margin-bottom:12px;">Pré-visualização</p>
+        <div class="prev-card" style="background:var(--s2);">
+            <div class="prev-cover" id="prev-cover-mob" style="background:linear-gradient(135deg,#1e1b4b,#4c1d95);">
+                <span id="prev-em-mob">✦</span>
+            </div>
+            <div class="prev-body">
+                <div class="prev-cat" id="prev-cat-mob">Sem categoria</div>
+                <div class="prev-title" id="prev-title-mob" style="color:var(--t3)">Nome do evento</div>
+                <div class="prev-meta-row"><span>📅</span><span id="prev-data-mob" style="color:var(--t3)">Data e hora</span></div>
+                <div class="prev-meta-row"><span>📍</span><span id="prev-local-mob" style="color:var(--t3)">Local do evento</span></div>
+                <div class="prev-divider"></div>
+                <div class="prev-footer">
+                    <div>
+                        <div class="prev-price" id="prev-price-mob">—</div>
+                        <div class="prev-price-sub">por pessoa</div>
+                    </div>
+                    <button type="button" class="prev-join-btn">Participar</button>
+                </div>
+            </div>
+        </div>
+        <button type="button" onclick="fecharDrawerPreview()" style="width:100%;margin-top:16px;padding:11px;border-radius:10px;background:var(--acc2);border:none;color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">
+            Fechar
+        </button>
+    </div>
+</div>
+
 <script>
 const CAT_CORES = {
     'Shows':        'linear-gradient(135deg,#1e1b4b,#4c1d95)',
@@ -677,7 +771,6 @@ let selCatEmoji = '';
 let selSubNome  = '';
 let tkCount     = 1;
 
-// ── STEPS ──
 function goStep(n) {
     document.querySelectorAll('.step-panel').forEach((p,i) => p.classList.toggle('active', i+1===n));
     currentStep = n;
@@ -701,29 +794,27 @@ function goStep(n) {
     } else {
         btnNext.style.display    = 'inline-flex';
         btnPublish.style.display = 'none';
-        document.getElementById('btn-next-lbl').textContent = n===4 ? 'Rever e guardar' : 'Continuar';
+        document.getElementById('btn-next-lbl').textContent = n===4 ? 'Rever' : 'Continuar';
     }
+    window.scrollTo({top:0, behavior:'smooth'});
 }
+
 function nextStep() { if (currentStep < 5) goStep(currentStep+1); }
 
-// ── TOGGLES ──
 function toggleField(btn, field) {
     btn.classList.toggle('on');
     const el = document.getElementById(field);
     if (el) el.value = btn.classList.contains('on') ? 1 : 0;
 }
 
-// ── CATEGORIA ──
 function selectCategoria(id, nome, subcategorias, tile) {
     document.querySelectorAll('.cat-tile').forEach(t => t.classList.remove('sel'));
     tile.classList.add('sel');
     selCatNome  = nome;
     selCatEmoji = tile.querySelector('.cat-em').textContent;
-    document.getElementById('inp-categoria').value   = id;
+    document.getElementById('inp-categoria').value    = id;
     document.getElementById('inp-subcategoria').value = '';
     selSubNome = '';
-
-    // Subcategorias
     const section = document.getElementById('sub-section');
     section.classList.add('show');
     document.getElementById('sub-em').textContent   = selCatEmoji;
@@ -742,14 +833,15 @@ function selectCategoria(id, nome, subcategorias, tile) {
         chipsEl.innerHTML = '<span style="font-size:13px;color:var(--t3)">Sem subcategorias</span>';
     }
     document.getElementById('sel-confirm').classList.remove('show');
-
-    // Preview
     const cor = CAT_CORES[nome] || 'linear-gradient(135deg,#1e1b4b,#4c1d95)';
-    document.getElementById('prev-cover').style.background = cor;
-    document.getElementById('prev-em').textContent = selCatEmoji;
-    document.getElementById('prev-cover-tag').textContent     = nome;
-    document.getElementById('prev-cover-tag').style.display   = 'block';
-    document.getElementById('prev-cat').textContent = selCatEmoji + ' ' + nome;
+    document.getElementById('prev-cover').style.background     = cor;
+    document.getElementById('prev-cover-mob').style.background = cor;
+    document.getElementById('prev-em').textContent     = selCatEmoji;
+    document.getElementById('prev-em-mob').textContent = selCatEmoji;
+    document.getElementById('prev-cover-tag').textContent   = nome;
+    document.getElementById('prev-cover-tag').style.display = 'block';
+    document.getElementById('prev-cat').textContent     = selCatEmoji + ' ' + nome;
+    document.getElementById('prev-cat-mob').textContent = selCatEmoji + ' ' + nome;
 }
 
 function selectSubcategoria(chip, id, nome) {
@@ -760,10 +852,10 @@ function selectSubcategoria(chip, id, nome) {
     const confirm = document.getElementById('sel-confirm');
     confirm.classList.add('show');
     document.getElementById('sel-confirm-txt').textContent = selCatEmoji + ' ' + selCatNome + ' → ' + nome;
-    document.getElementById('prev-cat').textContent = selCatEmoji + ' ' + nome;
+    document.getElementById('prev-cat').textContent     = selCatEmoji + ' ' + nome;
+    document.getElementById('prev-cat-mob').textContent = selCatEmoji + ' ' + nome;
 }
 
-// ── CAPA ──
 function handleCover(input) {
     const file = input.files[0];
     if (!file) return;
@@ -776,7 +868,6 @@ function handleCover(input) {
     reader.readAsDataURL(file);
 }
 
-// ── GALERIA ──
 function handleGaleria(input) {
     const preview = document.getElementById('galeria-preview');
     preview.innerHTML = '';
@@ -792,17 +883,16 @@ function handleGaleria(input) {
     });
 }
 
-// ── BILHETES ──
 function calcTaxa(input, idx) {
     const base = parseFloat(input.value) || 0;
     const taxa = Math.round(base * 0.10);
     const el   = document.getElementById('taxa-' + idx);
     if (el) el.textContent = taxa.toLocaleString('pt-PT') + ' Kz';
-    // Atualizar preview com primeiro preço
     if (idx === 0) {
         const final = base + taxa;
-        document.getElementById('prev-price').textContent =
-            final > 0 ? final.toLocaleString('pt-PT') + ' Kz' : '—';
+        const priceText = final > 0 ? final.toLocaleString('pt-PT') + ' Kz' : '—';
+        document.getElementById('prev-price').textContent     = priceText;
+        document.getElementById('prev-price-mob').textContent = priceText;
     }
 }
 
@@ -813,11 +903,23 @@ function addTicket() {
     row.className = 'tk-row';
     row.id        = 'tkr-' + idx;
     row.innerHTML = `
-        <input type="text"   name="ingressos[${idx}][nome]"       placeholder="Tipo de bilhete">
-        <input type="number" name="ingressos[${idx}][preco]"      placeholder="0" min="0" oninput="calcTaxa(this,${idx})">
-        <div class="tk-taxa" id="taxa-${idx}">0 Kz</div>
-        <input type="number" name="ingressos[${idx}][quantidade]" placeholder="100" min="1">
-        <button type="button" class="rm-btn" onclick="removeTicket('tkr-${idx}')">✕</button>
+        <div class="tk-nome-col">
+            <span class="tk-row-mobile-label">Tipo de bilhete</span>
+            <input type="text" name="ingressos[${idx}][nome]" placeholder="Tipo de bilhete">
+        </div>
+        <div>
+            <span class="tk-row-mobile-label">Preço base (Kz)</span>
+            <input type="number" name="ingressos[${idx}][preco]" placeholder="0" min="0" oninput="calcTaxa(this,${idx})">
+        </div>
+        <div>
+            <span class="tk-row-mobile-label">Taxa (10%)</span>
+            <div class="tk-taxa" id="taxa-${idx}">0 Kz</div>
+        </div>
+        <div>
+            <span class="tk-row-mobile-label">Quantidade</span>
+            <input type="number" name="ingressos[${idx}][quantidade]" placeholder="100" min="1">
+        </div>
+        <button type="button" class="rm-btn rm-btn-mobile" onclick="removeTicket('tkr-${idx}')">✕</button>
     `;
     list.appendChild(row);
 }
@@ -827,7 +929,6 @@ function removeTicket(id) {
     if (el) el.remove();
 }
 
-// ── STATUS ──
 function selectStatus(status) {
     ['rascunho','publicado','encerrado'].forEach(s => {
         const tile = document.getElementById('st-' + s);
@@ -836,34 +937,35 @@ function selectStatus(status) {
     document.getElementById('inp-status').value = status;
 }
 
-// ── PREVIEW ──
 function syncPreview() {
     const titulo = document.getElementById('inp-titulo').value;
     const data   = document.getElementById('inp-data').value;
     const hora   = document.getElementById('inp-hora').value;
     const local  = document.getElementById('inp-local').value;
-
     document.getElementById('titulo-count').textContent = titulo.length + ' / 255';
 
-    const prevTitle = document.getElementById('prev-title');
-    prevTitle.textContent = titulo || 'Nome do evento';
-    prevTitle.style.color = titulo ? 'var(--t1)' : 'var(--t3)';
-
+    ['prev-title','prev-title-mob'].forEach(id => {
+        const el = document.getElementById(id);
+        el.textContent = titulo || 'Nome do evento';
+        el.style.color = titulo ? 'var(--t1)' : 'var(--t3)';
+    });
     if (data) {
         const d  = new Date(data + 'T00:00:00');
         const ds = d.toLocaleDateString('pt-PT', {day:'numeric',month:'short',year:'numeric'});
-        const el = document.getElementById('prev-data');
-        el.textContent = ds + (hora ? ' · ' + hora : '');
-        el.style.color = 'var(--t2)';
+        const txt = ds + (hora ? ' · ' + hora : '');
+        ['prev-data','prev-data-mob'].forEach(id => {
+            const el = document.getElementById(id);
+            el.textContent = txt; el.style.color = 'var(--t2)';
+        });
     }
     if (local) {
-        const el = document.getElementById('prev-local');
-        el.textContent = local;
-        el.style.color = 'var(--t2)';
+        ['prev-local','prev-local-mob'].forEach(id => {
+            const el = document.getElementById(id);
+            el.textContent = local; el.style.color = 'var(--t2)';
+        });
     }
 }
 
-// ── REVIEW ──
 function updateReview() {
     const titulo = document.getElementById('inp-titulo').value;
     const data   = document.getElementById('inp-data').value;
@@ -876,7 +978,9 @@ function updateReview() {
         rows.length > 0 ? rows.length + ' tipo(s) configurado(s)' : 'Nenhum bilhete adicionado';
 }
 
-// ── VALIDAÇÃO ──
+function abrirDrawerPreview()  { document.getElementById('drawer-preview').classList.add('open'); }
+function fecharDrawerPreview() { document.getElementById('drawer-preview').classList.remove('open'); }
+
 document.getElementById('form-criar').addEventListener('submit', function(e) {
     if (document.getElementById('termos').value !== '1') {
         e.preventDefault();

@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use App\Models\Curtida;
@@ -20,9 +21,13 @@ class SocialController extends Controller
             return redirect()->back()->with('error', 'Faz login para interagir!');
         }
 
-        Dislike::where('user_id', Auth::id())->where('evento_id', $id)->delete();
+        // ✅ Select específico — só colunas necessárias
+        $curtida = Curtida::select('id', 'user_id', 'evento_id')
+            ->where('user_id', Auth::id())
+            ->where('evento_id', $id)
+            ->first();
 
-        $curtida = Curtida::where('user_id', Auth::id())->where('evento_id', $id)->first();
+        Dislike::where('user_id', Auth::id())->where('evento_id', $id)->delete();
 
         if ($curtida) {
             $curtida->delete();
@@ -33,13 +38,15 @@ class SocialController extends Controller
                 'evento_id' => $id,
             ]);
 
-            $evento = $curtida->evento;
+            // ✅ Select específico no evento e user — só colunas necessárias para notificação
+            $evento = $curtida->evento()->select('id', 'user_id', 'titulo')->first();
 
             if ($evento->user_id !== Auth::id()) {
                 $evento->user->notify(new EventLikedNotification($curtida));
             }
 
-            $curtida->load('user.seguidores');
+            // ✅ Select específico nos seguidores — só id
+            $curtida->load(['user:id', 'user.seguidores:id']);
             foreach ($curtida->user->seguidores as $seguidor) {
                 if ($seguidor->id !== $evento->user_id) {
                     $seguidor->notify(new FollowedUserLikedEventNotification($curtida, $curtida->user));
@@ -49,6 +56,7 @@ class SocialController extends Controller
             $curtido = true;
         }
 
+        // ✅ Count direto sem carregar modelo
         $total = Curtida::where('evento_id', $id)->count();
 
         if (request()->ajax()) {
@@ -67,7 +75,11 @@ class SocialController extends Controller
 
         Curtida::where('user_id', Auth::id())->where('evento_id', $id)->delete();
 
-        $dislike = Dislike::where('user_id', Auth::id())->where('evento_id', $id)->first();
+        // ✅ Select específico
+        $dislike = Dislike::select('id', 'user_id', 'evento_id')
+            ->where('user_id', Auth::id())
+            ->where('evento_id', $id)
+            ->first();
 
         if ($dislike) {
             $dislike->delete();
@@ -103,7 +115,8 @@ class SocialController extends Controller
 
     public function eliminarPost($id)
     {
-        $post = \App\Models\Postagem::findOrFail($id);
+        // ✅ Select específico — só colunas para verificar permissão
+        $post = Postagem::select('id', 'user_id')->findOrFail($id);
 
         if ($post->user_id !== auth()->id()) {
             return redirect()->back()->with('error', 'Não tens permissão para eliminar este post.');
@@ -116,40 +129,52 @@ class SocialController extends Controller
 
     public function comentar(Request $request, $eventoId)
     {
-            $request->validate(['corpo' => 'required|string|max:500']);
+        $request->validate(['corpo' => 'required|string|max:500']);
 
-            $comentario = Comentario::create([
-                'evento_id' => $eventoId,
-                'user_id'   => auth()->id(),
-                'parent_id' => $request->parent_id ?? null,
-                'corpo'     => $request->corpo,
-            ]);
+        $comentario = Comentario::create([
+            'evento_id' => $eventoId,
+            'user_id'   => auth()->id(),
+            'parent_id' => $request->parent_id ?? null,
+            'corpo'     => $request->corpo,
+        ]);
 
-            $evento = $comentario->evento;
-            if ($evento->user_id !== auth()->id()) {
-                $evento->user->notify(new EventCommentNotification($comentario));
-            }
+        // ✅ Select específico no evento — só o necessário para notificação
+        $evento = $comentario->evento()->select('id', 'user_id')->first();
 
-            if ($request->ajax()) {
-                return response()->json(['success' => true, 'comentario_id' => $comentario->id]);
-            }
+        if ($evento->user_id !== auth()->id()) {
+            // ✅ notify em vez de notifyNow — vai para a queue em vez de bloquear o request
+            $evento->user->notify(new EventCommentNotification($comentario));
+        }
 
-            return back();
+        if ($request->ajax()) {
+            return response()->json(['success' => true, 'comentario_id' => $comentario->id]);
+        }
+
+        return back();
     }
 
     public function toggleLikeComentario($id)
     {
-        $comentario = \App\Models\Comentario::findOrFail($id);
+        // ✅ Select específico — só colunas necessárias para o toggle
+        $comentario = Comentario::select('id', 'user_id', 'evento_id')->findOrFail($id);
         $comentario->likes()->toggle(auth()->id());
+
+        if (request()->ajax()) {
+            return response()->json(['success' => true]);
+        }
+
         return back();
     }
 
     public function eliminarComentario($id)
     {
-        $comentario = \App\Models\Comentario::findOrFail($id);
+        // ✅ Select específico — só colunas para verificar permissão
+        $comentario = Comentario::select('id', 'user_id')->findOrFail($id);
+
         if ($comentario->user_id === auth()->id()) {
             $comentario->delete();
         }
+
         return back();
     }
 }

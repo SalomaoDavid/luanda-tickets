@@ -17,4 +17,28 @@ class Postagem extends Model
     {
         return $this->belongsTo(User::class);
     }
+    public function reacoes()
+    {
+        return $this->hasMany(PostagemReacao::class);
+    }
+
+    public function curtidas()
+    {
+        return $this->hasMany(PostagemReacao::class)->where('tipo', 'curtida');
+    }
+
+    public function adoros()
+    {
+        return $this->hasMany(PostagemReacao::class)->where('tipo', 'adoro');
+    }
+
+    public function comentarios()
+    {
+        return $this->hasMany(PostagemComentario::class)->whereNull('parent_id')->with('user', 'respostas')->latest();
+    }
+
+    public function minhaReacao()
+    {
+        return $this->hasOne(PostagemReacao::class)->where('user_id', auth()->id());
+    }
 }

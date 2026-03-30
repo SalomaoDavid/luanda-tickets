@@ -8,18 +8,16 @@ use Symfony\Component\HttpFoundation\Response;
 
 class UpdateUserLastSeen
 {
-    /**
-     * Handle an incoming request.
-     *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
-     */
-    public function handle(Request $request, Closure $next)
+    public function handle(Request $request, Closure $next): Response
     {
-        // Se o usuário estiver logado, atualizamos a data da última atividade
         if (auth()->check()) {
-            auth()->user()->update([
-                'last_seen' => now()
-            ]);
+            $user = auth()->user();
+
+            // Só atualiza se nunca foi definido ou se passaram 2+ minutos
+            // Evita uma query à BD em cada request
+            if (!$user->last_seen || $user->last_seen->diffInMinutes(now()) >= 2) {
+                $user->updateQuietly(['last_seen' => now()]);
+            }
         }
 
         return $next($request);

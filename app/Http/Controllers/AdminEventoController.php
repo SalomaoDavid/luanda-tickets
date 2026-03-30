@@ -7,6 +7,8 @@ use App\Models\EventoFoto;
 use App\Models\TipoIngresso;
 use App\Models\Categoria;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Storage;
 
 class AdminEventoController extends Controller
 {
@@ -14,10 +16,12 @@ class AdminEventoController extends Controller
     {
         $user = auth()->user();
 
-        $eventos = Evento::with('tiposIngresso')
-            ->when($user->role !== 'admin', function ($query) use ($user) {
-                return $query->where('user_id', $user->id);
-            })
+        // ✅ Select específico — só colunas necessárias para a listagem
+        $eventos = Evento::with([
+                'tiposIngresso:id,evento_id,nome,preco,quantidade_disponivel,quantidade_total',
+            ])
+            ->select('id','user_id','titulo','status','data_evento','localizacao','imagem_capa','created_at')
+            ->when($user->role !== 'admin', fn($q) => $q->where('user_id', $user->id))
             ->orderBy('created_at', 'desc')
             ->get();
 
@@ -26,7 +30,11 @@ class AdminEventoController extends Controller
 
     public function create()
     {
-        $categorias = Categoria::with('subcategorias')->orderBy('nome')->get();
+        // ✅ Cache para categorias — mudam raramente
+        $categorias = Cache::remember('categorias_com_subcategorias', 600, function () {
+            return Categoria::with('subcategorias')->orderBy('nome')->get();
+        });
+
         return view('admin-eventos-criar', compact('categorias'));
     }
 
@@ -67,24 +75,24 @@ class AdminEventoController extends Controller
             'status'                   => 'required|in:rascunho,publicado,encerrado',
             'termos'                   => 'accepted',
         ], [
-            'titulo.required'       => 'O nome do evento é obrigatório.',
-            'descricao.required'    => 'A descrição é obrigatória.',
-            'categoria_id.required' => 'Seleciona uma categoria.',
-            'localizacao.required'  => 'O local do evento é obrigatório.',
-            'data_evento.required'  => 'A data de início é obrigatória.',
-            'hora_inicio.required'  => 'A hora de início é obrigatória.',
+            'titulo.required'         => 'O nome do evento é obrigatório.',
+            'descricao.required'      => 'A descrição é obrigatória.',
+            'categoria_id.required'   => 'Seleciona uma categoria.',
+            'localizacao.required'    => 'O local do evento é obrigatório.',
+            'data_evento.required'    => 'A data de início é obrigatória.',
+            'hora_inicio.required'    => 'A hora de início é obrigatória.',
             'lotacao_maxima.required' => 'A lotação máxima é obrigatória.',
-            'imagem_capa.max'       => 'A imagem não pode ter mais de 5 MB.',
-            'termos.accepted'       => 'Tens de aceitar os termos de publicação.',
+            'imagem_capa.max'         => 'A imagem não pode ter mais de 5 MB.',
+            'termos.accepted'         => 'Tens de aceitar os termos de publicação.',
         ]);
 
-        // Upload da imagem de capa
+        // Upload da imagem de capa — lógica intacta
         $caminhoImagem = null;
         if ($request->hasFile('imagem_capa')) {
             $caminhoImagem = $request->file('imagem_capa')->store('capas_eventos', 'public');
         }
 
-        // Criar o evento
+        // Criar o evento — lógica intacta
         $evento = Evento::create([
             'user_id'                => auth()->id(),
             'titulo'                 => $request->titulo,
@@ -115,68 +123,96 @@ class AdminEventoController extends Controller
             'status'                 => $request->status ?? 'rascunho',
         ]);
 
-        // Galeria de fotos
+        // ✅ Galeria em batch insert — 1 query em vez de N
         if ($request->hasFile('galeria')) {
+            $fotos = [];
             foreach ($request->file('galeria') as $foto) {
-                EventoFoto::create([
-                    'evento_id' => $evento->id,
-                    'caminho'   => $foto->store('galeria_eventos', 'public'),
-                ]);
+                $fotos[] = [
+                    'evento_id'  => $evento->id,
+                    'caminho'    => $foto->store('galeria_eventos', 'public'),
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ];
             }
+            EventoFoto::insert($fotos);
         }
 
-        // Ingressos com taxa de 10%
+        // ✅ Ingressos em batch insert — 1 query em vez de N
         if ($request->filled('ingressos')) {
+            $ingressos = [];
             foreach ($request->ingressos as $ingresso) {
                 if (empty($ingresso['nome'])) continue;
 
-                $precoBase = floatval($ingresso['preco']);
-                $taxa      = round($precoBase * 0.10);
-                $precoFinal = $precoBase + $taxa;
+                $precoBase  = floatval($ingresso['preco']);
+                $precoFinal = $precoBase + round($precoBase * 0.10);
 
-                TipoIngresso::create([
-                    'evento_id'            => $evento->id,
-                    'nome'                 => $ingresso['nome'],
-                    'preco'                => $precoFinal,
-                    'quantidade_disponivel'=> intval($ingresso['quantidade']),
-                    'quantidade_total'     => intval($ingresso['quantidade']),
-                ]);
+                $ingressos[] = [
+                    'evento_id'             => $evento->id,
+                    'nome'                  => $ingresso['nome'],
+                    'preco'                 => $precoFinal,
+                    'quantidade_disponivel' => intval($ingresso['quantidade']),
+                    'quantidade_total'      => intval($ingresso['quantidade']),
+                    'created_at'            => now(),
+                    'updated_at'            => now(),
+                ];
+            }
+            if (!empty($ingressos)) {
+                TipoIngresso::insert($ingressos);
             }
         }
+
+        // ✅ Limpa cache de categorias ao criar evento (boa prática)
+        Cache::forget('categorias_com_subcategorias');
 
         return redirect()->route('admin.eventos')->with('success', 'Evento criado com sucesso!');
     }
 
     public function edit($id)
     {
-        $evento = Evento::with('tiposIngresso')->findOrFail($id);
+        // ✅ Select específico
+        $evento = Evento::with([
+                'tiposIngresso:id,evento_id,nome,preco,quantidade_disponivel,quantidade_total',
+            ])
+            ->select('id','user_id','titulo','descricao','localizacao','municipio','provincia',
+                     'data_evento','data_fim','hora_inicio','hora_fim','multiplos_dias','online',
+                     'link_externo','lotacao_maxima','ingressos_por_pessoa','lista_espera',
+                     'privado','aprovacao_manual','permitir_comentarios','participantes_publicos',
+                     'notif_nova_inscricao','notif_lembrete_24h','notif_resumo_semanal',
+                     'imagem_capa','status','categoria_id','subcategoria_id')
+            ->findOrFail($id);
 
         if (auth()->user()->role !== 'admin' && $evento->user_id !== auth()->id()) {
             abort(403, 'Acesso negado!');
         }
 
-        $categorias = Categoria::all();
+        // ✅ Cache para categorias
+        $categorias = Cache::remember('categorias_com_subcategorias', 600, function () {
+            return Categoria::with('subcategorias')->orderBy('nome')->get();
+        });
+
         return view('admin-eventos-editar', compact('evento', 'categorias'));
     }
 
     public function update(Request $request, $id)
     {
-        $evento = Evento::findOrFail($id);
+        // ✅ Select mínimo para verificar permissão
+        $evento = Evento::select('id','user_id')->findOrFail($id);
 
         if (auth()->user()->role !== 'admin' && $evento->user_id !== auth()->id()) {
             abort(403);
         }
 
         $request->validate([
-            'titulo'       => 'required|max:255',
-            'descricao'    => 'required',
-            'localizacao'  => 'required',
-            'data_evento'  => 'required|date',
-            'hora_inicio'  => 'required',
+            'titulo'         => 'required|max:255',
+            'descricao'      => 'required',
+            'localizacao'    => 'required',
+            'data_evento'    => 'required|date',
+            'hora_inicio'    => 'required',
             'lotacao_maxima' => 'required|integer|min:1',
-            'status'       => 'required|in:rascunho,publicado,encerrado',
+            'status'         => 'required|in:rascunho,publicado,encerrado',
         ]);
 
+        // ✅ update() mantido (precisa disparar eventos para cache/observers)
         $evento->update([
             'titulo'                 => $request->titulo,
             'descricao'              => $request->descricao,
@@ -208,7 +244,8 @@ class AdminEventoController extends Controller
 
     public function destroy($id)
     {
-        $evento = Evento::findOrFail($id);
+        // ✅ Select mínimo para verificar permissão antes de apagar
+        $evento = Evento::select('id','user_id')->findOrFail($id);
 
         if (auth()->user()->role !== 'admin' && $evento->user_id !== auth()->id()) {
             abort(403);

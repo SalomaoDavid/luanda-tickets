@@ -12,6 +12,7 @@ class Reserva extends Model
 
     // Adicionados os campos novos no fillable
     protected $fillable = [
+        'user_id',
         'tipo_ingresso_id', 
         'nome_cliente', 
         'whatsapp', 
@@ -19,16 +20,16 @@ class Reserva extends Model
         'total', 
         'status',
         'comprovativo_path',
-        'codigo_bilhete'
+        'codigo_pedido'
     ];
 
     // Gerar o código do bilhete automaticamente antes de salvar na base de dados
     protected static function booted()
     {
         static::creating(function ($reserva) {
-            if (!$reserva->codigo_bilhete) {
+            if (!$reserva->codigo_pedido) {
                 // Gera um código tipo LT-A1B2C3D4E5
-                $reserva->codigo_bilhete = 'LT-' . strtoupper(Str::random(10));
+                $reserva->codigo_pedido = 'LT-' . strtoupper(Str::random(10));
             }
         });
     }

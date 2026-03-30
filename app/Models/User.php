@@ -8,12 +8,8 @@ use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
 
-    /**
-     * Atributos que podem ser preenchidos em massa.
-     */
     protected $fillable = [
         'name',
         'email',
@@ -25,70 +21,58 @@ class User extends Authenticatable
         'last_seen',
     ];
 
-    /**
-     * Atributos que devem ser escondidos em respostas JSON.
-     * REMOVI 'name' e 'email' daqui para que apareçam no seu site!
-     */
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
-    /**
-     * Conversão de tipos de atributos.
-     */
     protected function casts(): array
     {
         return [
             'email_verified_at' => 'datetime',
-            'password' => 'hashed',
+            'password'          => 'hashed',
+            'last_seen'         => 'datetime', // ← FIX: converte para Carbon automaticamente
         ];
     }
 
-    /**
-     * Relacionamento com as Reservas/Pedidos
-     */
-    public function pedidos() 
+    // ── ONLINE ────────────────────────────────────────────────
+    public function isOnline(): bool
     {
-        return $this->hasMany(Pedido::class);
+        return $this->last_seen !== null &&
+               $this->last_seen->diffInMinutes(now()) < 5;
     }
 
-    /**
-     * Relacionamento com as Conversas do Chat
-     * APENAS UMA VEZ AQUI PARA NÃO DAR ERRO.
-     */
-    public function conversations() 
-    {
-        return $this->belongsToMany(Conversation::class);
-    }
-
-    /**
-     * Helper para pegar a URL do Avatar
-     */
-    public function getAvatarUrlAttribute()
-    {
-        if ($this->avatar) {
-            return asset('storage/' . $this->avatar);
-        }
-
-        return "https://ui-avatars.com/api/?name=" . urlencode($this->name) . "&color=7F9CF5&background=EBF4FF";
-    }
-
-    // app/Models/User.php
-
-  public function isAdmin()
+    // ── ROLES ─────────────────────────────────────────────────
+    public function isAdmin(): bool
     {
         return $this->role === 'admin';
     }
 
-    public function isCreator()
+    public function isCreator(): bool
     {
         return $this->role === 'creator' || $this->role === 'admin';
     }
-    public function isOnline()
+
+    // ── AVATAR ────────────────────────────────────────────────
+    public function getAvatarUrlAttribute(): string
     {
-        return $this->last_seen && $this->last_seen->diffInMinutes(now()) < 5;
+        if ($this->avatar) {
+            return asset('storage/' . $this->avatar);
+        }
+        return "https://ui-avatars.com/api/?name=" . urlencode($this->name) . "&color=7F9CF5&background=EBF4FF";
     }
+
+    // ── RELAÇÕES ──────────────────────────────────────────────
+    public function pedidos()
+    {
+        return $this->hasMany(Pedido::class);
+    }
+
+    public function conversations()
+    {
+        return $this->belongsToMany(Conversation::class);
+    }
+
     public function eventos()
     {
         return $this->hasMany(\App\Models\Evento::class);
@@ -103,17 +87,12 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(\App\Models\Evento::class, 'curtidas', 'user_id', 'evento_id')->withTimestamps();
     }
-    /**
- * Seguidores — quem me segue
- */
+
     public function seguidores()
     {
         return $this->belongsToMany(User::class, 'seguidores', 'seguido_id', 'seguidor_id')->withTimestamps();
     }
 
-    /**
-     * Seguindo — quem eu sigo
-     */
     public function seguindo()
     {
         return $this->belongsToMany(User::class, 'seguidores', 'seguidor_id', 'seguido_id')->withTimestamps();
