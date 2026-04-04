@@ -23,19 +23,17 @@ class ProfileController extends Controller
 
     public function show($id): View
     {
-        // ✅ Select específico — só colunas necessárias para o perfil
-        $user = User::select('id','name','email','avatar','bio','role','is_verified','last_seen','created_at')
+        // ✅ Adicionado 'cover' ao select — estava em falta
+        $user = User::select('id','name','email','avatar','cover','bio','role','is_verified','last_seen','created_at')
             ->findOrFail($id);
 
         $isOwner = auth()->id() === $user->id;
 
-        // ✅ Select específico nas postagens
         $postagens = $user->postagens()
             ->select('id','user_id','conteudo','imagem','created_at')
             ->latest()
             ->get();
 
-        // ✅ Select específico nos bilhetes + relações leves
         $bilhetes = Bilhete::whereHas('pedido', function ($q) use ($id) {
                 $q->where('user_id', $id)->where('status', 'pago');
             })
@@ -48,7 +46,6 @@ class ProfileController extends Controller
             ->get();
 
         if ($user->role === 'admin') {
-            // ✅ Eager loading com select específico para eventos do admin
             $eventos = \App\Models\Evento::with([
                     'categoria:id,nome',
                     'tiposIngresso:id,evento_id,nome,preco,quantidade_disponivel',
@@ -62,7 +59,6 @@ class ProfileController extends Controller
             $statsLabel  = 'Total Eventos';
             $statsCount  = $eventos->count();
             $statsLabel2 = 'Utilizadores';
-            // ✅ Cache para contagem de utilizadores (muda raramente)
             $statsCount2 = \Illuminate\Support\Facades\Cache::remember('total_users_count', 300, fn() => User::count());
 
         } elseif ($user->role === 'creator') {
@@ -83,7 +79,6 @@ class ProfileController extends Controller
             $statsCount2 = 0;
 
         } else {
-            // ✅ Utilizador normal — eventos curtidos com select específico
             $eventos = $user->eventosCurtidos()
                 ->with([
                     'categoria:id,nome',
@@ -116,11 +111,20 @@ class ProfileController extends Controller
             $user->email_verified_at = null;
         }
 
+        // ✅ Avatar
         if ($request->hasFile('avatar')) {
             if ($user->avatar) {
                 Storage::disk('public')->delete($user->avatar);
             }
             $user->avatar = $request->file('avatar')->store('avatars', 'public');
+        }
+
+        // ✅ Cover — estava completamente em falta no controller
+        if ($request->hasFile('cover')) {
+            if ($user->cover) {
+                Storage::disk('public')->delete($user->cover);
+            }
+            $user->cover = $request->file('cover')->store('covers', 'public');
         }
 
         $user->save();
@@ -135,11 +139,8 @@ class ProfileController extends Controller
         ]);
 
         $user = $request->user();
-
         Auth::logout();
-
         $user->delete();
-
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 

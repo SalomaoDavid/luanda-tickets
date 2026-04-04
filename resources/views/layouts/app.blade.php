@@ -7,7 +7,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.tailwindcss.com"></script>
-    {{--<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>--}}
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     @livewireStyles
     <style>
         [x-cloak] { display: none !important; }
@@ -19,8 +19,14 @@
         .hover-blue:hover { color: #60a5fa; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        .page-transition { opacity: 0; transform: translateY(10px); animation: fadeIn 0.35s ease forwards; }
-        @keyframes fadeIn { to { opacity: 1; transform: translateY(0); } }
+        /* DEPOIS — sem transform, só opacity */
+        .page-transition {
+            opacity: 0;
+            animation: fadeIn 0.35s ease forwards;
+        }
+            @keyframes fadeIn {
+            to { opacity: 1; }
+        }
         .btn-blue { background: #2563eb; color: white; padding: 8px 16px; border-radius: 12px; font-weight: 600; transition: 0.3s; }
         .btn-blue:hover { background: #1d4ed8; }
     </style>

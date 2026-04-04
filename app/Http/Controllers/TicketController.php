@@ -77,8 +77,14 @@ class TicketController extends Controller
         );
 
         $pdf = Pdf::loadView('pdf.bilhete-unico', compact('bilhete', 'capaBase64', 'tipoMime'));
-        $pdf->setPaper([0, 0, 550, 400], 'portrait');
+        $pdf->setPaper([0, 0, 750, 310], 'landscape');
 
         return $pdf->download("bilhete-{$bilhete->codigo_unico}.pdf");
     }
+    public function eliminar($id) {
+    $bilhete = Bilhete::findOrFail($id);
+    if ($bilhete->pedido->user_id !== auth()->id()) abort(403);
+    $bilhete->delete();
+    return back()->with('success', 'Bilhete eliminado.');
+}
 }

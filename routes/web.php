@@ -25,6 +25,7 @@ Route::get('/meus-bilhetes/{pedido_id}', [TicketController::class, 'download'])
 Route::get('/bilhete/download/{id}', [TicketController::class, 'downloadIndividual'])
 ->name('bilhete.individual.download')
 ->middleware('auth');
+Route::delete('/bilhete/{id}', [TicketController::class, 'eliminar'])->name('bilhete.eliminar')->middleware('auth');
 
 Route::get('/', [EventController::class, 'index'])->name('home');
 Route::get('/evento/{id}', [EventController::class, 'show'])->name('evento.detalhes');

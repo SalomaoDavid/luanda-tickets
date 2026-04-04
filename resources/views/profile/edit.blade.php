@@ -287,8 +287,8 @@ select.form-input { cursor: pointer; }
         @else
             <img src="" alt="" id="coverPreview" style="display:none">
         @endif
+        {{-- Label aponta para o input que está dentro do form abaixo --}}
         <label for="cover-input" class="cover-edit-btn">📷 Alterar capa</label>
-        <input type="file" id="cover-input" accept="image/*" style="display:none" onchange="previewCover(this)">
     </div>
     <div class="ava-section">
         <div class="ava-wrap">
@@ -356,6 +356,7 @@ select.form-input { cursor: pointer; }
     @csrf
     @method('patch')
     <input type="file" name="avatar" id="avatar-input" accept="image/*" style="display:none" onchange="previewAvatar(this); markDirty()">
+    <input type="file" name="cover" id="cover-input" accept="image/*" style="display:none" onchange="previewCover(this); markDirty()">
 
     {{-- INFORMAÇÕES PESSOAIS --}}
     <div class="section open" style="animation-delay:.06s">
