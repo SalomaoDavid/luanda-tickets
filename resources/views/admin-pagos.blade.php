@@ -22,7 +22,7 @@
         </div>
         
         {{-- Card de Ingressos --}}
-        <div class="post-card p-6 border-l-4 border-purple-500">
+        <div class="bg-white/5 rounded-2xl p-6 border-l-4 border-sky-500">
             <p class="text-[10px] font-black uppercase text-slate-500 tracking-widest">Bilhetes Vendidos</p>
             <h3 class="text-2xl font-black text-white mt-2">{{ $pagamentos->count() }}</h3>
         </div>

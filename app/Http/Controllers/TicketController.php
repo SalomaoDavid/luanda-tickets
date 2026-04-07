@@ -40,9 +40,11 @@ class TicketController extends Controller
     {
         // ✅ Select específico nas relações
         $bilhete = Bilhete::with([
-            'evento:id,titulo,localizacao,data_evento,imagem_capa',
+            'evento:id,titulo,localizacao,data_evento,hora_inicio,hora_fim,imagem_capa,user_id,descricao',
+            'evento.user:id,name',
             'tipoIngresso:id,nome,preco',
             'pedido:id,user_id',
+            
         ])
             ->select('id', 'pedido_id', 'evento_id', 'tipo_ingressos_id', 'codigo_unico', 'validado_em')
             ->findOrFail($id);

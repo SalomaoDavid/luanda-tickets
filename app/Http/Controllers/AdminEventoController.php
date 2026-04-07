@@ -172,6 +172,7 @@ class AdminEventoController extends Controller
         // ✅ Select específico
         $evento = Evento::with([
                 'tiposIngresso:id,evento_id,nome,preco,quantidade_disponivel,quantidade_total',
+                'user:id,name',
             ])
             ->select('id','user_id','titulo','descricao','localizacao','municipio','provincia',
                      'data_evento','data_fim','hora_inicio','hora_fim','multiplos_dias','online',
@@ -251,6 +252,11 @@ class AdminEventoController extends Controller
             abort(403);
         }
 
+        // Apagar ficheiros físicos das fotos
+    foreach ($evento->fotos as $foto) {
+        Storage::disk('public')->delete($foto->caminho);
+    }
+        $evento->fotos()->delete();           // ← adicionar
         $evento->tiposIngresso()->delete();
         $evento->delete();
 

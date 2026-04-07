@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Admin\AdminUsuarioController;
 use App\Http\Controllers\SiteController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\NewsController;

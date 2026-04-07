@@ -8,17 +8,32 @@
 *, *::before, *::after { box-sizing: border-box; }
 @keyframes fadeUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
 
-.p-cover-wrap { position:relative; height:160px; overflow:hidden; margin:-40px -16px 0; }
-@media(min-width:768px){ .p-cover-wrap { height:240px; margin:-40px -40px 0; } }
+.p-cover-wrap {
+    position:relative;
+    height:140px;
+    overflow:visible; /* ← mudou de hidden para visible */
+    margin:-40px -16px 0;
+}
+@media(min-width:768px){
+    .p-cover-wrap { height:220px; margin:-40px -40px 0; overflow:hidden; }
+}
 .p-cover-bg { width:100%; height:100%; position:relative; background:linear-gradient(135deg,#050d1a 0%,#091828 30%,#0c1f3a 60%,#071220 100%); }
 .p-cover-bg img { width:100%; height:100%; object-fit:cover; position:absolute; inset:0; }
 .p-cover-glow { position:absolute; inset:0; z-index:1; pointer-events:none; background:radial-gradient(ellipse at 60% 40%,rgba(6,182,212,.22) 0%,transparent 55%),radial-gradient(ellipse at 20% 80%,rgba(245,158,11,.08) 0%,transparent 40%); }
 .p-cover-fade { position:absolute; bottom:0; left:0; right:0; height:100px; z-index:2; background:linear-gradient(to top,#06090f 0%,transparent 100%); }
-
 .p-header { position:relative; z-index:3; }
-.p-top { display:flex; align-items:flex-end; gap:14px; margin-top:-44px; padding-bottom:14px; border-bottom:1px solid rgba(6,182,212,.15); flex-wrap:wrap; }
-@media(min-width:768px){ .p-top { margin-top:-60px; gap:20px; padding-bottom:20px; } }
-
+.p-top {
+    display:flex;
+    align-items:flex-start;
+    gap:12px;
+    margin-top:8px; /* ← mudou de -44px para 8px no mobile */
+    padding-bottom:14px;
+    border-bottom:1px solid rgba(6,182,212,.15);
+    flex-wrap:wrap;
+}
+@media(min-width:768px){
+    .p-top { margin-top:-55px; gap:20px; padding-bottom:20px; align-items:flex-end; }
+}
 .p-ava { width:78px; height:78px; border-radius:50%; background:linear-gradient(135deg,#0c3a4a,#1e6a7a); border:3px solid #06090f; display:flex; align-items:center; justify-content:center; font-size:26px; font-weight:800; color:#06b6d4; overflow:hidden; box-shadow:0 8px 28px rgba(6,182,212,.3); position:relative; flex-shrink:0; }
 @media(min-width:768px){ .p-ava { width:110px; height:110px; font-size:40px; } }
 .p-ava img { width:100%; height:100%; object-fit:cover; }
@@ -26,7 +41,12 @@
 .p-dot-off { position:absolute; bottom:4px; right:4px; width:13px; height:13px; background:#475569; border-radius:50%; border:2px solid #06090f; }
 .p-verified { position:absolute; top:2px; right:2px; width:17px; height:17px; background:#06b6d4; border-radius:50%; border:2px solid #06090f; display:flex; align-items:center; justify-content:center; font-size:8px; }
 
-.p-info { flex:1; min-width:0; padding-bottom:6px; }
+.p-info {
+    flex:1;
+    min-width:0;
+    width:100%;
+    padding-bottom:6px;
+}
 .p-name-row { display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin-bottom:3px; }
 .p-name { font-size:17px; font-weight:800; color:#fff; }
 @media(min-width:768px){ .p-name { font-size:24px; } }
@@ -50,11 +70,21 @@
     hyphens: none !important;
     letter-spacing: normal !important;
 }
-
 .p-meta { display:flex; gap:10px; flex-wrap:wrap; }
 .p-meta-item { display:flex; align-items:center; gap:4px; font-size:11px; color:#64748b; }
 
-.p-actions { display:flex; gap:8px; align-items:center; padding-bottom:6px; flex-shrink:0; }
+.p-actions {
+    display:flex;
+    gap:8px;
+    align-items:center;
+    flex-shrink:0;
+    width:100%;
+    padding-bottom:6px;
+}
+@media(min-width:640px){
+    .p-info  { width:auto; }
+    .p-actions { width:auto; }
+}
 .btn-follow { padding:8px 16px; border-radius:11px; font-size:12px; font-weight:700; background:linear-gradient(135deg,#06b6d4,#0ea5e9); color:#fff; border:none; cursor:pointer; }
 .btn-msg, .btn-edit { padding:8px 14px; border-radius:11px; font-size:12px; font-weight:600; background:#1e293b; border:1px solid #334155; color:#e2e8f0; cursor:pointer; text-decoration:none; display:inline-flex; align-items:center; gap:5px; }
 .btn-edit { background:#0c2a3a; border-color:rgba(6,182,212,.4); color:#22d3ee; }
@@ -493,9 +523,9 @@
                 @elseif($user->role==='creator') <span class="p-badge badge-creator">🎟 Criador</span>
                 @else <span class="p-badge badge-user">👤 Membro</span> @endif
             </div>
-            @if(!empty($user->bio))
-            <div class="p-bio">{{ $user->bio }}</div>
-            @endif
+                @if(!empty($user->bio))
+                <div class="p-bio">{{ $user->bio }}</div>
+                @endif
             <div class="p-meta">
                 <div class="p-meta-item">📍 <strong style="color:#94a3b8">Luanda</strong></div>
                 <div class="p-meta-item">🗓 <strong style="color:#94a3b8">{{ $user->created_at->translatedFormat('M Y') }}</strong></div>

@@ -59,7 +59,7 @@ class NewsController extends Controller
                     'titulo' => (string)$item->title,
                     // Slug único usando o título e timestamp para evitar conflitos
                     'slug' => Str::slug((string)$item->title) . '-' . time(),
-                    'conteudo' => (string)$item->description,
+                    'conteudo' => strip_tags((string)$item->description, '<p><br><strong><em><a><ul><li>'), // ← corrigido
                     'imagem_destaque' => $imagemUrl,
                     'fonte' => 'AngoRussia',
                     'publicado_em' => date('Y-m-d H:i:s', strtotime($item->pubDate)),
