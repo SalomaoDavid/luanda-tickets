@@ -500,6 +500,17 @@
    </div>
 @endif
 
+    {{--cover --}}
+    <div class="p-cover-wrap">
+        <div class="p-cover-bg">
+            @if(!empty($user->cover))
+            <img src="{{ asset('storage/'.$user->cover) }}" alt="cover" loading="lazy">
+            @endif
+            <div class="p-cover-glow"></div>
+        </div>
+        <div class="p-cover-fade"></div>
+    </div>
+
 {{-- HEADER --}}
 <div class="p-header">
     <div class="p-top">

@@ -37,6 +37,11 @@ class Evento extends Model
     'notif_lembrete_24h',
     'notif_resumo_semanal',
     'status',
+    'meta'
+    ];
+
+    protected $casts = [
+    'meta' => 'array',  // ← adicionar
     ];
 
     // Relacionamento com a Categoria

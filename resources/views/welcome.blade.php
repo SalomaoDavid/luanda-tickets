@@ -506,6 +506,13 @@
 @endforeach
 
 <script>
+    function escapeHTML(str) {
+    return str.replace(/[&<>"']/g, function(m) {
+        return {
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
+        }[m];
+    });
+}
     // ── Carrossel ────────────────────────────────────────────
     document.addEventListener('DOMContentLoaded', function () {
         const track = document.getElementById('stories-track');
@@ -767,7 +774,7 @@
                 <div class="flex-1">
                     <div class="rounded-2xl rounded-tl-sm px-4 py-3" style="background: rgba(30,41,59,0.9); border: 1px solid rgba(59,130,246,0.1);">
                         <p class="font-bold text-white text-xs">{{ auth()->user()?->name }}</p>
-                        <p class="text-gray-200 text-sm mt-1">${corpo}</p>
+                        <p class="text-gray-200 text-sm mt-1">${escapeHTML(corpo)}</p>
                     </div>
                     <span class="text-gray-500 text-[10px] ml-1">agora mesmo</span>
                 </div>
@@ -876,7 +883,7 @@ async function enviarResposta(eventoId, comentarioId) {
             <div class="flex-1">
                 <div class="rounded-2xl rounded-tl-sm px-3 py-2" style="background: rgba(30,41,59,0.6); border: 1px solid rgba(59,130,246,0.08);">
                     <p class="font-bold text-white text-[11px]">{{ auth()->user()?->name }}</p>
-                    <p class="text-gray-300 text-xs mt-0.5">${corpo}</p>
+                    <p class="text-gray-300 text-xs mt-0.5">${escapeHTML(corpo)}</p>
                 </div>
                 <span class="text-gray-500 text-[10px] ml-1">agora mesmo</span>
             </div>

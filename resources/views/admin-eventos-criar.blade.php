@@ -12,6 +12,7 @@
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 .criar-page{background:var(--bg);min-height:100vh;font-family:'DM Sans',sans-serif;color:var(--t1);}
+main{max-width:100%!important;padding:0!important;}
 
 /* ── TOPBAR ── */
 .criar-topbar{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--s1);border-bottom:1px solid var(--b2);flex-wrap:wrap;}
@@ -70,23 +71,13 @@
 .form-col{width:100%;padding:20px 16px;min-width:0;}
 @media(min-width:768px){.form-col{padding:32px;}}
 @media(min-width:1024px){.form-col{flex:1;max-width:700px;}}
-
-/* ASIDE — escondido em mobile, sticky em desktop */
 .aside-col{display:none;}
-@media(min-width:1024px){
-    .aside-col{display:block;width:280px;flex-shrink:0;padding:32px 32px 32px 0;position:sticky;top:112px;}
-}
+@media(min-width:1024px){.aside-col{display:block;width:280px;flex-shrink:0;padding:32px 32px 32px 0;position:sticky;top:112px;}}
 
 /* ── MOBILE PREVIEW DRAWER ── */
-.mob-preview-btn{
-    display:flex;align-items:center;gap:8px;width:100%;padding:11px 16px;
-    background:var(--s1);border:1px solid var(--b2);border-radius:12px;
-    color:var(--t2);font-size:13px;font-family:'DM Sans',sans-serif;cursor:pointer;
-    margin-bottom:16px; transition:all .2s;
-}
+.mob-preview-btn{display:flex;align-items:center;gap:8px;width:100%;padding:11px 16px;background:var(--s1);border:1px solid var(--b2);border-radius:12px;color:var(--t2);font-size:13px;font-family:'DM Sans',sans-serif;cursor:pointer;margin-bottom:16px;transition:all .2s;}
 .mob-preview-btn:hover{border-color:var(--acc);color:var(--acc);}
 @media(min-width:1024px){.mob-preview-btn{display:none;}}
-
 .drawer-overlay{display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.75);backdrop-filter:blur(4px);}
 .drawer-overlay.open{display:flex;align-items:flex-end;}
 .drawer-box{width:100%;background:var(--s1);border:1px solid var(--b2);border-radius:20px 20px 0 0;padding:20px 16px 32px;max-height:85vh;overflow-y:auto;}
@@ -122,6 +113,8 @@
 .char-count{text-align:right;font-size:11px;color:var(--t3);margin-top:4px;}
 .grid2{display:grid;grid-template-columns:1fr;gap:12px;}
 @media(min-width:480px){.grid2{grid-template-columns:1fr 1fr;gap:14px;}}
+.grid3{display:grid;grid-template-columns:1fr;gap:12px;}
+@media(min-width:480px){.grid3{grid-template-columns:1fr 1fr 1fr;gap:14px;}}
 .error-msg{font-size:12px;color:var(--red);margin-top:5px;}
 
 /* ── TOGGLE ── */
@@ -158,6 +151,28 @@
 .sel-confirm{margin-top:14px;padding:10px 14px;background:var(--acc-bg);border:1px solid var(--acc2);border-radius:10px;display:none;align-items:center;gap:9px;}
 .sel-confirm.show{display:flex;}
 .sel-check{width:18px;height:18px;border-radius:50%;background:var(--acc2);display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;flex-shrink:0;}
+
+/* ── CAMPOS ESPECÍFICOS POR CATEGORIA ── */
+.cat-specific-wrap{display:none;margin-top:14px;}
+.cat-specific-wrap.show{display:block;animation:fadeIn .3s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.cat-specific-header{display:flex;align-items:center;gap:10px;padding:12px 14px;background:rgba(167,139,250,.07);border:1px solid rgba(167,139,250,.2);border-radius:10px 10px 0 0;border-bottom:none;}
+.cat-specific-icon{font-size:18px;}
+.cat-specific-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--acc);}
+.cat-specific-sub{font-size:11px;color:var(--t3);margin-top:1px;}
+.cat-specific-body{padding:16px;background:var(--s2);border:1px solid rgba(167,139,250,.2);border-radius:0 0 10px 10px;}
+.cat-specific-panel{display:none;}
+.cat-specific-panel.active{display:block;}
+
+/* Tag input (artistas, paragens...) */
+.tag-input-wrap{display:flex;flex-wrap:wrap;gap:6px;padding:8px 10px;background:var(--s2);border:1px solid var(--b2);border-radius:10px;cursor:text;transition:border-color .15s;min-height:42px;align-items:center;}
+.tag-input-wrap:focus-within{border-color:var(--acc);}
+.tag-chip{display:flex;align-items:center;gap:5px;padding:3px 10px 3px 10px;background:var(--acc2);border-radius:20px;font-size:12px;color:#fff;font-family:'DM Sans',sans-serif;}
+.tag-chip button{background:none;border:none;color:rgba(255,255,255,.7);cursor:pointer;font-size:13px;line-height:1;padding:0;margin-left:2px;}
+.tag-chip button:hover{color:#fff;}
+.tag-input-real{background:none;border:none;outline:none;color:var(--t1);font-size:13px;font-family:'DM Sans',sans-serif;min-width:120px;flex:1;}
+.tag-input-real::placeholder{color:var(--t3);}
+.tag-hint{font-size:11px;color:var(--t3);margin-top:5px;}
 
 /* ── COVER ── */
 .cover-zone{border:1.5px dashed var(--b3);border-radius:11px;cursor:pointer;overflow:hidden;transition:all .2s;}
@@ -233,7 +248,7 @@
 @media(min-width:768px){.pub-title{font-size:20px;}}
 .pub-sub{font-size:13px;color:var(--t3);}
 
-/* ── ASIDE (desktop only) ── */
+/* ── ASIDE ── */
 .aside-lbl{font-size:10px;font-weight:700;color:var(--t3);letter-spacing:.12em;text-transform:uppercase;margin-bottom:11px;}
 .prev-card{background:var(--s1);border:1px solid var(--b2);border-radius:15px;overflow:hidden;}
 .prev-cover{height:140px;display:flex;align-items:center;justify-content:center;font-size:50px;position:relative;background:linear-gradient(135deg,#1e1b4b,#4c1d95);}
@@ -258,8 +273,6 @@
 .step-panel.active{display:block;}
 .alert-error{background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.3);color:var(--red);border-radius:10px;padding:12px 16px;margin-bottom:16px;font-size:13px;}
 </style>
-
-<style>main{max-width:100%!important;padding:0!important;}</style>
 
 <div class="criar-page">
 
@@ -306,8 +319,6 @@
         @csrf
 
         <div class="criar-layout">
-
-            {{-- COLUNA FORM --}}
             <div class="form-col">
 
                 @if($errors->any())
@@ -319,12 +330,13 @@
                 </div>
                 @endif
 
-                {{-- Botão pré-visualização mobile --}}
                 <button type="button" class="mob-preview-btn" onclick="abrirDrawerPreview()">
                     👁 Ver pré-visualização
                 </button>
 
-                {{-- ══ P1: INFORMAÇÕES ══ --}}
+                {{-- ══════════════════════════════════════
+                     P1: INFORMAÇÕES
+                ══════════════════════════════════════ --}}
                 <div class="step-panel active" id="p1">
                     <div class="form-card">
                         <div class="card-head">
@@ -342,15 +354,13 @@
                         </div>
                         <div class="field">
                             <label>Descrição <span class="req">*</span></label>
-                            <textarea name="descricao" id="inp-descricao" rows="4" required
-                                      placeholder="Artistas, programa, o que esperar..."
-                                      oninput="syncPreview()">{{ old('descricao') }}</textarea>
+                            <textarea name="descricao" rows="4" required
+                                      placeholder="Artistas, programa, o que esperar...">{{ old('descricao') }}</textarea>
                             @error('descricao')<div class="error-msg">{{ $message }}</div>@enderror
                         </div>
                         <div class="field">
                             <label>Link externo</label>
                             <input type="url" name="link_externo" value="{{ old('link_externo') }}" placeholder="https://...">
-                            @error('link_externo')<div class="error-msg">{{ $message }}</div>@enderror
                         </div>
                     </div>
 
@@ -362,8 +372,7 @@
                         <div class="grid2">
                             <div class="field">
                                 <label>Data de início <span class="req">*</span></label>
-                                <input type="date" name="data_evento" id="inp-data" required
-                                       value="{{ old('data_evento') }}" oninput="syncPreview()">
+                                <input type="date" name="data_evento" id="inp-data" required value="{{ old('data_evento') }}" oninput="syncPreview()">
                                 @error('data_evento')<div class="error-msg">{{ $message }}</div>@enderror
                             </div>
                             <div class="field">
@@ -374,8 +383,7 @@
                         <div class="grid2">
                             <div class="field">
                                 <label>Hora de início <span class="req">*</span></label>
-                                <input type="time" name="hora_inicio" id="inp-hora" required
-                                       value="{{ old('hora_inicio') }}" oninput="syncPreview()">
+                                <input type="time" name="hora_inicio" id="inp-hora" required value="{{ old('hora_inicio') }}" oninput="syncPreview()">
                                 @error('hora_inicio')<div class="error-msg">{{ $message }}</div>@enderror
                             </div>
                             <div class="field">
@@ -388,8 +396,7 @@
                                 <div class="tog-lbl">Múltiplos dias</div>
                                 <div class="tog-desc">Cada dia com programação separada</div>
                             </div>
-                            <button type="button" class="tog-btn {{ old('multiplos_dias') ? 'on' : '' }}"
-                                    onclick="toggleField(this,'multiplos_dias')"></button>
+                            <button type="button" class="tog-btn {{ old('multiplos_dias') ? 'on' : '' }}" onclick="toggleField(this,'multiplos_dias')"></button>
                             <input type="hidden" name="multiplos_dias" id="multiplos_dias" value="{{ old('multiplos_dias',0) }}">
                         </div>
                     </div>
@@ -401,10 +408,7 @@
                         </div>
                         <div class="field">
                             <label>Nome do local <span class="req">*</span></label>
-                            <input type="text" name="localizacao" id="inp-local" required
-                                   value="{{ old('localizacao') }}"
-                                   placeholder="Ex: Cine Karl Marx, Largo da Kinaxixi"
-                                   oninput="syncPreview()">
+                            <input type="text" name="localizacao" id="inp-local" required value="{{ old('localizacao') }}" placeholder="Ex: Cine Karl Marx, Largo da Kinaxixi" oninput="syncPreview()">
                             @error('localizacao')<div class="error-msg">{{ $message }}</div>@enderror
                         </div>
                         <div class="grid2">
@@ -430,15 +434,18 @@
                                 <div class="tog-lbl">Evento online</div>
                                 <div class="tog-desc">Realizado via streaming ou plataforma virtual</div>
                             </div>
-                            <button type="button" class="tog-btn {{ old('online') ? 'on' : '' }}"
-                                    onclick="toggleField(this,'online')"></button>
+                            <button type="button" class="tog-btn {{ old('online') ? 'on' : '' }}" onclick="toggleField(this,'online')"></button>
                             <input type="hidden" name="online" id="online" value="{{ old('online',0) }}">
                         </div>
                     </div>
                 </div>
 
-                {{-- ══ P2: CATEGORIA + CAPA + GALERIA ══ --}}
+                {{-- ══════════════════════════════════════
+                     P2: CATEGORIA + CAMPOS ESPECÍFICOS + CAPA
+                ══════════════════════════════════════ --}}
                 <div class="step-panel" id="p2">
+
+                    {{-- Categoria --}}
                     <div class="form-card">
                         <div class="card-head">
                             <div class="card-icon">🗂️</div>
@@ -453,6 +460,8 @@
                                 </div>
                             @endforeach
                         </div>
+
+                        {{-- Subcategorias --}}
                         <div class="sub-section" id="sub-section">
                             <div class="sub-header">
                                 <span class="sub-em" id="sub-em"></span>
@@ -468,8 +477,330 @@
                         <input type="hidden" name="categoria_id"    id="inp-categoria"    value="{{ old('categoria_id') }}">
                         <input type="hidden" name="subcategoria_id" id="inp-subcategoria" value="{{ old('subcategoria_id') }}">
                         @error('categoria_id')<div class="error-msg" style="margin-top:10px;">{{ $message }}</div>@enderror
+
+                        {{-- ═══════════════════════════════════════════
+                             CAMPOS ESPECÍFICOS POR CATEGORIA
+                        ═══════════════════════════════════════════ --}}
+                        <div class="cat-specific-wrap" id="cat-specific-wrap">
+                            <div class="cat-specific-header">
+                                <span class="cat-specific-icon" id="cs-icon"></span>
+                                <div>
+                                    <div class="cat-specific-title" id="cs-title">Detalhes específicos</div>
+                                    <div class="cat-specific-sub" id="cs-sub">Campos adicionais para esta categoria</div>
+                                </div>
+                            </div>
+                            <div class="cat-specific-body">
+
+                                {{-- ✈️ VIAGEM --}}
+                                <div class="cat-specific-panel" id="cs-viagem">
+                                    <div class="grid2">
+                                        <div class="field">
+                                            <label>Local de Partida <span class="req">*</span></label>
+                                            <input type="text" name="meta[partida]" value="{{ old('meta.partida') }}" placeholder="Ex: Terminal Rodoviário de Luanda">
+                                        </div>
+                                        <div class="field">
+                                            <label>Destino Final <span class="req">*</span></label>
+                                            <input type="text" name="meta[destino]" value="{{ old('meta.destino') }}" placeholder="Ex: Benguela Centro">
+                                        </div>
+                                    </div>
+                                    <div class="grid2">
+                                        <div class="field">
+                                            <label>Hora de Partida</label>
+                                            <input type="time" name="meta[hora_partida]" value="{{ old('meta.hora_partida') }}">
+                                        </div>
+                                        <div class="field">
+                                            <label>Hora de Chegada (prevista)</label>
+                                            <input type="time" name="meta[hora_chegada]" value="{{ old('meta.hora_chegada') }}">
+                                        </div>
+                                    </div>
+                                    <div class="grid3">
+                                        <div class="field">
+                                            <label>Matrícula do Veículo</label>
+                                            <input type="text" name="meta[matricula]" value="{{ old('meta.matricula') }}" placeholder="LD-00-00-AA">
+                                        </div>
+                                        <div class="field">
+                                            <label>Marca / Modelo</label>
+                                            <input type="text" name="meta[marca_veiculo]" value="{{ old('meta.marca_veiculo') }}" placeholder="Ex: Toyota Hiace">
+                                        </div>
+                                        <div class="field">
+                                            <label>Nome do Motorista</label>
+                                            <input type="text" name="meta[motorista]" value="{{ old('meta.motorista') }}" placeholder="Nome completo">
+                                        </div>
+                                    </div>
+                                    <div class="field">
+                                        <label>Paragens (separa com Enter)</label>
+                                        <div class="tag-input-wrap" id="tags-paragens" onclick="this.querySelector('input').focus()">
+                                            <input class="tag-input-real" id="inp-paragens" placeholder="Adiciona uma paragem e prime Enter..." onkeydown="addTag(event,'paragens')">
+                                        </div>
+                                        <div class="tag-hint">Ex: Viana → Km 30 → Catumbela → Benguela</div>
+                                        <input type="hidden" name="meta[paragens]" id="meta-paragens" value="{{ old('meta.paragens') }}">
+                                    </div>
+                                    <div class="tog-row" style="padding-top:8px;">
+                                        <div class="tog-info">
+                                            <div class="tog-lbl">Ar condicionado</div>
+                                            <div class="tog-desc">O veículo tem AC</div>
+                                        </div>
+                                        <button type="button" class="tog-btn {{ old('meta.ar_condicionado') ? 'on' : '' }}" onclick="toggleField(this,'meta_ar_condicionado')"></button>
+                                        <input type="hidden" name="meta[ar_condicionado]" id="meta_ar_condicionado" value="{{ old('meta.ar_condicionado',0) }}">
+                                    </div>
+                                </div>
+
+                                {{-- 🎤 SHOW / MÚSICA --}}
+                                <div class="cat-specific-panel" id="cs-show">
+                                    <div class="field">
+                                        <label>Artistas / Performers (separa com Enter)</label>
+                                        <div class="tag-input-wrap" id="tags-artistas" onclick="this.querySelector('input').focus()">
+                                            <input class="tag-input-real" id="inp-artistas" placeholder="Nome do artista e prime Enter..." onkeydown="addTag(event,'artistas')">
+                                        </div>
+                                        <div class="tag-hint">Adiciona todos os artistas que vão actuar</div>
+                                        <input type="hidden" name="meta[artistas]" id="meta-artistas" value="{{ old('meta.artistas') }}">
+                                    </div>
+                                    <div class="grid2">
+                                        <div class="field">
+                                            <label>Nome do Palco / Sala</label>
+                                            <input type="text" name="meta[palco]" value="{{ old('meta.palco') }}" placeholder="Ex: Palco Principal">
+                                        </div>
+                                        <div class="field">
+                                            <label>Dress Code</label>
+                                            <select name="meta[dresscode]">
+                                                <option value="">Sem dress code</option>
+                                                @foreach(['Casual','Smart Casual','Formal','Black Tie','Temático'] as $dc)
+                                                <option value="{{ $dc }}" {{ old('meta.dresscode')===$dc?'selected':'' }}>{{ $dc }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="field">
+                                        <label>Lineup / Horário do Programa</label>
+                                        <textarea name="meta[lineup]" rows="3" placeholder="22:00 — DJ Alfa (abertura)&#10;23:30 — Banda X (headliner)&#10;01:00 — Encerramento">{{ old('meta.lineup') }}</textarea>
+                                    </div>
+                                </div>
+
+                                {{-- 🎉 FESTIVAL --}}
+                                <div class="cat-specific-panel" id="cs-festival">
+                                    <div class="grid2">
+                                        <div class="field">
+                                            <label>Número de Dias</label>
+                                            <input type="number" name="meta[dias_festival]" min="1" max="30" value="{{ old('meta.dias_festival',1) }}" placeholder="3">
+                                        </div>
+                                        <div class="field">
+                                            <label>Número de Palcos</label>
+                                            <input type="number" name="meta[num_palcos]" min="1" value="{{ old('meta.num_palcos',1) }}" placeholder="2">
+                                        </div>
+                                    </div>
+                                    <div class="field">
+                                        <label>Artistas / Headliners (separa com Enter)</label>
+                                        <div class="tag-input-wrap" id="tags-artistas-fest" onclick="this.querySelector('input').focus()">
+                                            <input class="tag-input-real" id="inp-artistas-fest" placeholder="Nome do artista e prime Enter..." onkeydown="addTag(event,'artistas-fest')">
+                                        </div>
+                                        <input type="hidden" name="meta[artistas]" id="meta-artistas-fest" value="{{ old('meta.artistas') }}">
+                                    </div>
+                                    <div class="field">
+                                        <label>Lineup por Dia</label>
+                                        <textarea name="meta[lineup]" rows="4" placeholder="Dia 1: Artista A, Artista B&#10;Dia 2: Artista C, Artista D">{{ old('meta.lineup') }}</textarea>
+                                    </div>
+                                    <div class="tog-row">
+                                        <div class="tog-info">
+                                            <div class="tog-lbl">Camping disponível</div>
+                                            <div class="tog-desc">Área de campismo no recinto</div>
+                                        </div>
+                                        <button type="button" class="tog-btn {{ old('meta.camping') ? 'on' : '' }}" onclick="toggleField(this,'meta_camping')"></button>
+                                        <input type="hidden" name="meta[camping]" id="meta_camping" value="{{ old('meta.camping',0) }}">
+                                    </div>
+                                </div>
+
+                                {{-- ⚽ DESPORTO --}}
+                                <div class="cat-specific-panel" id="cs-desporto">
+                                    <div class="grid2">
+                                        <div class="field">
+                                            <label>Modalidade</label>
+                                            <select name="meta[modalidade]">
+                                                @foreach(['Futebol','Basquetebol','Voleibol','Atletismo','Natação','Boxe','MMA','Ténis','Rugby','Ciclismo','Outro'] as $m)
+                                                <option value="{{ $m }}" {{ old('meta.modalidade')===$m?'selected':'' }}>{{ $m }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                        <div class="field">
+                                            <label>Árbitro / Juiz</label>
+                                            <input type="text" name="meta[arbitro]" value="{{ old('meta.arbitro') }}" placeholder="Nome do árbitro">
+                                        </div>
+                                    </div>
+                                    <div class="grid2">
+                                        <div class="field">
+                                            <label>Equipa / Atleta Local</label>
+                                            <input type="text" name="meta[equipa_local]" value="{{ old('meta.equipa_local') }}" placeholder="Ex: Petro de Luanda">
+                                        </div>
+                                        <div class="field">
+                                            <label>Equipa / Atleta Visitante</label>
+                                            <input type="text" name="meta[equipa_visitante]" value="{{ old('meta.equipa_visitante') }}" placeholder="Ex: 1º de Agosto">
+                                        </div>
+                                    </div>
+                                    <div class="field">
+                                        <label>Fase / Competição</label>
+                                        <input type="text" name="meta[fase]" value="{{ old('meta.fase') }}" placeholder="Ex: Final do Campeonato Nacional">
+                                    </div>
+                                </div>
+
+                                {{-- 🎙️ CONFERÊNCIA --}}
+                                <div class="cat-specific-panel" id="cs-conferencia">
+                                    <div class="field">
+                                        <label>Tema Principal</label>
+                                        <input type="text" name="meta[tema]" value="{{ old('meta.tema') }}" placeholder="Ex: Inovação e Tecnologia em Angola">
+                                    </div>
+                                    <div class="field">
+                                        <label>Palestrantes (separa com Enter)</label>
+                                        <div class="tag-input-wrap" id="tags-palestrantes" onclick="this.querySelector('input').focus()">
+                                            <input class="tag-input-real" id="inp-palestrantes" placeholder="Nome do palestrante e prime Enter..." onkeydown="addTag(event,'palestrantes')">
+                                        </div>
+                                        <input type="hidden" name="meta[palestrantes]" id="meta-palestrantes" value="{{ old('meta.palestrantes') }}">
+                                    </div>
+                                    <div class="field">
+                                        <label>Agenda / Programa</label>
+                                        <textarea name="meta[agenda]" rows="4" placeholder="09:00 — Abertura&#10;09:30 — Palestra 1&#10;11:00 — Coffee Break">{{ old('meta.agenda') }}</textarea>
+                                    </div>
+                                    <div class="grid2">
+                                        <div class="field">
+                                            <label>Requisitos de Participação</label>
+                                            <input type="text" name="meta[requisitos]" value="{{ old('meta.requisitos') }}" placeholder="Ex: Profissionais de TI">
+                                        </div>
+                                        <div class="field">
+                                            <label>Língua</label>
+                                            <select name="meta[idioma]">
+                                                @foreach(['Português','Inglês','Francês','Bilíngue PT/EN'] as $lang)
+                                                <option value="{{ $lang }}" {{ old('meta.idioma')===$lang?'selected':'' }}>{{ $lang }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="tog-row">
+                                        <div class="tog-info">
+                                            <div class="tog-lbl">Certificado de participação</div>
+                                            <div class="tog-desc">Emitir certificado aos participantes</div>
+                                        </div>
+                                        <button type="button" class="tog-btn {{ old('meta.certificado') ? 'on' : '' }}" onclick="toggleField(this,'meta_certificado')"></button>
+                                        <input type="hidden" name="meta[certificado]" id="meta_certificado" value="{{ old('meta.certificado',0) }}">
+                                    </div>
+                                </div>
+
+                                {{-- 📚 WORKSHOP --}}
+                                <div class="cat-specific-panel" id="cs-workshop">
+                                    <div class="grid2">
+                                        <div class="field">
+                                            <label>Instrutor / Formador <span class="req">*</span></label>
+                                            <input type="text" name="meta[instrutor]" value="{{ old('meta.instrutor') }}" placeholder="Nome do instrutor">
+                                        </div>
+                                        <div class="field">
+                                            <label>Nível</label>
+                                            <select name="meta[nivel]">
+                                                @foreach(['Iniciante','Intermédio','Avançado','Todos os níveis'] as $n)
+                                                <option value="{{ $n }}" {{ old('meta.nivel')===$n?'selected':'' }}>{{ $n }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="grid2">
+                                        <div class="field">
+                                            <label>Duração (horas)</label>
+                                            <input type="number" name="meta[duracao_horas]" min="1" value="{{ old('meta.duracao_horas') }}" placeholder="4">
+                                        </div>
+                                        <div class="field">
+                                            <label>Máximo de Alunos</label>
+                                            <input type="number" name="meta[max_alunos]" min="1" value="{{ old('meta.max_alunos') }}" placeholder="20">
+                                        </div>
+                                    </div>
+                                    <div class="field">
+                                        <label>Materiais Incluídos</label>
+                                        <input type="text" name="meta[materiais]" value="{{ old('meta.materiais') }}" placeholder="Ex: Apostila, caneta, certificado digital">
+                                    </div>
+                                    <div class="tog-row">
+                                        <div class="tog-info">
+                                            <div class="tog-lbl">Certificado incluído</div>
+                                            <div class="tog-desc">Emitir certificado de conclusão</div>
+                                        </div>
+                                        <button type="button" class="tog-btn {{ old('meta.certificado') ? 'on' : '' }}" onclick="toggleField(this,'meta_cert_ws')"></button>
+                                        <input type="hidden" name="meta[certificado]" id="meta_cert_ws" value="{{ old('meta.certificado',0) }}">
+                                    </div>
+                                </div>
+
+                                {{-- 🎭 CULTURA --}}
+                                <div class="cat-specific-panel" id="cs-cultura">
+                                    <div class="field">
+                                        <label>Artistas / Elenco (separa com Enter)</label>
+                                        <div class="tag-input-wrap" id="tags-elenco" onclick="this.querySelector('input').focus()">
+                                            <input class="tag-input-real" id="inp-elenco" placeholder="Nome e prima Enter..." onkeydown="addTag(event,'elenco')">
+                                        </div>
+                                        <input type="hidden" name="meta[elenco]" id="meta-elenco" value="{{ old('meta.elenco') }}">
+                                    </div>
+                                    <div class="grid3">
+                                        <div class="field">
+                                            <label>Classificação Etária</label>
+                                            <select name="meta[classificacao_etaria]">
+                                                @foreach(['Livre','+6','+12','+16','+18'] as $ce)
+                                                <option value="{{ $ce }}" {{ old('meta.classificacao_etaria')===$ce?'selected':'' }}>{{ $ce }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                        <div class="field">
+                                            <label>Duração (min)</label>
+                                            <input type="number" name="meta[duracao_minutos]" min="1" value="{{ old('meta.duracao_minutos') }}" placeholder="90">
+                                        </div>
+                                        <div class="field">
+                                            <label>Idioma</label>
+                                            <select name="meta[idioma]">
+                                                @foreach(['Português','Inglês','Kimbundu','Kikongo','Umbundo','Outro'] as $lang)
+                                                <option value="{{ $lang }}" {{ old('meta.idioma')===$lang?'selected':'' }}>{{ $lang }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {{-- 🍽️ GASTRONOMIA --}}
+                                <div class="cat-specific-panel" id="cs-gastronomia">
+                                    <div class="grid2">
+                                        <div class="field">
+                                            <label>Chef / Responsável</label>
+                                            <input type="text" name="meta[chef]" value="{{ old('meta.chef') }}" placeholder="Nome do chef">
+                                        </div>
+                                        <div class="field">
+                                            <label>Tipo de Culinária</label>
+                                            <input type="text" name="meta[tipo_culinaria]" value="{{ old('meta.tipo_culinaria') }}" placeholder="Ex: Culinária Angolana Tradicional">
+                                        </div>
+                                    </div>
+                                    <div class="field">
+                                        <label>Menu / Ementa</label>
+                                        <textarea name="meta[menu]" rows="4" placeholder="Entrada: Muamba de galinha&#10;Prato: Calulu de peixe&#10;Sobremesa: Cocada amarela">{{ old('meta.menu') }}</textarea>
+                                    </div>
+                                    <div class="grid2">
+                                        <div class="field">
+                                            <label>Dress Code</label>
+                                            <select name="meta[dresscode]">
+                                                <option value="">Sem dress code</option>
+                                                @foreach(['Casual','Smart Casual','Formal','Black Tie'] as $dc)
+                                                <option value="{{ $dc }}" {{ old('meta.dresscode')===$dc?'selected':'' }}>{{ $dc }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                        <div class="field">
+                                            <label>Preço Fixo do Menu (Kz)</label>
+                                            <input type="number" name="meta[preco_menu]" min="0" value="{{ old('meta.preco_menu') }}" placeholder="5000">
+                                        </div>
+                                    </div>
+                                    <div class="tog-row">
+                                        <div class="tog-info">
+                                            <div class="tog-lbl">Bebidas incluídas</div>
+                                            <div class="tog-desc">O preço inclui bebidas</div>
+                                        </div>
+                                        <button type="button" class="tog-btn {{ old('meta.bebidas_incluidas') ? 'on' : '' }}" onclick="toggleField(this,'meta_bebidas')"></button>
+                                        <input type="hidden" name="meta[bebidas_incluidas]" id="meta_bebidas" value="{{ old('meta.bebidas_incluidas',0) }}">
+                                    </div>
+                                </div>
+
+                            </div>{{-- /cat-specific-body --}}
+                        </div>{{-- /cat-specific-wrap --}}
                     </div>
 
+                    {{-- Capa --}}
                     <div class="form-card">
                         <div class="card-head">
                             <div class="card-icon">🖼️</div>
@@ -490,23 +821,25 @@
                         @error('imagem_capa')<div class="error-msg" style="margin-top:8px;">{{ $message }}</div>@enderror
                     </div>
 
+                    {{-- Galeria --}}
                     <div class="form-card">
                         <div class="card-head">
-                            <div class="card-icon">🖼️</div>
+                            <div class="card-icon">🗂️</div>
                             <div><div class="card-title">Galeria de fotos</div><div class="card-sub">Fotos adicionais para a página do evento</div></div>
                         </div>
-                        <label class="galeria-zone" id="galeria-zone">
+                        <label class="galeria-zone">
                             <input type="file" name="galeria[]" accept="image/*" multiple style="display:none" onchange="handleGaleria(this)">
                             <div class="cover-icon-box" style="margin:0 auto 12px;">🗂️</div>
                             <p>Clica para selecionar várias fotos</p>
                             <small>PNG, JPG, WEBP · máx. 5 MB por foto</small>
                         </label>
                         <div class="galeria-preview" id="galeria-preview"></div>
-                        @error('galeria.*')<div class="error-msg" style="margin-top:8px;">{{ $message }}</div>@enderror
                     </div>
                 </div>
 
-                {{-- ══ P3: BILHETES ══ --}}
+                {{-- ══════════════════════════════════════
+                     P3: BILHETES
+                ══════════════════════════════════════ --}}
                 <div class="step-panel" id="p3">
                     <div class="form-card">
                         <div class="card-head">
@@ -514,11 +847,7 @@
                             <div><div class="card-title">Tipos de bilhete</div><div class="card-sub">O preço final inclui automaticamente 10% de taxa de serviço</div></div>
                         </div>
                         <div class="tk-headers">
-                            <span>Tipo</span>
-                            <span>Preço base (Kz)</span>
-                            <span>Taxa (10%)</span>
-                            <span>Qtd.</span>
-                            <span></span>
+                            <span>Tipo</span><span>Preço base (Kz)</span><span>Taxa (10%)</span><span>Qtd.</span><span></span>
                         </div>
                         <div id="tk-list">
                             <div class="tk-row" id="tkr-0">
@@ -542,7 +871,7 @@
                             </div>
                         </div>
                         <button type="button" class="add-tk-btn" onclick="addTicket()">+ Adicionar tipo de bilhete</button>
-                        <div class="taxa-note">💡 A taxa de 10% é adicionada automaticamente ao preço que introduzires. Ex: 2.500 Kz → preço final 2.750 Kz.</div>
+                        <div class="taxa-note">💡 A taxa de 10% é adicionada automaticamente. Ex: 2.500 Kz → preço final 2.750 Kz.</div>
                     </div>
 
                     <div class="form-card">
@@ -553,15 +882,12 @@
                         <div class="grid2">
                             <div class="field">
                                 <label>Lotação máxima <span class="req">*</span></label>
-                                <input type="number" name="lotacao_maxima" id="inp-lotacao"
-                                       value="{{ old('lotacao_maxima') }}" min="1" required placeholder="500"
-                                       oninput="syncPreview()">
+                                <input type="number" name="lotacao_maxima" id="inp-lotacao" value="{{ old('lotacao_maxima') }}" min="1" required placeholder="500" oninput="syncPreview()">
                                 @error('lotacao_maxima')<div class="error-msg">{{ $message }}</div>@enderror
                             </div>
                             <div class="field">
                                 <label>Ingressos por pessoa</label>
-                                <input type="number" name="ingressos_por_pessoa"
-                                       value="{{ old('ingressos_por_pessoa',1) }}" min="1" max="10">
+                                <input type="number" name="ingressos_por_pessoa" value="{{ old('ingressos_por_pessoa',1) }}" min="1" max="10">
                             </div>
                         </div>
                         <div class="tog-row">
@@ -569,14 +895,15 @@
                                 <div class="tog-lbl">Lista de espera</div>
                                 <div class="tog-desc">Aceitar inscrições após esgotamento</div>
                             </div>
-                            <button type="button" class="tog-btn {{ old('lista_espera')?'on':'' }}"
-                                    onclick="toggleField(this,'lista_espera')"></button>
+                            <button type="button" class="tog-btn {{ old('lista_espera')?'on':'' }}" onclick="toggleField(this,'lista_espera')"></button>
                             <input type="hidden" name="lista_espera" id="lista_espera" value="{{ old('lista_espera',0) }}">
                         </div>
                     </div>
                 </div>
 
-                {{-- ══ P4: DEFINIÇÕES ══ --}}
+                {{-- ══════════════════════════════════════
+                     P4: DEFINIÇÕES
+                ══════════════════════════════════════ --}}
                 <div class="step-panel" id="p4">
                     <div class="form-card">
                         <div class="card-head">
@@ -594,10 +921,8 @@
                                     <div class="tog-lbl">{{ $label }}</div>
                                     <div class="tog-desc">{{ $desc }}</div>
                                 </div>
-                                <button type="button" class="tog-btn {{ old($field,$default?1:0)?'on':'' }}"
-                                        onclick="toggleField(this,'{{ $field }}')"></button>
-                                <input type="hidden" name="{{ $field }}" id="{{ $field }}"
-                                       value="{{ old($field,$default?1:0) }}">
+                                <button type="button" class="tog-btn {{ old($field,$default?1:0)?'on':'' }}" onclick="toggleField(this,'{{ $field }}')"></button>
+                                <input type="hidden" name="{{ $field }}" id="{{ $field }}" value="{{ old($field,$default?1:0) }}">
                             </div>
                         @endforeach
                     </div>
@@ -617,16 +942,16 @@
                                     <div class="tog-lbl">{{ $label }}</div>
                                     <div class="tog-desc">{{ $desc }}</div>
                                 </div>
-                                <button type="button" class="tog-btn {{ old($field,$default?1:0)?'on':'' }}"
-                                        onclick="toggleField(this,'{{ $field }}')"></button>
-                                <input type="hidden" name="{{ $field }}" id="{{ $field }}"
-                                       value="{{ old($field,$default?1:0) }}">
+                                <button type="button" class="tog-btn {{ old($field,$default?1:0)?'on':'' }}" onclick="toggleField(this,'{{ $field }}')"></button>
+                                <input type="hidden" name="{{ $field }}" id="{{ $field }}" value="{{ old($field,$default?1:0) }}">
                             </div>
                         @endforeach
                     </div>
                 </div>
 
-                {{-- ══ P5: PUBLICAR ══ --}}
+                {{-- ══════════════════════════════════════
+                     P5: PUBLICAR
+                ══════════════════════════════════════ --}}
                 <div class="step-panel" id="p5">
                     <div class="form-card">
                         <div class="pub-center">
@@ -644,207 +969,240 @@
                             <div class="rev-body"><div class="rev-title">Categoria</div><div class="rev-val" id="rev-cat">—</div></div>
                             <button type="button" class="rev-edit" onclick="goStep(2)">Editar →</button>
                         </div>
+                        <div class="rev-item" id="rev-especificos-item" style="display:none;">
+                            <div class="rev-icon" id="rev-especificos-icon">⚙️</div>
+                            <div class="rev-body"><div class="rev-title">Detalhes específicos</div><div class="rev-val" id="rev-especificos">—</div></div>
+                            <button type="button" class="rev-edit" onclick="goStep(2)">Editar →</button>
+                        </div>
                         <div class="rev-item">
                             <div class="rev-icon">🎟️</div>
                             <div class="rev-body"><div class="rev-title">Bilhetes</div><div class="rev-val" id="rev-bilhetes">—</div></div>
                             <button type="button" class="rev-edit" onclick="goStep(3)">Editar →</button>
                         </div>
-                        <div style="margin-top:20px;padding-top:20px;border-top:1px solid var(--b1);">
-                            <div style="font-size:11px;font-weight:700;color:var(--t3);letter-spacing:.07em;text-transform:uppercase;margin-bottom:12px;">Estado do evento</div>
-                            <div class="status-grid">
-                                <div class="status-tile" id="st-rascunho" onclick="selectStatus('rascunho')">
-                                    <span class="status-em">📝</span>
-                                    <span class="status-nm" style="color:#facc15;">Rascunho</span>
-                                </div>
-                                <div class="status-tile sel-publicado" id="st-publicado" onclick="selectStatus('publicado')">
-                                    <span class="status-em">✅</span>
-                                    <span class="status-nm" style="color:var(--green);">Publicado</span>
-                                </div>
-                                <div class="status-tile" id="st-encerrado" onclick="selectStatus('encerrado')">
-                                    <span class="status-em">🔒</span>
-                                    <span class="status-nm" style="color:var(--red);">Encerrado</span>
-                                </div>
-                            </div>
-                            <input type="hidden" name="status" id="inp-status" value="{{ old('status','publicado') }}">
+                    </div>
+
+                    <div class="form-card">
+                        <div class="card-head">
+                            <div class="card-icon">📡</div>
+                            <div><div class="card-title">Estado do evento</div><div class="card-sub">Controla a visibilidade pública</div></div>
                         </div>
-                        <div class="tog-row" style="margin-top:20px;padding-top:20px;border-top:1px solid var(--b1);">
-                            <div class="tog-info">
-                                <div class="tog-lbl">Concordo com os termos de publicação</div>
-                                <div class="tog-desc">O evento cumpre todas as diretrizes da KiLuanda</div>
+                        <div class="status-grid">
+                            <div class="status-tile sel-rascunho" id="st-rascunho" onclick="selectStatus('rascunho')">
+                                <span class="status-em">📝</span>
+                                <span class="status-nm" style="color:#facc15;">Rascunho</span>
                             </div>
-                            <button type="button" class="tog-btn" id="tog-termos"
-                                    onclick="toggleField(this,'termos')"></button>
+                            <div class="status-tile" id="st-publicado" onclick="selectStatus('publicado')">
+                                <span class="status-em">✅</span>
+                                <span class="status-nm" style="color:var(--green);">Publicado</span>
+                            </div>
+                            <div class="status-tile" id="st-encerrado" onclick="selectStatus('encerrado')">
+                                <span class="status-em">🔒</span>
+                                <span class="status-nm" style="color:var(--red);">Encerrado</span>
+                            </div>
+                        </div>
+                        <input type="hidden" name="status" id="inp-status" value="{{ old('status','rascunho') }}">
+                    </div>
+
+                    <div class="form-card">
+                        <div class="card-head">
+                            <div class="card-icon">✅</div>
+                            <div><div class="card-title">Termos de publicação</div><div class="card-sub">Li e aceito as condições de publicação de eventos</div></div>
+                        </div>
+                        <div class="tog-row" style="border-bottom:none;padding-bottom:0;">
+                            <div class="tog-info">
+                                <div class="tog-lbl">Aceito os termos</div>
+                                <div class="tog-desc">O evento respeita as diretrizes da plataforma</div>
+                            </div>
+                            <button type="button" class="tog-btn" onclick="toggleField(this,'termos')"></button>
                             <input type="hidden" name="termos" id="termos" value="0">
                         </div>
                     </div>
                 </div>
 
-            </div>
+            </div>{{-- /form-col --}}
 
-            {{-- ASIDE (desktop) --}}
+            {{-- ══════════════════════════════════════
+                 ASIDE (desktop) — pré-visualização
+            ══════════════════════════════════════ --}}
             <div class="aside-col">
                 <div class="aside-lbl">Pré-visualização</div>
                 <div class="prev-card">
-                    <div class="prev-cover" id="prev-cover">
-                        <span id="prev-em">✦</span>
-                        <div class="prev-cover-tag" id="prev-cover-tag"></div>
+                    <div class="prev-cover" id="prev-cover-area">
+                        <span id="prev-cat-em">🎟</span>
+                        <div class="prev-cover-tag" id="prev-status-tag">Rascunho</div>
                     </div>
                     <div class="prev-body">
-                        <div class="prev-cat" id="prev-cat">Sem categoria</div>
+                        <div class="prev-cat" id="prev-cat">Categoria</div>
                         <div class="prev-title" id="prev-title" style="color:var(--t3)">Nome do evento</div>
-                        <div class="prev-meta-row"><span>📅</span><span id="prev-data" style="color:var(--t3)">Data e hora</span></div>
-                        <div class="prev-meta-row"><span>📍</span><span id="prev-local" style="color:var(--t3)">Local do evento</span></div>
+                        <div class="prev-meta-row">📅 <span id="prev-data" style="color:var(--t3)">Data</span></div>
+                        <div class="prev-meta-row">📍 <span id="prev-local" style="color:var(--t3)">Local</span></div>
                         <div class="prev-divider"></div>
                         <div class="prev-footer">
                             <div>
                                 <div class="prev-price" id="prev-price">—</div>
-                                <div class="prev-price-sub">por pessoa</div>
+                                <div class="prev-price-sub">por bilhete</div>
                             </div>
-                            <button type="button" class="prev-join-btn">Participar</button>
+                            <button class="prev-join-btn">Comprar</button>
                         </div>
                     </div>
                 </div>
                 <div class="tips-card">
-                    <div class="aside-lbl">💡 Dicas</div>
-                    @foreach([
-                        'Usa uma capa com boa iluminação e sem texto sobreposto',
-                        'Menciona artistas e DJs pelo nome — aumenta o alcance',
-                        'Publica com pelo menos 2 semanas de antecedência',
-                        'Eventos com preço definido têm mais inscrições antecipadas',
-                    ] as $tip)
-                        <div class="tip-item">
-                            <div class="tip-dot"></div>
-                            <div class="tip-text">{{ $tip }}</div>
-                        </div>
-                    @endforeach
+                    <div class="aside-lbl" style="margin-bottom:14px;">Dicas</div>
+                    <div class="tip-item"><div class="tip-dot"></div><div class="tip-text">Use imagens de alta resolução para aumentar as vendas.</div></div>
+                    <div class="tip-item"><div class="tip-dot"></div><div class="tip-text">Descreve bem o evento — inclui artistas, programa e localização exata.</div></div>
+                    <div class="tip-item"><div class="tip-dot"></div><div class="tip-text">Publica com antecedência — eventos publicados 2+ semanas antes vendem mais.</div></div>
                 </div>
             </div>
-
-        </div>
+        </div>{{-- /criar-layout --}}
     </form>
-</div>
 
-{{-- DRAWER PRÉ-VISUALIZAÇÃO (mobile) --}}
-<div class="drawer-overlay" id="drawer-preview" onclick="if(event.target===this) fecharDrawerPreview()">
-    <div class="drawer-box">
-        <div class="drawer-handle"></div>
-        <p style="font-size:11px;font-weight:700;color:var(--t3);letter-spacing:.12em;text-transform:uppercase;margin-bottom:12px;">Pré-visualização</p>
-        <div class="prev-card" style="background:var(--s2);">
-            <div class="prev-cover" id="prev-cover-mob" style="background:linear-gradient(135deg,#1e1b4b,#4c1d95);">
-                <span id="prev-em-mob">✦</span>
-            </div>
-            <div class="prev-body">
-                <div class="prev-cat" id="prev-cat-mob">Sem categoria</div>
-                <div class="prev-title" id="prev-title-mob" style="color:var(--t3)">Nome do evento</div>
-                <div class="prev-meta-row"><span>📅</span><span id="prev-data-mob" style="color:var(--t3)">Data e hora</span></div>
-                <div class="prev-meta-row"><span>📍</span><span id="prev-local-mob" style="color:var(--t3)">Local do evento</span></div>
-                <div class="prev-divider"></div>
-                <div class="prev-footer">
-                    <div>
-                        <div class="prev-price" id="prev-price-mob">—</div>
-                        <div class="prev-price-sub">por pessoa</div>
+    {{-- DRAWER PREVIEW MOBILE --}}
+    <div class="drawer-overlay" id="drawer-preview" onclick="if(event.target===this)fecharDrawerPreview()">
+        <div class="drawer-box">
+            <div class="drawer-handle"></div>
+            <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--t1);margin-bottom:16px;">👁 Pré-visualização</div>
+            <div class="prev-card">
+                <div class="prev-cover">
+                    <span id="prev-cat-em-mob">🎟</span>
+                </div>
+                <div class="prev-body">
+                    <div class="prev-cat" id="prev-cat-mob">Categoria</div>
+                    <div class="prev-title" id="prev-title-mob" style="color:var(--t3)">Nome do evento</div>
+                    <div class="prev-meta-row">📅 <span id="prev-data-mob" style="color:var(--t3)">Data</span></div>
+                    <div class="prev-meta-row">📍 <span id="prev-local-mob" style="color:var(--t3)">Local</span></div>
+                    <div class="prev-divider"></div>
+                    <div class="prev-footer">
+                        <div>
+                            <div class="prev-price" id="prev-price-mob">—</div>
+                            <div class="prev-price-sub">por bilhete</div>
+                        </div>
+                        <button class="prev-join-btn">Comprar</button>
                     </div>
-                    <button type="button" class="prev-join-btn">Participar</button>
                 </div>
             </div>
         </div>
-        <button type="button" onclick="fecharDrawerPreview()" style="width:100%;margin-top:16px;padding:11px;border-radius:10px;background:var(--acc2);border:none;color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">
-            Fechar
-        </button>
     </div>
-</div>
+
+</div>{{-- /criar-page --}}
 
 <script>
-const CAT_CORES = {
-    'Shows':        'linear-gradient(135deg,#1e1b4b,#4c1d95)',
-    'Festivais':    'linear-gradient(135deg,#78350f,#d97706)',
-    'Viagens':      'linear-gradient(135deg,#0c4a6e,#0284c7)',
-    'Desporto':     'linear-gradient(135deg,#064e3b,#059669)',
-    'Conferências': 'linear-gradient(135deg,#1e3a5f,#1d4ed8)',
-    'Workshops':    'linear-gradient(135deg,#3b0764,#7e22ce)',
-    'Cultura':      'linear-gradient(135deg,#4a1942,#be185d)',
+// ── Estado global ──────────────────────────────────────────
+var currentStep  = 1;
+var totalSteps   = 5;
+var tkCount      = 1;
+var selCatId     = null;
+var selCatNome   = '';
+var selCatEmoji  = '';
+var selSubNome   = '';
+var tagData      = { paragens:[], artistas:[], 'artistas-fest':[], palestrantes:[], elenco:[] };
+
+// ── Mapeamento categoria → panel ──────────────────────────
+var catPanelMap = {
+    'viagem':      { panel:'cs-viagem',      icon:'✈️',  title:'Detalhes da Viagem',        sub:'Veículo, rotas e motorista' },
+    'viagens':     { panel:'cs-viagem',      icon:'✈️',  title:'Detalhes da Viagem',      sub:'Veículo, rotas e motorista' },
+    'show':        { panel:'cs-show',        icon:'🎤',  title:'Detalhes do Show',           sub:'Artistas, palco e dress code' },
+    'musica':      { panel:'cs-show',        icon:'🎵',  title:'Detalhes do Show',           sub:'Artistas, palco e dress code' },
+    'festival':    { panel:'cs-festival',    icon:'🎉',  title:'Detalhes do Festival',       sub:'Lineup, palcos e camping' },
+    'festivais':   { panel:'cs-festival',    icon:'🎉',  title:'Detalhes do Festival',    sub:'Lineup, palcos e camping' },  
+    'festas':      { panel:'cs-festival',    icon:'🎉',  title:'Detalhes do Festival',    sub:'Lineup, palcos e camping' },  
+    'festa':       { panel:'cs-festival',    icon:'🎉',  title:'Detalhes do Festival',    sub:'Lineup, palcos e camping' }, 
+    'desporto':    { panel:'cs-desporto',    icon:'⚽',  title:'Detalhes do Desporto',       sub:'Equipas, modalidade e árbitro' },
+    'conferência': { panel:'cs-conferencia', icon:'🎙️', title:'Detalhes da Conferência',    sub:'Palestrantes, agenda e requisitos' },
+    'conferencia': { panel:'cs-conferencia', icon:'🎙️', title:'Detalhes da Conferência',    sub:'Palestrantes, agenda e requisitos' },
+    'workshop':    { panel:'cs-workshop',    icon:'📚',  title:'Detalhes do Workshop',       sub:'Instrutor, nível e materiais' },
+    'cultura':     { panel:'cs-cultura',     icon:'🎭',  title:'Detalhes Culturais',         sub:'Elenco, classificação e duração' },
+    'gastronomia': { panel:'cs-gastronomia', icon:'🍽️', title:'Detalhes do Evento',         sub:'Chef, menu e dress code' },
 };
 
-let currentStep = 1;
-let selCatNome  = '';
-let selCatEmoji = '';
-let selSubNome  = '';
-let tkCount     = 1;
-
-function goStep(n) {
-    document.querySelectorAll('.step-panel').forEach((p,i) => p.classList.toggle('active', i+1===n));
-    currentStep = n;
-    for (let i=1; i<=5; i++) {
-        const sn = document.getElementById('sn'+i);
-        const sl = document.getElementById('sl'+i);
-        const ln = document.getElementById('ln'+i);
-        sn.className = 'step-num' + (i<n?' done':i===n?' active':'');
-        sn.textContent = i<n ? '✓' : i;
-        sl.className = 'step-lbl' + (i<n?' done':i===n?' active':'');
-        if (ln) ln.className = 'step-line' + (i<n?' done':'');
+function getCatKey(nome) {
+    const n = nome.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    for (const key of Object.keys(catPanelMap)) {
+        if (n.includes(key) || key.includes(n)) return key;
     }
-    document.getElementById('prog-fill').style.width = (n/5*100) + '%';
-    document.getElementById('prog-lbl').textContent  = 'Passo ' + n + ' de 5';
-    const btnNext    = document.getElementById('btn-next');
-    const btnPublish = document.getElementById('btn-publish');
-    if (n===5) {
-        btnNext.style.display    = 'none';
-        btnPublish.style.display = 'inline-flex';
-        updateReview();
-    } else {
-        btnNext.style.display    = 'inline-flex';
-        btnPublish.style.display = 'none';
-        document.getElementById('btn-next-lbl').textContent = n===4 ? 'Rever' : 'Continuar';
-    }
-    window.scrollTo({top:0, behavior:'smooth'});
+    return null;
 }
 
-function nextStep() { if (currentStep < 5) goStep(currentStep+1); }
+// ── Mostrar campos específicos ────────────────────────────
+function showCatSpecificFields(nome) {
+    const key  = getCatKey(nome);
+    const wrap = document.getElementById('cat-specific-wrap');
 
-function toggleField(btn, field) {
-    btn.classList.toggle('on');
-    const el = document.getElementById(field);
-    if (el) el.value = btn.classList.contains('on') ? 1 : 0;
+    // Esconde todos os panels
+    document.querySelectorAll('.cat-specific-panel').forEach(p => p.classList.remove('active'));
+
+    if (!key) {
+        wrap.classList.remove('show');
+        return;
+    }
+
+    const cfg = catPanelMap[key];
+    document.getElementById('cs-icon').textContent  = cfg.icon;
+    document.getElementById('cs-title').textContent = cfg.title;
+    document.getElementById('cs-sub').textContent   = cfg.sub;
+
+    const panel = document.getElementById(cfg.panel);
+    if (panel) panel.classList.add('active');
+    wrap.classList.add('show');
+
+    // Atualiza review
+    const revItem = document.getElementById('rev-especificos-item');
+    if (revItem) {
+        revItem.style.display = 'flex';
+        document.getElementById('rev-especificos-icon').textContent = cfg.icon;
+        document.getElementById('rev-especificos').textContent = cfg.title;
+    }
 }
 
-function selectCategoria(id, nome, subcategorias, tile) {
+// ── Selecionar categoria ──────────────────────────────────
+function selectCategoria(id, nome, subcats, tile) {
     document.querySelectorAll('.cat-tile').forEach(t => t.classList.remove('sel'));
     tile.classList.add('sel');
+    selCatId    = id;
     selCatNome  = nome;
     selCatEmoji = tile.querySelector('.cat-em').textContent;
+
     document.getElementById('inp-categoria').value    = id;
     document.getElementById('inp-subcategoria').value = '';
-    selSubNome = '';
-    const section = document.getElementById('sub-section');
-    section.classList.add('show');
-    document.getElementById('sub-em').textContent   = selCatEmoji;
-    document.getElementById('sub-name').textContent = nome;
-    const chipsEl = document.getElementById('sub-chips');
-    chipsEl.innerHTML = '';
-    if (subcategorias && subcategorias.length > 0) {
-        subcategorias.forEach(sub => {
-            const chip = document.createElement('div');
-            chip.className   = 'sub-chip';
-            chip.textContent = sub.nome;
-            chip.onclick = () => selectSubcategoria(chip, sub.id, sub.nome);
-            chipsEl.appendChild(chip);
+
+    const ss = document.getElementById('sub-section');
+    const sc = document.getElementById('sel-confirm');
+
+    sc.classList.remove('show');
+
+    if (subcats && subcats.length > 0) {
+        document.getElementById('sub-em').textContent   = selCatEmoji;
+        document.getElementById('sub-name').textContent = nome;
+        const chips = document.getElementById('sub-chips');
+        chips.innerHTML = '';
+        subcats.forEach(sub => {
+            const el = document.createElement('div');
+            el.className = 'sub-chip';
+            el.textContent = sub.nome;
+            el.onclick = () => selectSub(sub.id, sub.nome, el);
+            chips.appendChild(el);
         });
+        ss.classList.add('show');
     } else {
-        chipsEl.innerHTML = '<span style="font-size:13px;color:var(--t3)">Sem subcategorias</span>';
+        ss.classList.remove('show');
+        sc.classList.add('show');
+        document.getElementById('sel-confirm-txt').textContent = selCatEmoji + ' ' + nome;
     }
-    document.getElementById('sel-confirm').classList.remove('show');
-    const cor = CAT_CORES[nome] || 'linear-gradient(135deg,#1e1b4b,#4c1d95)';
-    document.getElementById('prev-cover').style.background     = cor;
-    document.getElementById('prev-cover-mob').style.background = cor;
-    document.getElementById('prev-em').textContent     = selCatEmoji;
-    document.getElementById('prev-em-mob').textContent = selCatEmoji;
-    document.getElementById('prev-cover-tag').textContent   = nome;
-    document.getElementById('prev-cover-tag').style.display = 'block';
-    document.getElementById('prev-cat').textContent     = selCatEmoji + ' ' + nome;
-    document.getElementById('prev-cat-mob').textContent = selCatEmoji + ' ' + nome;
+
+    // Actualiza preview
+    ['prev-cat','prev-cat-mob'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) { el.textContent = selCatEmoji + ' ' + nome; }
+    });
+    ['prev-cat-em','prev-cat-em-mob'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = selCatEmoji;
+    });
+
+    // Mostra campos específicos
+    showCatSpecificFields(nome);
 }
 
-function selectSubcategoria(chip, id, nome) {
+function selectSub(id, nome, chip) {
     document.querySelectorAll('.sub-chip').forEach(c => c.classList.remove('sel'));
     chip.classList.add('sel');
     selSubNome = nome;
@@ -852,16 +1210,103 @@ function selectSubcategoria(chip, id, nome) {
     const confirm = document.getElementById('sel-confirm');
     confirm.classList.add('show');
     document.getElementById('sel-confirm-txt').textContent = selCatEmoji + ' ' + selCatNome + ' → ' + nome;
-    document.getElementById('prev-cat').textContent     = selCatEmoji + ' ' + nome;
-    document.getElementById('prev-cat-mob').textContent = selCatEmoji + ' ' + nome;
+    ['prev-cat','prev-cat-mob'].forEach(elId => {
+        const el = document.getElementById(elId);
+        if (el) el.textContent = selCatEmoji + ' ' + nome;
+    });
 }
 
+// ── Tag inputs (artistas, paragens...) ───────────────────
+function addTag(event, field) {
+    if (event.key !== 'Enter' && event.key !== ',') return;
+    event.preventDefault();
+    const input = event.target;
+    const val   = input.value.trim();
+    if (!val) return;
+    if (!tagData[field]) tagData[field] = [];
+    tagData[field].push(val);
+    renderTags(field);
+    input.value = '';
+}
+
+function removeTag(field, idx) {
+    tagData[field].splice(idx, 1);
+    renderTags(field);
+}
+
+function renderTags(field) {
+    const wrap = document.getElementById('tags-' + field);
+    if (!wrap) return;
+    // Remove chips existentes
+    wrap.querySelectorAll('.tag-chip').forEach(c => c.remove());
+    const input = wrap.querySelector('input');
+    tagData[field].forEach((val, i) => {
+        const chip = document.createElement('div');
+        chip.className = 'tag-chip';
+        chip.innerHTML = val + '<button type="button" onclick="removeTag(\'' + field + '\',' + i + ')">✕</button>';
+        wrap.insertBefore(chip, input);
+    });
+    // Actualiza hidden input
+    const hidden = document.getElementById('meta-' + field);
+    if (hidden) hidden.value = JSON.stringify(tagData[field]);
+}
+
+// ── Toggle fields ─────────────────────────────────────────
+function toggleField(btn, field) {
+    btn.classList.toggle('on');
+    const el = document.getElementById(field);
+    if (el) el.value = btn.classList.contains('on') ? 1 : 0;
+}
+
+// ── Steps ─────────────────────────────────────────────────
+function goStep(n) {
+    document.getElementById('p' + currentStep).classList.remove('active');
+    document.getElementById('sn' + currentStep).classList.remove('active');
+    document.getElementById('sl' + currentStep).classList.remove('active');
+
+    if (n > currentStep) {
+        document.getElementById('sn' + currentStep).classList.add('done');
+        document.getElementById('sl' + currentStep).classList.add('done');
+        for (let i = currentStep; i < n; i++) {
+            const ln = document.getElementById('ln' + i);
+            if (ln) ln.classList.add('done');
+        }
+    }
+
+    currentStep = n;
+    document.getElementById('p' + n).classList.add('active');
+    document.getElementById('sn' + n).classList.add('active');
+    document.getElementById('sl' + n).classList.add('active');
+
+    const pct = Math.round((n / totalSteps) * 100);
+    document.getElementById('prog-fill').style.width = pct + '%';
+    document.getElementById('prog-lbl').textContent  = 'Passo ' + n + ' de ' + totalSteps;
+
+    const btnNext    = document.getElementById('btn-next');
+    const btnPublish = document.getElementById('btn-publish');
+    if (n === totalSteps) {
+        btnNext.style.display    = 'none';
+        btnPublish.style.display = 'inline-flex';
+        updateReview();
+    } else {
+        btnNext.style.display    = 'inline-flex';
+        btnPublish.style.display = 'none';
+    }
+    document.getElementById('btn-next-lbl').textContent = n === totalSteps - 1 ? 'Rever' : 'Continuar';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function nextStep() {
+    if (currentStep < totalSteps) goStep(currentStep + 1);
+}
+
+// ── Imagem de capa ────────────────────────────────────────
 function handleCover(input) {
     const file = input.files[0];
     if (!file) return;
     const reader = new FileReader();
     reader.onload = e => {
-        document.getElementById('cover-img').src             = e.target.result;
+        document.getElementById('cover-img').src               = e.target.result;
         document.getElementById('cover-empty').style.display   = 'none';
         document.getElementById('cover-preview').style.display = 'block';
     };
@@ -875,7 +1320,7 @@ function handleGaleria(input) {
         const reader = new FileReader();
         reader.onload = e => {
             const img = document.createElement('img');
-            img.src       = e.target.result;
+            img.src = e.target.result;
             img.className = 'galeria-thumb';
             preview.appendChild(img);
         };
@@ -883,13 +1328,14 @@ function handleGaleria(input) {
     });
 }
 
+// ── Bilhetes ──────────────────────────────────────────────
 function calcTaxa(input, idx) {
     const base = parseFloat(input.value) || 0;
     const taxa = Math.round(base * 0.10);
     const el   = document.getElementById('taxa-' + idx);
     if (el) el.textContent = taxa.toLocaleString('pt-PT') + ' Kz';
     if (idx === 0) {
-        const final = base + taxa;
+        const final     = base + taxa;
         const priceText = final > 0 ? final.toLocaleString('pt-PT') + ' Kz' : '—';
         document.getElementById('prev-price').textContent     = priceText;
         document.getElementById('prev-price-mob').textContent = priceText;
@@ -929,29 +1375,29 @@ function removeTicket(id) {
     if (el) el.remove();
 }
 
+// ── Status ────────────────────────────────────────────────
 function selectStatus(status) {
     ['rascunho','publicado','encerrado'].forEach(s => {
-        const tile = document.getElementById('st-' + s);
-        tile.className = 'status-tile' + (s === status ? ' sel-' + s : '');
+        document.getElementById('st-' + s).className = 'status-tile' + (s === status ? ' sel-' + s : '');
     });
     document.getElementById('inp-status').value = status;
 }
 
+// ── Preview sync ──────────────────────────────────────────
 function syncPreview() {
     const titulo = document.getElementById('inp-titulo').value;
     const data   = document.getElementById('inp-data').value;
     const hora   = document.getElementById('inp-hora').value;
     const local  = document.getElementById('inp-local').value;
     document.getElementById('titulo-count').textContent = titulo.length + ' / 255';
-
     ['prev-title','prev-title-mob'].forEach(id => {
         const el = document.getElementById(id);
         el.textContent = titulo || 'Nome do evento';
         el.style.color = titulo ? 'var(--t1)' : 'var(--t3)';
     });
     if (data) {
-        const d  = new Date(data + 'T00:00:00');
-        const ds = d.toLocaleDateString('pt-PT', {day:'numeric',month:'short',year:'numeric'});
+        const d   = new Date(data + 'T00:00:00');
+        const ds  = d.toLocaleDateString('pt-PT',{day:'numeric',month:'short',year:'numeric'});
         const txt = ds + (hora ? ' · ' + hora : '');
         ['prev-data','prev-data-mob'].forEach(id => {
             const el = document.getElementById(id);
@@ -966,21 +1412,24 @@ function syncPreview() {
     }
 }
 
+// ── Review ────────────────────────────────────────────────
 function updateReview() {
     const titulo = document.getElementById('inp-titulo').value;
     const data   = document.getElementById('inp-data').value;
     document.getElementById('rev-info').textContent =
-        titulo ? titulo.slice(0,40) + (titulo.length>40?'…':'') + (data?' · '+data:'') : 'Preenche no passo 1';
+        titulo ? titulo.slice(0,40) + (titulo.length > 40 ? '…' : '') + (data ? ' · ' + data : '') : 'Preenche no passo 1';
     document.getElementById('rev-cat').textContent =
-        selCatNome ? selCatEmoji+' '+selCatNome+(selSubNome?' → '+selSubNome:'') : 'Preenche no passo 2';
+        selCatNome ? selCatEmoji + ' ' + selCatNome + (selSubNome ? ' → ' + selSubNome : '') : 'Preenche no passo 2';
     const rows = document.querySelectorAll('#tk-list .tk-row');
     document.getElementById('rev-bilhetes').textContent =
         rows.length > 0 ? rows.length + ' tipo(s) configurado(s)' : 'Nenhum bilhete adicionado';
 }
 
+// ── Drawer preview mobile ─────────────────────────────────
 function abrirDrawerPreview()  { document.getElementById('drawer-preview').classList.add('open'); }
 function fecharDrawerPreview() { document.getElementById('drawer-preview').classList.remove('open'); }
 
+// ── Submit guard ──────────────────────────────────────────
 document.getElementById('form-criar').addEventListener('submit', function(e) {
     if (document.getElementById('termos').value !== '1') {
         e.preventDefault();

@@ -4,10 +4,17 @@
 <div class="min-h-screen flex items-center justify-center p-6">
     <div class="w-full max-w-md bg-white/5 border border-white/10 p-8 rounded-3xl backdrop-blur-xl">
         <h2 class="text-2xl font-bold mb-6 text-center text-white">Bem-vindo de <span class="text-sky-500">Volta</span></h2>
-
+   
+       @if ($errors->any())
+       <div class="bg-red-500/10 border border-red-500/50 text-red-500 p-4 rounded-xl mb-6 text-sm">
+        @foreach ($errors->all() as $error)
+            <p>{{ $error }}</p>
+        @endforeach
+       </div>
+       @endif
         <form method="POST" action="{{ route('login') }}">
+         
             @csrf
-
             <div class="mb-4">
                 <label class="block text-xs font-black uppercase tracking-widest text-slate-400 mb-2">Seu E-mail</label>
                 <input type="email" name="email" class="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 text-white outline-none focus:border-sky-500 transition" required autofocus>

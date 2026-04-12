@@ -1,14 +1,15 @@
 <?php
 
 use Illuminate\Foundation\Application;
-use Illuminate\Http\Exceptions\PostTooLargeException;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Database\QueryException;                          // ← estava em falta
 use Illuminate\Validation\ValidationException;
 use Illuminate\Http\Exceptions\ThrottleRequestsException;
+use Illuminate\Http\Exceptions\PostTooLargeException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
@@ -33,7 +34,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withExceptions(function (Exceptions $exceptions): void {
 
         // ── 1. NÃO AUTENTICADO ───────────────────────────────────────
-        // Quando o middleware 'auth' barra o acesso (curtir, comentar, publicar)
+        // Middleware 'auth' barra o acesso: curtir, comentar, publicar
         $exceptions->render(function (AuthenticationException $e, $request) {
             if ($request->expectsJson() || $request->ajax()) {
                 return response()->json([
@@ -46,7 +47,7 @@ return Application::configure(basePath: dirname(__DIR__))
         });
 
         // ── 2. SEM PERMISSÃO ─────────────────────────────────────────
-        // Quando user tenta eliminar post/comentário de outro user (403)
+        // Eliminar post/comentário alheio, aceder a bilhetes de outro user
         $exceptions->render(function (AuthorizationException $e, $request) {
             if ($request->expectsJson() || $request->ajax()) {
                 return response()->json([
@@ -58,33 +59,32 @@ return Application::configure(basePath: dirname(__DIR__))
         });
 
         // ── 3. MODELO NÃO ENCONTRADO ─────────────────────────────────
-        // Evento::findOrFail, Comentario::findOrFail, Postagem::findOrFail
+        // findOrFail em qualquer model — mensagem específica por modelo
         $exceptions->render(function (ModelNotFoundException $e, $request) {
             $modelos = [
-                'Evento'            => 'O evento não foi encontrado.',
-                'Comentario'        => 'O comentário não foi encontrado.',
-                'Postagem'          => 'A publicação não foi encontrada.',
-                'PostagemComentario'=> 'O comentário não foi encontrado.',
-                'PostagemReacao'    => 'A reação não foi encontrada.',
-                'User'              => 'O utilizador não foi encontrado.',
-                'Categoria'         => 'A categoria não foi encontrada.',      // ← novo
-                'Subcategoria'      => 'A subcategoria não foi encontrada.',   // ← novo
-                'TipoIngresso'      => 'O tipo de ingresso não foi encontrado.', // ← novo
-                'Noticia'           => 'A notícia não foi encontrada.',        // ← novo
-                'Reserva'       => 'A reserva não foi encontrada.',           // ← novo
-                'Pedido'        => 'O pedido não foi encontrado.',            // ← novo
-                'Bilhete'       => 'O bilhete não foi encontrado.',           // ← novo
-                'EventoFoto'    => 'As fotos do evento não foram encontradas.', // ← novo
+                'Evento'             => 'O evento não foi encontrado.',
+                'Comentario'         => 'O comentário não foi encontrado.',
+                'Postagem'           => 'A publicação não foi encontrada.',
+                'PostagemComentario' => 'O comentário não foi encontrado.',
+                'PostagemReacao'     => 'A reação não foi encontrada.',
+                'User'               => 'O utilizador não foi encontrado.',
+                'Categoria'          => 'A categoria não foi encontrada.',
+                'Subcategoria'       => 'A subcategoria não foi encontrada.',
+                'TipoIngresso'       => 'O tipo de ingresso não foi encontrado.',
+                'Noticia'            => 'A notícia não foi encontrada.',
+                'Reserva'            => 'A reserva não foi encontrada.',
+                'Pedido'             => 'O pedido não foi encontrado.',
+                'Bilhete'            => 'O bilhete não foi encontrado.',
+                'EventoFoto'         => 'As fotos do evento não foram encontradas.',
             ];
 
-            $modelo    = class_basename($e->getModel());
-            $mensagem  = $modelos[$modelo] ?? 'O recurso solicitado não foi encontrado.';
+            $modelo   = class_basename($e->getModel());
+            $mensagem = $modelos[$modelo] ?? 'O recurso solicitado não foi encontrado.';
 
             if ($request->expectsJson() || $request->ajax()) {
                 return response()->json(['error' => $mensagem], 404);
             }
 
-            // Rota de evento não encontrado → volta ao feed sem quebrar
             return redirect()->route('home')
                 ->with('error', $mensagem);
         });
@@ -95,7 +95,6 @@ return Application::configure(basePath: dirname(__DIR__))
             if ($request->expectsJson() || $request->ajax()) {
                 return response()->json(['error' => 'Página não encontrada.'], 404);
             }
-            // Se tiveres uma view errors/404.blade.php usa-a, senão redireciona
             if (view()->exists('errors.404')) {
                 return response()->view('errors.404', [], 404);
             }
@@ -104,7 +103,7 @@ return Application::configure(basePath: dirname(__DIR__))
         });
 
         // ── 5. VALIDAÇÃO ─────────────────────────────────────────────
-        // publicar (conteudo required), comentar (corpo required), reagir (tipo inválido)
+        // publicar, comentar, reagir, criar/editar evento, reserva, perfil
         $exceptions->render(function (ValidationException $e, $request) {
             if ($request->expectsJson() || $request->ajax()) {
                 return response()->json([
@@ -129,9 +128,66 @@ return Application::configure(basePath: dirname(__DIR__))
                 ->with('error', 'Estás a agir demasiado rápido. Tenta novamente em breve.');
         });
 
-        // ── 7. ERROS HTTP GENÉRICOS (403, 500, etc.) ─────────────────
+        // ── 7. UPLOAD DEMASIADO GRANDE ───────────────────────────────
+        // Comprovativo de pagamento, avatar, capa de evento > 5MB
+        $exceptions->render(function (PostTooLargeException $e, $request) {
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'error' => 'O ficheiro enviado é demasiado grande. Máximo permitido: 5MB.',
+                ], 413);
+            }
+            return redirect()->back()
+                ->withErrors(['ficheiro' => 'O ficheiro é demasiado grande. Máximo: 5MB.'])
+                ->withInput();
+        });
+
+        // ── 8. FALHA NA BASE DE DADOS ────────────────────────────────
+        // Deadlock na transação de reserva, duplicate entry, falha de conexão
+        $exceptions->render(function (QueryException $e, $request) {
+            $codigo = $e->errorInfo[1] ?? null;
+
+            $mensagem = match($codigo) {
+                1213    => 'Conflito ao processar a reserva. Tenta novamente.',
+                1062    => 'Este registo já existe.',
+                default => 'Erro ao comunicar com a base de dados.',
+            };
+
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json(['error' => $mensagem], 500);
+            }
+
+            return redirect()->back()
+                ->with('error', $mensagem)
+                ->withInput();
+        });
+
+        // ── 9. ERRO DE CONEXÃO EXTERNA (RSS / file_get_contents) ─────
+        // Feed AngoRussia inacessível, SSL inválido, timeout de rede
+        $exceptions->render(function (\ErrorException $e, $request) {
+            if (
+                !str_contains($e->getMessage(), 'file_get_contents') &&
+                !str_contains($e->getMessage(), 'simplexml') &&
+                !str_contains($e->getMessage(), 'SSL') &&
+                !str_contains($e->getMessage(), 'Connection')
+            ) {
+                return null; // passa para o próximo handler
+            }
+
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'error' => 'Não foi possível conectar ao serviço externo. Tenta novamente.',
+                ], 503);
+            }
+
+            return redirect()->back()
+                ->with('error', 'Não foi possível conectar ao feed de notícias. Tenta novamente mais tarde.');
+        });
+
+        // ── 10. ERROS HTTP GENÉRICOS (403, 500, 503, etc.) ───────────
+        // abort(403) nos controllers, erros de servidor genéricos
         $exceptions->render(function (HttpException $e, $request) {
-            $codigo    = $e->getStatusCode();
+            $codigo = $e->getStatusCode();
+
             $mensagens = [
                 403 => 'Acesso proibido.',
                 500 => 'Erro interno do servidor. Tenta novamente.',
@@ -149,61 +205,9 @@ return Application::configure(basePath: dirname(__DIR__))
                 ->with('error', $mensagem);
         });
 
-        $exceptions->render(function (PostTooLargeException $e, $request) {
-        if ($request->expectsJson() || $request->ajax()) {
-            return response()->json([
-                'error' => 'O ficheiro enviado é demasiado grande. Máximo permitido: 5MB.',
-            ], 413);
-            }
-            return redirect()->back()
-                ->withErrors(['comprovativo' => 'O ficheiro é demasiado grande. Máximo: 5MB.'])
-                ->withInput();
-        });
-
-        $exceptions->render(function (QueryException $e, $request) {
-            // Deadlock MySQL (código 1213) ou duplicate entry (1062)
-        $codigo = $e->errorInfo[1] ?? null;
-
-            $mensagem = match($codigo) {
-                1213 => 'Conflito ao processar a reserva. Tenta novamente.',
-                1062 => 'Este registo já existe.',
-                default => 'Erro ao comunicar com a base de dados.'
-            };
-
-            if ($request->expectsJson() || $request->ajax()) {
-                return response()->json(['error' => $mensagem], 500);
-            }
-
-            return redirect()->back()
-                ->with('error', $mensagem)
-                ->withInput();
-        });
-
-            // ── NOVO: ERRO DE CONEXÃO EXTERNA (RSS / file_get_contents) ──
-                // Quando o feed do AngoRussia está inacessível e lança exception
-                $exceptions->render(function (\ErrorException $e, $request) {
-                    // Só captura erros de rede/stream — deixa outros ErrorException passarem
-                    if (!str_contains($e->getMessage(), 'file_get_contents') &&
-                        !str_contains($e->getMessage(), 'simplexml') &&
-                        !str_contains($e->getMessage(), 'SSL') &&
-                        !str_contains($e->getMessage(), 'Connection')) {
-                        return null; // passa para o próximo handler
-                    }
-
-                    if ($request->expectsJson() || $request->ajax()) {
-                        return response()->json([
-                            'error' => 'Não foi possível conectar ao serviço externo. Tenta novamente.',
-                        ], 503);
-                    }
-
-                    return redirect()->back()
-                        ->with('error', 'Não foi possível conectar ao feed de notícias. Tenta novamente mais tarde.');
-                });
-
-        // ── 8. FALLBACK GERAL ─────────────────────────────────────────
+        // ── 11. FALLBACK GERAL ────────────────────────────────────────
         // Qualquer erro não capturado acima — site nunca quebra
         $exceptions->render(function (\Throwable $e, $request) {
-            // Em produção nunca expõe detalhes do erro
             if ($request->expectsJson() || $request->ajax()) {
                 return response()->json([
                     'error' => app()->isProduction()
@@ -215,7 +219,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 return redirect()->route('home')
                     ->with('error', 'Algo correu mal. Tenta novamente.');
             }
-            // Em desenvolvimento deixa o Laravel mostrar o erro completo
+            // Em desenvolvimento mostra o erro completo do Laravel
             return null;
         });
 

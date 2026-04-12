@@ -56,7 +56,7 @@ class AdminEventoController extends Controller
             'online'          => 'nullable|boolean',
             'link_externo'    => 'nullable|url',
             'lotacao_maxima'  => 'required|integer|min:1',
-            'imagem_capa'     => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
+            'imagem_capa'     => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
             'galeria'         => 'nullable|array',
             'galeria.*'       => 'image|mimes:jpeg,png,jpg,webp|max:5120',
             'ingressos'                => 'nullable|array',
@@ -82,7 +82,7 @@ class AdminEventoController extends Controller
             'data_evento.required'    => 'A data de início é obrigatória.',
             'hora_inicio.required'    => 'A hora de início é obrigatória.',
             'lotacao_maxima.required' => 'A lotação máxima é obrigatória.',
-            'imagem_capa.max'         => 'A imagem não pode ter mais de 5 MB.',
+            'imagem_capa.max'         => 'A imagem não pode ter mais de 2 MB.',
             'termos.accepted'         => 'Tens de aceitar os termos de publicação.',
         ]);
 
@@ -95,12 +95,12 @@ class AdminEventoController extends Controller
         // Criar o evento — lógica intacta
         $evento = Evento::create([
             'user_id'                => auth()->id(),
-            'titulo'                 => $request->titulo,
-            'descricao'              => $request->descricao,
+            'titulo'                 => strip_tags($request->titulo),
+            'descricao'              => strip_tags($request->descricao, '<b><i><p><strong>'),
             'categoria_id'           => $request->categoria_id,
             'subcategoria_id'        => $request->subcategoria_id ?? null,
-            'localizacao'            => $request->localizacao,
-            'municipio'              => $request->municipio,
+            'localizacao'            => strip_tags($request->localizacao),
+            'municipio'              => strip_tags($request->municipio),
             'provincia'              => $request->provincia ?? 'Luanda',
             'data_evento'            => $request->data_evento,
             'data_fim'               => $request->data_fim ?? null,
@@ -121,6 +121,7 @@ class AdminEventoController extends Controller
             'notif_resumo_semanal'   => $request->boolean('notif_resumo_semanal'),
             'imagem_capa'            => $caminhoImagem,
             'status'                 => $request->status ?? 'rascunho',
+            'meta'                   => $request->meta ?? null,
         ]);
 
         // ✅ Galeria em batch insert — 1 query em vez de N
@@ -144,11 +145,11 @@ class AdminEventoController extends Controller
                 if (empty($ingresso['nome'])) continue;
 
                 $precoBase  = floatval($ingresso['preco']);
-                $precoFinal = $precoBase + round($precoBase * 0.10);
+                $precoFinal = $precoBase + round($precoBase * 0.20);
 
                 $ingressos[] = [
                     'evento_id'             => $evento->id,
-                    'nome'                  => $ingresso['nome'],
+                    'nome'                  => strip_tags($ingresso['nome']),
                     'preco'                 => $precoFinal,
                     'quantidade_disponivel' => intval($ingresso['quantidade']),
                     'quantidade_total'      => intval($ingresso['quantidade']),
@@ -215,17 +216,17 @@ class AdminEventoController extends Controller
 
         // ✅ update() mantido (precisa disparar eventos para cache/observers)
         $evento->update([
-            'titulo'                 => $request->titulo,
-            'descricao'              => $request->descricao,
-            'link_externo'           => $request->link_externo,
+            'titulo'                 => strip_tags($request->titulo),
+            'descricao'              => strip_tags($request->descricao, '<b><i><p><strong>'),
+            'link_externo'           => strip_tags($request->link_externo),
             'data_evento'            => $request->data_evento,
             'data_fim'               => $request->data_fim,
             'hora_inicio'            => $request->hora_inicio,
             'hora_fim'               => $request->hora_fim,
             'multiplos_dias'         => $request->boolean('multiplos_dias'),
-            'localizacao'            => $request->localizacao,
-            'municipio'              => $request->municipio,
-            'provincia'              => $request->provincia,
+            'localizacao'            => strip_tags($request->localizacao), // <--- AQUI
+            'municipio'              => strip_tags($request->municipio),   // <--- AQUI
+            'provincia'              => strip_tags($request->provincia),
             'online'                 => $request->boolean('online'),
             'lotacao_maxima'         => $request->lotacao_maxima,
             'ingressos_por_pessoa'   => $request->ingressos_por_pessoa ?? 1,
@@ -238,6 +239,7 @@ class AdminEventoController extends Controller
             'notif_lembrete_24h'     => $request->boolean('notif_lembrete_24h'),
             'notif_resumo_semanal'   => $request->boolean('notif_resumo_semanal'),
             'status'                 => $request->status,
+            'meta'                   => $request->meta ?? null,
         ]);
 
         return redirect()->route('admin.eventos')->with('success', 'Evento atualizado com sucesso!');
