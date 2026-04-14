@@ -448,7 +448,11 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--t1);min-hei
             </div>
             <div class="modal-content">
                 @if($errors->any())
-                <div class="form-errors"><strong style="display:block;color:#fff;margin-bottom:5px;">Erros encontrados:</strong><ul style="margin:0;padding-left:16px;">@foreach($errors->all() as $error)<li>{{ e($error) }}</li>@endforeach</ul></div>
+                <div class="form-errors"><strong style="display:block;color:#fff;margin-bottom:5px;">Erros encontrados:</strong><ul style="margin:0;padding-left:16px;">
+@foreach($errors->all() as $error)
+<li>{{ e($error) }}</li>
+@endforeach
+</ul></div>
                 @endif
 
                 <div class="modal-ev">
@@ -475,8 +479,8 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--t1);min-hei
                             <div class="mmc-lbl">Artistas</div>
                             <div class="mmc-tags">
                                 @foreach($art as $a)
-                                <span class="mmc-tag">{{ e($a) }}</span
-                                    >@endforeach
+                                <span class="mmc-tag">{{ e($a) }}</span>
+                                @endforeach
                                 </div>
                             </div>
                             @endif
@@ -554,7 +558,9 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--t1);min-hei
                 <button onclick="fecharDrawer('drawer-bilhetes')" @click="abrirModal('{{ addslashes(e($tipo->nome)) }}',{{ $tipo->preco }},{{ $tipo->id }})" class="ed-ticket-btn" {{ $tipo->quantidade_disponivel<=0?'disabled':'' }}>{{ $tipo->quantidade_disponivel>0?'Comprar':'Esgotado' }}</button>
             </div>
         </div>
-        @empty<p style="text-align:center;color:var(--t3);padding:20px 0;font-size:13px;">Sem bilhetes disponíveis.</p>@endforelse
+        @empty
+<p style="text-align:center;color:var(--t3);padding:20px 0;font-size:13px;">Sem bilhetes disponíveis.</p>
+@endforelse
     </div>
 </div>
 
@@ -581,7 +587,9 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--t1);min-hei
     <div class="drawer-box">
         <div class="drawer-handle"></div>
         <div class="drawer-title">🖼️ Galeria <button class="drawer-close" onclick="fecharDrawer('drawer-galeria')">✕</button></div>
-        <div class="gallery-grid">@foreach($fotos as $foto)<img src="{{ asset('storage/'.e($foto->caminho)) }}" alt="Foto do evento" loading="lazy">@endforeach</div>
+        <div class="gallery-grid">@foreach($fotos as $foto)
+<img src="{{ asset('storage/'.e($foto->caminho)) }}" alt="Foto do evento" loading="lazy">
+@endforeach</div>
     </div>
 </div>
 @endif
