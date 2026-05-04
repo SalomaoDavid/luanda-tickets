@@ -1,4 +1,3 @@
-cat > /mnt/user-data/outputs/evento-detalhes.blade.php << 'ENDOFBLADE'
 @extends('layouts.app')
 @section('title', $evento->titulo)
 @section('content')
@@ -28,6 +27,7 @@ $tElenco       = isset($meta['elenco'])       ? (is_array($meta['elenco'])      
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 
 <style>
+@verbatim
 [x-cloak]{display:none!important;}
 :root{
     --ink:#04060d;
@@ -480,6 +480,7 @@ body{
     .drawer-box{border-radius:24px;max-width:480px;max-height:82vh;}
     .drawer-handle{display:none;}
 }
+@endverbatim
 </style>
 
 <div x-data="{
@@ -500,7 +501,9 @@ body{
     inc(){if(this.quantidade<10)this.quantidade++;},
     dec(){if(this.quantidade>1)this.quantidade--;},
     total(){return(this.ingressoPreco*this.quantidade).toLocaleString('pt-PT');}
-}" class="page">
+}"
+    x-on:abrir-modal.window="abrirModal($event.detail.nome, $event.detail.preco, $event.detail.id)"
+    class="page">
 
 {{-- ═══ HERO ═══ --}}
 <div class="hero">
@@ -826,7 +829,7 @@ body{
                 @forelse($evento->tiposIngresso as $tipo)
                 <div class="ticket-type {{ $tipo->quantidade_disponivel <= 0 ? 'esgotado' : '' }}"
                 onclick="selecionarTipo('{{ addslashes(e($tipo->nome)) }}',{{ $tipo->preco }},{{ $tipo->id }},{{ $tipo->quantidade_disponivel }})">
-
+                    <div>
                         <div class="ticket-type-name">{{ e($tipo->nome) }}</div>
                         <div class="ticket-type-avail">
                             @if($tipo->quantidade_disponivel > 0)
@@ -1018,7 +1021,7 @@ body{
         @forelse($evento->tiposIngresso as $tipo)
         <div class="ticket-type {{ $tipo->quantidade_disponivel <= 0 ? 'esgotado' : '' }}" style="margin-bottom:10px;"
             onclick="selecionarTipoMobile('{{ addslashes(e($tipo->nome)) }}',{{ $tipo->preco }},{{ $tipo->id }},{{ $tipo->quantidade_disponivel }})">
-        
+            <div>
                 <div class="ticket-type-name">{{ e($tipo->nome) }}</div>
                 <div class="ticket-type-avail">
                     @if($tipo->quantidade_disponivel > 0) {{ $tipo->quantidade_disponivel }} disponíveis
@@ -1093,8 +1096,6 @@ body{
 </div>
 @endif
 
-</div>{{-- /x-data --}}
-
 <script>
 function abrirDrawer(id){
     var el=document.getElementById(id);
@@ -1128,23 +1129,15 @@ document.addEventListener('keydown',function(e){
 
 function selecionarTipo(nome, preco, id, disp) {
     if (disp <= 0) return;
-    document.querySelector('[x-data]')._x_dataStack[0].abrirModal(nome, preco, id);
+    window.dispatchEvent(new CustomEvent('abrir-modal', { detail: { nome, preco, id } }));
 }
 function selecionarTipoMobile(nome, preco, id, disp) {
     if (disp <= 0) return;
     fecharDrawer('drawer-bilhetes-mobile');
-    document.querySelector('[x-data]')._x_dataStack[0].abrirModal(nome, preco, id);
+    window.dispatchEvent(new CustomEvent('abrir-modal', { detail: { nome, preco, id } }));
 }
 </script>
+
+</div>{{-- /x-data --}}
+@endif
 @endsection
-ENDOFBLADE
-
-echo "Linhas: $(wc -l < /mnt/user-data/outputs/evento-detalhes.blade.php)"
-echo "foreach: $(grep -c '@foreach' /mnt/user-data/outputs/evento-detalhes.blade.php) / endforeach: $(grep -c '@endforeach' /mnt/user-data/outputs/evento-detalhes.blade.php)"
-grep -n "@click\|@foreach.*@endforeach" /mnt/user-data/outputs/evento-detalhes.blade.php | head -5
-echo "Problemas encontrados: $(grep -c '@click\|@foreach.*@endforeach' /mnt/user-data/outputs/evento-detalhes.blade.php)"
-Saída
-
-Linhas: 1134
-foreach: 7 / endforeach: 7
-Problemas encontrados: 0
