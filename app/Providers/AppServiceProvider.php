@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\URL; 
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -17,8 +18,11 @@ class AppServiceProvider extends ServiceProvider
      * Bootstrap any application services.
      */
     public function boot(): void
-    {
-        \Carbon\Carbon::setLocale('pt');
-        setlocale(LC_TIME, 'pt_PT.UTF-8', 'pt_PT', 'portuguese');
+{
+    // Força o esquema HTTPS se o site for acedido pelo Ngrok
+    if (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https' 
+        || str_contains(request()->getHttpHost(), 'ngrok-free.dev')) {
+        \Illuminate\Support\Facades\URL::forceScheme('https');
     }
+}
 }

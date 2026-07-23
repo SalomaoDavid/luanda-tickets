@@ -1729,3 +1729,974 @@ document.addEventListener('keydown', function(event) {
 
 </div>
 </div>
+
+
+// uma parte do código do evento criate
+
+
+ <div class="grid2">
+                                <div class="field">
+                                    <label>Município</label>
+                                    <select name="municipio">
+                                        @foreach(['Luanda','Belas','Talatona','Viana','Cacuaco','Cazenga','Quiçama','Icolo e Bengo'] as $m)
+                                            <option value="{{ $m }}" {{ old('municipio','Luanda')===$m?'selected':'' }}>{{ $m }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="field">
+                                    <label>Província</label>
+                                    <select name="provincia">
+                                        @foreach(['Bengo','Benguela','Bíe','Cabinda','Cuando','Cuanza Norte','Cuanza Sul','Cubango','Cunene','Huambo','Huíla','Icolo e Bengo','Luanda','Lunda Norte','Lunda Sul','Malange','Móxico','Móxico Leste','Namibe','Uíge','Zaire'] as $p)
+                                            <option value="{{ $p }}" {{ old('provincia','Luanda')===$p?'selected':'' }}>{{ $p }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+
+
+                            @endif
+<script>
+    document.addEventListener('alpine:init', () => {
+    });
+function toggleNotifDropdown() {
+    const d = document.getElementById('notif-dropdown');
+    if (d) d.classList.toggle('hidden');
+}
+document.addEventListener('click', function(e) {
+    const d = document.getElementById('notif-dropdown');
+    const btn = e.target.closest('button[wire\\:click="toggleOpen"]');
+    if (d && !btn && !d.contains(e.target)) d.classList.add('hidden');
+});
+</script>
+@livewireScripts
+    
+    {{-- ESSE@STACK É A PORTA DE ENTRADA PARA OS SCRIPTS DOS OUTROS ARQUIVOS --}}
+@stack('scripts')
+
+<script src="https://cdn.tailwindcss.com">
+<script src="https://cdn.jsdelivr.net/npm/@emoji-mart/data"></script>
+</body>
+
+
+
+
+
+
+<!DOCTYPE html>
+{{-- --}}
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <title>Luanda Tickets</title>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    @vite(['resources/css/app.css', 'resources/js/app.js']) 
+    <style>
+        [x-cloak] { display: none !important; }
+        body { font-family: 'Inter', sans-serif; }
+        .glass { background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(18px); border-bottom: 1px solid rgba(59, 130, 246, 0.2); }
+        .glass-sidebar { background: rgba(15, 23, 42, 0.92); backdrop-filter: blur(18px); border-right: 1px solid rgba(59, 130, 246, 0.2); }
+        .glass-sidebar-right { background: rgba(15, 23, 42, 0.92); backdrop-filter: blur(18px); border-left: 1px solid rgba(59, 130, 246, 0.2); }
+        .active-link { color: #60a5fa; font-weight: 600; }
+        .hover-blue:hover { color: #60a5fa; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        /* DEPOIS — sem transform, só opacity */
+        .page-transition {
+            opacity: 0;
+            animation: fadeIn 0.35s ease forwards;
+        }
+            @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+        .btn-blue { background: #2563eb; color: white; padding: 8px 16px; border-radius: 12px; font-weight: 600; transition: 0.3s; }
+        .btn-blue:hover { background: #1d4ed8; }
+    </style>
+    <script src="{{ asset('js/emoji-mart.js') }}"></script>
+</head>
+<body class="text-white relative bg-slate-900" x-data="{ sidebarOpen: false, rightSidebarOpen: false }">
+@php $isHome = request()->routeIs('home'); @endphp
+
+<div class="fixed inset-0 -z-10">
+    <img src="{{ asset('images/luanda-noite.png') }}" class="w-full h-full object-cover brightness-50">
+</div>
+
+{{-- ═══════════ HEADER ═══════════ --}}
+<header class="glass fixed top-0 left-0 right-0 h-16 flex items-center justify-between px-4 md:px-10 z-50">
+
+    <div class="flex items-center gap-3">
+        {{-- Botão hambúrguer mobile (sidebar esquerda) --}}
+        @if($isHome)
+        <button @click="sidebarOpen = !sidebarOpen" class="md:hidden text-gray-300 hover:text-white focus:outline-none">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+            </svg>
+        </button>
+        @endif
+
+        <a href="{{ route('home') }}" class="text-xl font-bold">
+            <span class="text-blue-400">Luanda</span> <span class="text-white">bilhetes</span>
+        </a>
+    </div>
+
+    {{-- Nav desktop --}}
+    <div class="hidden md:flex space-x-6 text-gray-300 items-center">
+        <a href="{{ route('home') }}" class="{{ request()->routeIs('home') ? 'active-link' : 'hover-blue' }}">Ínicio</a>
+        <a href="{{ route('eventos.todos') }}" class="{{ request()->routeIs('eventos.*') ? 'active-link' : 'hover-blue' }}">Explorar</a>
+        <a href="{{ route('noticias.index') }}" class="{{ request()->routeIs('noticias.*') ? 'active-link' : 'hover-blue' }}">Notícias</a>
+        @auth <a href="{{ route('mensagens.index') }}" class="{{ request()->routeIs('mensagens.*') ? 'active-link' : 'hover-blue' }}">Mensagens</a> @endauth
+        <form action="{{ route('eventos.todos') }}" method="GET">
+            <input type="text" name="search" placeholder="Buscar..." class="px-3 py-1 rounded-lg text-black text-sm focus:outline-none">
+        </form>
+    </div>
+
+    {{-- Direita: botões + notificações + avatar --}}
+    <div class="flex items-center space-x-2 md:space-x-4">
+        @guest
+            {{-- Entrar: ícone em mobile, texto em desktop --}}
+            <a href="{{ route('login') }}" class="flex items-center justify-center w-9 h-9 md:w-auto md:h-auto rounded-lg border border-blue-400 text-blue-400 hover:bg-blue-400 hover:text-white transition md:px-4 md:py-2">
+                <svg class="w-5 h-5 md:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/>
+                </svg>
+                <span class="hidden md:inline">Entrar</span>
+            </a>
+            {{-- Cadastrar: ícone em mobile, texto em desktop --}}
+            <a href="{{ route('register') }}" class="flex items-center justify-center w-9 h-9 md:w-auto md:h-auto rounded-lg bg-blue-600 hover:bg-blue-700 text-white transition md:px-4 md:py-2 font-semibold">
+                <svg class="w-5 h-5 md:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
+                </svg>
+                <span class="hidden md:inline">Cadastrar</span>
+            </a>
+        @endguest
+
+        @auth
+        @php
+            $user = auth()->user();
+            $unread = $user->unreadNotifications->count();
+        @endphp
+
+        {{-- Sino de Notificações --}}
+        <livewire:notification-bell />
+
+        {{-- Botão sidebar direita mobile --}}
+        @if($isHome)
+        <button @click="rightSidebarOpen = !rightSidebarOpen" class="md:hidden text-gray-300 hover:text-white focus:outline-none">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M12 5l7 7-7 7"/>
+            </svg>
+        </button>
+        @endif
+
+        <div x-data="{ open: false }" class="relative">
+            <button @click="open = !open" class="relative focus:outline-none">
+                <img src="{{ $user->avatar ? asset('storage/' . $user->avatar) : 'https://ui-avatars.com/api/?name=' . urlencode($user->name) }}"
+                     class="w-9 h-9 md:w-10 md:h-10 rounded-full object-cover border-2 border-blue-400">
+                @if($unread > 0)
+                    <span class="absolute -top-1 -right-1 bg-red-600 text-xs px-1.5 rounded-full">{{ $unread }}</span>
+                @endif
+            </button>
+            <div x-show="open" x-cloak @click.away="open = false" x-transition
+                 class="absolute right-0 mt-3 w-56 bg-white text-gray-800 rounded-2xl shadow-2xl overflow-hidden z-[60]">
+                <div class="p-4 border-b">
+                    <p class="font-semibold">{{ explode(' ', $user->name)[0] }}</p>
+                    <p class="text-sm text-gray-500">{{ ucfirst($user->role) }}</p>
+                </div>
+                <a href="{{ route('profile.show', ['id' => auth()->user()->id]) }}" class="block px-4 py-3 hover:bg-blue-50">Perfil</a>
+                <form method="POST" action="{{ route('logout') }}">
+                    @csrf
+                    <button class="w-full text-left px-4 py-3 hover:bg-red-100 text-red-600">Sair</button>
+                </form>
+            </div>
+        </div>
+        @endauth
+    </div>
+</header>
+
+@if($isHome)
+
+  {{-- Overlay sidebar esquerda mobile --}}
+  <div x-show="sidebarOpen" x-cloak @click="sidebarOpen = false"
+       class="fixed inset-0 bg-black/60 z-40 md:hidden"></div>
+
+  {{-- Overlay sidebar direita mobile --}}
+  <div x-show="rightSidebarOpen" x-cloak @click="rightSidebarOpen = false"
+       class="fixed inset-0 bg-black/60 z-40 md:hidden"></div>
+
+  <div class="flex pt-16 h-screen overflow-hidden">
+
+    <!-- SIDEBAR ESQUERDA -->
+      <aside :class="sidebarOpen ? 'translate-x-0 !flex' : '-translate-x-full md:translate-x-0'"
+       class="w-72 glass-sidebar fixed left-0 top-16 bottom-0 p-6 overflow-y-auto no-scrollbar hidden md:flex flex-col z-40 transition-transform duration-300">
+
+        @auth
+        @php
+            $user = auth()->user();
+            $firstName = explode(' ', $user->name)[0];
+            $role = ucfirst($user->role);
+        @endphp
+
+        <div class="mb-8 text-center">
+            <img src="{{ $user->avatar
+                ? asset('storage/' . $user->avatar)
+                : 'https://ui-avatars.com/api/?name=' . urlencode($user->name) . '&background=0ea5e9&color=fff&size=128' }}"
+                class="w-20 h-20 mx-auto rounded-full object-cover border-4 border-blue-400 shadow-lg">
+            <p class="mt-3 font-semibold text-lg uppercase tracking-wider text-white">{{ $firstName }}</p>
+            <p class="text-sm text-gray-400">{{ $role }}</p>
+        </div>
+        @endauth
+
+        <p class="text-gray-400 text-xs mb-2 font-bold uppercase">Geral</p>
+        <nav class="flex flex-col space-y-3 mb-6 text-gray-300">
+            <a href="{{ route('home') }}" class="block hover-blue" @click="sidebarOpen = false">🏠 Início</a>
+            <a href="#" class="block hover-blue">🔔 Notificações</a>
+            <a href="{{ route('eventos.todos') }}" class="block hover-blue" @click="sidebarOpen = false">🎟 Eventos</a>
+            @auth
+            <a href="{{ route('mensagens.index') }}" class="block hover-blue" @click="sidebarOpen = false">💬 Mensagens</a>
+            <a href="{{ route('profile.edit') }}" class="block hover-blue" @click="sidebarOpen = false">👤 Perfil</a>
+            @endauth
+        </nav>
+
+        @auth
+            @if($user->role === 'admin')
+                <p class="text-gray-400 text-xs mb-2 font-bold uppercase border-t border-gray-700 pt-4">Administração</p>
+                <nav class="flex flex-col space-y-3 mb-6 text-gray-300">
+                    <a href="{{ route('admin.dashboard') }}" class="block hover-blue" @click="sidebarOpen = false">📊 Dashboard</a>
+                    <a href="{{ route('admin.usuarios.index') }}" class="block hover-blue" @click="sidebarOpen = false">👥 Usuários</a>
+                    <a href="{{ route('admin.eventos') }}" class="block hover-blue" @click="sidebarOpen = false">🎫 Gerenciar Eventos</a>
+                    <a href="{{ route('admin.reservas') }}" class="block hover-blue" @click="sidebarOpen = false">📦 Reservas Gerais</a>
+                    <a href="{{ route('admin.pagos') }}" class="block hover-blue" @click="sidebarOpen = false">💰 Pagamentos</a>
+                    <a href="{{ route('admin.scanner') }}" class="block hover-blue" @click="sidebarOpen = false">📸 Validar Bilhete</a>
+                </nav>
+            @elseif($user->role === 'creator')
+                <p class="text-gray-400 text-xs mb-2 font-bold uppercase border-t border-gray-700 pt-4">Painel Criador</p>
+                <nav class="flex flex-col space-y-3 mb-6 text-gray-300">
+                    <a href="{{ route('admin.eventos') }}" class="block hover-blue" @click="sidebarOpen = false">📋 Meus Eventos</a>
+                    <a href="{{ route('admin.eventos.criar') }}" class="block hover-blue" @click="sidebarOpen = false">➕ Criar Evento</a>
+                    <a href="{{ route('admin.reservas') }}" class="block hover-blue" @click="sidebarOpen = false">📦 Minhas Reservas</a>
+                    <a href="{{ route('admin.pagos') }}" class="block hover-blue" @click="sidebarOpen = false">💰 Meus Ganhos</a>
+                </nav>
+            @endif
+        @endauth
+    </aside>
+
+    <!-- CONTEÚDO CENTRAL -->
+    <main class="flex-1 md:ml-72 md:mr-72 overflow-y-auto no-scrollbar p-4 md:p-10 page-transition">
+        @yield('content')
+        {{ $slot ?? '' }}
+    </main>
+
+    <!-- SIDEBAR DIREITA -->
+    <aside :class="rightSidebarOpen ? 'translate-x-0 !block' : 'translate-x-full md:translate-x-0'"
+       class="w-72 glass-sidebar-right fixed right-0 top-16 bottom-0 p-6 overflow-y-auto no-scrollbar z-40 hidden md:block transition-transform duration-300">
+
+        <h2 class="text-sm font-bold mb-4 text-blue-400 uppercase tracking-widest">🎟 Populares</h2>
+        @foreach(\App\Models\Evento::latest()->take(3)->get() as $ev)
+            <a href="{{ route('evento.detalhes', $ev->id) }}" class="block bg-gray-800/50 p-4 rounded-2xl mb-3 text-sm hover:bg-gray-700/50 transition">
+                {{ $ev->titulo }}
+            </a>
+        @endforeach
+
+        <h2 class="text-sm font-bold mb-4 mt-6 text-blue-400 uppercase tracking-widest">🎨 Criadores</h2>
+        @foreach(\App\Models\User::where('role', 'creator')->whereHas('eventos')->latest()->get() as $criador)
+        <a href="{{ route('profile.show', $criador->id) }}"
+           class="flex items-center space-x-3 p-3 rounded-2xl hover:bg-gray-700/50 transition mb-2">
+            <div class="relative flex-shrink-0">
+                <img src="{{ $criador->avatar
+                    ? asset('storage/' . $criador->avatar)
+                    : 'https://ui-avatars.com/api/?name=' . urlencode($criador->name) . '&background=0ea5e9&color=fff&size=64' }}"
+                     class="w-10 h-10 rounded-full border-2 border-blue-400 object-cover">
+                <span class="absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-gray-900
+                    {{ $criador->isOnline() ? 'bg-green-500' : 'bg-gray-400' }}">
+                </span>
+            </div>
+            <div>
+                <p class="text-white text-sm font-semibold leading-tight">{{ explode(' ', $criador->name)[0] }}</p>
+                <p class="text-gray-400 text-xs">{{ $criador->eventos->count() }} evento(s)</p>
+            </div>
+        </a>
+        @endforeach
+    </aside>
+
+  </div>
+
+@else
+<div class="pt-20 min-h-screen page-transition">
+    <main class="max-w-6xl mx-auto px-4 md:p-10">
+        @yield('content')
+        {{ $slot ?? '' }}
+    </main>
+</div>
+@endif
+
+<script>
+    // 1. Funções Globais Protegidas (window) para o Drawer e outras utilidades
+    window.abrirDrawer = function(id) {
+        var el = document.getElementById(id);
+        if (el) { 
+            el.classList.add('open'); 
+            document.body.style.overflow = 'hidden'; 
+        }
+    };
+
+    window.fecharDrawer = function(id) {
+        var el = document.getElementById(id);
+        if (el) { 
+            el.classList.remove('open'); 
+            document.body.style.overflow = ''; 
+        }
+    };
+
+    window.toggleSobre = function() {
+        var p = document.getElementById('sobreText');
+        var btn = document.getElementById('sobreBtn');
+        var aberto = btn.textContent.includes('menos');
+        p.style.webkitLineClamp = aberto ? '4' : 'unset';
+        p.style.overflow = aberto ? 'hidden' : 'visible';
+        btn.textContent = aberto ? 'Ver mais ↓' : 'Ver menos ↑';
+    };
+
+    window.handleUpload = function(input) {
+        var file = input.files[0];
+        var prev = document.getElementById('upload-preview');
+        var name = document.getElementById('upload-preview-name');
+        if (file) { 
+            name.textContent = file.name; 
+            prev.style.display = 'flex'; 
+        } else { 
+            prev.style.display = 'none'; 
+        }
+    };
+
+    window.selecionarTipo = function(nome, preco, id, disp) {
+        if (disp <= 0) return;
+        window.dispatchEvent(new CustomEvent('abrir-modal', { detail: { nome, preco, id } }));
+    };
+
+    window.selecionarTipoMobile = function(nome, preco, id, disp) {
+        if (disp <= 0) return;
+        if (typeof window.fecharDrawer === 'function') {
+            window.fecharDrawer('drawer-bilhetes-mobile');
+        }
+        window.dispatchEvent(new CustomEvent('abrir-modal', { detail: { nome, preco, id } }));
+    };
+
+    window.toggleNotifDropdown = function() {
+        const d = document.getElementById('notif-dropdown');
+        if (d) d.classList.toggle('hidden');
+    };
+
+    // 2. Eventos Globais de escuta (Teclado e Cliques)
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            document.querySelectorAll('.drawer-overlay.open').forEach(function(d) { 
+                d.classList.remove('open'); 
+            });
+            document.body.style.overflow = '';
+        }
+    });
+
+    document.addEventListener('click', function(e) {
+        const d = document.getElementById('notif-dropdown');
+        const btn = e.target.closest('button[wire\\:click="toggleOpen"]');
+        if (d && !btn && !d.contains(e.target)) d.classList.add('hidden');
+    });
+</script>
+    
+{{-- ESSE @STACK É A PORTA DE ENTRADA PARA OS SCRIPTS DOS OUTROS ARQUIVOS --}}
+@stack('scripts')
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div x-data="{
+    modalAberto:false,
+    ingressoNome:'',
+    ingressoPreco:0,
+    ingressoId:'',
+    quantidade:1,
+    abrirModal(nome,preco,id){
+        this.ingressoNome=nome;
+        this.ingressoPreco=preco;
+        this.ingressoId=id;
+        this.quantidade=1;
+        this.modalAberto=true;
+        document.body.style.overflow='hidden';
+    },
+    fecharModal(){this.modalAberto=false;document.body.style.overflow='';},
+    inc(){if(this.quantidade<10)this.quantidade++;},
+    dec(){if(this.quantidade>1)this.quantidade--;},
+    total(){return(this.ingressoPreco*this.quantidade).toLocaleString('pt-PT');}
+}"
+    x-on:abrir-modal.window="abrirModal($event.detail.nome, $event.detail.preco, $event.detail.id)"
+    class="page">
+
+{{-- ═══ HERO ═══ --}}
+<div class="hero">
+    @if($temCapa)
+        <img src="{{ asset('storage/'.$evento->imagem_capa) }}" alt="{{ e($evento->titulo) }}" loading="lazy">
+    @elseif($temFotos)
+        <img src="{{ asset('storage/'.$fotos->first()->caminho) }}" alt="{{ e($evento->titulo) }}" loading="lazy">
+    @else
+        <div class="hero-ph">{{ $catEmoji }}</div>
+    @endif
+    <div class="hero-gradient"></div>
+
+    {{-- Badge --}}
+    @if($totalDisp <= 0)
+        <span class="hero-badge badge-sold">Esgotado</span>
+    @elseif($preco == 0)
+        <span class="hero-badge badge-free">Gratuito</span>
+    @elseif($evento->created_at->isCurrentWeek())
+        <span class="hero-badge badge-new">Novo</span>
+    @endif
+
+    {{-- Galeria btn --}}
+    @if($temFotos && $fotos->count() > 1)
+        <button class="hero-fotos-btn" onclick="abrirDrawer('drawer-galeria')">
+            🖼 +{{ $fotos->count() }} fotos
+        </button>
+    @endif
+
+    <div class="hero-content">
+        @if($evento->categoria)
+            <div class="hero-category">{{ $catEmoji }} {{ $evento->categoria->nome }}</div>
+        @endif
+        <h1 class="hero-title">{{ e($evento->titulo) }}</h1>
+        <div class="hero-pills">
+            <span class="hero-pill">
+                📅 {{ \Carbon\Carbon::parse($evento->data_evento)->translatedFormat('d M Y') }}
+                @if($evento->hora_inicio) · {{ substr($evento->hora_inicio,0,5) }}@endif
+            </span>
+            <span class="hero-pill">📍 {{ Str::limit($evento->localizacao,30) }}</span>
+            @if($evento->online)<span class="hero-pill">🌐 Online</span>@endif
+        </div>
+    </div>
+</div>
+
+{{-- ═══ LAYOUT PRINCIPAL ═══ --}}
+<div class="layout">
+
+    {{-- ═══ COLUNA ESQUERDA ═══ --}}
+    <div class="layout-left">
+
+        {{-- SOBRE --}}
+        <div class="card">
+            <div class="card-head">
+                <div class="card-title">📋 Sobre o Evento</div>
+            </div>
+            <div class="card-body">
+                <p class="sobre-text" id="sobreText" style="display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden;">
+                    {!! nl2br(e($evento->descricao)) !!}
+                </p>
+                <button class="ver-mais-btn" onclick="toggleSobre()">
+                    <span id="sobreBtn">Ver mais ↓</span>
+                </button>
+            </div>
+        </div>
+
+        {{-- INFO RÁPIDA --}}
+        <div class="card">
+            <div class="card-head">
+                <div class="card-title">📌 Informações</div>
+            </div>
+            <div class="card-body">
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-item-icon">📅</div>
+                        <div class="info-item-lbl">Data</div>
+                        <div class="info-item-val">{{ \Carbon\Carbon::parse($evento->data_evento)->format('d/m/Y') }}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-item-icon">🕐</div>
+                        <div class="info-item-lbl">Hora</div>
+                        <div class="info-item-val">{{ $evento->hora_inicio ? substr($evento->hora_inicio,0,5) : '—' }}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-item-icon">📍</div>
+                        <div class="info-item-lbl">Local</div>
+                        <div class="info-item-val">{{ Str::limit($evento->localizacao,22) }}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-item-icon">👥</div>
+                        <div class="info-item-lbl">Lotação</div>
+                        <div class="info-item-val">{{ $evento->lotacao_maxima ? number_format($evento->lotacao_maxima) : '—' }}</div>
+                    </div>
+                    @if($evento->municipio)
+                    <div class="info-item">
+                        <div class="info-item-icon">🏙</div>
+                        <div class="info-item-lbl">Município</div>
+                        <div class="info-item-val">{{ e($evento->municipio) }}</div>
+                    </div>
+                    @endif
+                    @if($evento->provincia)
+                    <div class="info-item">
+                        <div class="info-item-icon">🗺</div>
+                        <div class="info-item-lbl">Província</div>
+                        <div class="info-item-val">{{ e($evento->provincia) }}</div>
+                    </div>
+                    @endif
+                </div>
+            </div>
+            <div class="quick-actions">
+                <button onclick="abrirDrawer('drawer-detalhes')" class="qa-btn">🔍 Mais detalhes</button>
+                <a href="{{ route('mensagens.index', ['user_id' => (int)$evento->user_id, 'evento_id' => (int)$evento->id]) }}" class="qa-btn">💬 Contactar</a>
+                @if($evento->link_externo)
+                <a href="{{ e($evento->link_externo) }}" target="_blank" rel="noopener noreferrer" class="qa-btn">🔗 Site</a>
+                @endif
+            </div>
+        </div>
+
+        {{-- META ESPECÍFICO DA CATEGORIA --}}
+        @if($temMeta)
+        <div class="card">
+            <div class="card-head">
+                <div class="card-title">
+                    @if(str_contains($catNome,'viagem')) ✈️ Detalhes da Viagem
+                    @elseif(str_contains($catNome,'show') || str_contains($catNome,'musica') || str_contains($catNome,'música')) 🎤 Detalhes do Show
+                    @elseif(str_contains($catNome,'festival')) 🎉 Detalhes do Festival
+                    @elseif(str_contains($catNome,'desporto')) ⚽ Detalhes do Jogo
+                    @elseif(str_contains($catNome,'confer')) 🎙️ Conferência
+                    @elseif(str_contains($catNome,'workshop')) 📚 Workshop
+                    @elseif(str_contains($catNome,'cultura')) 🎭 Cultural
+                    @elseif(str_contains($catNome,'gastro')) 🍽️ Gastronomia
+                    @else ⚙️ Detalhes específicos @endif
+                </div>
+            </div>
+            <div class="card-body">
+                @if(!empty($meta['partida']) || !empty($meta['destino']))
+                <div class="rota-strip">
+                    <div class="rota-node">
+                        <div class="rota-lbl">Partida</div>
+                        <div class="rota-val">{{ e($meta['partida'] ?? '—') }}</div>
+                    </div>
+                    <div class="rota-sep">✈️</div>
+                    <div class="rota-node">
+                        <div class="rota-lbl">Destino</div>
+                        <div class="rota-val">{{ e($meta['destino'] ?? '—') }}</div>
+                    </div>
+                </div>
+                @endif
+
+                <div class="meta-list">
+                    @if(!empty($meta['hora_partida']))
+                    <div class="meta-row"><div class="meta-row-icon">🕐</div><div><div class="meta-row-lbl">Hora de Partida</div><div class="meta-row-val">{{ e($meta['hora_partida']) }}</div></div></div>
+                    @endif
+                    @if(!empty($meta['hora_chegada']))
+                    <div class="meta-row"><div class="meta-row-icon">🏁</div><div><div class="meta-row-lbl">Chegada Prevista</div><div class="meta-row-val">{{ e($meta['hora_chegada']) }}</div></div></div>
+                    @endif
+                    @if(!empty($meta['motorista']))
+                    <div class="meta-row"><div class="meta-row-icon">👤</div><div><div class="meta-row-lbl">Motorista</div><div class="meta-row-val">{{ e($meta['motorista']) }}</div></div></div>
+                    @endif
+                    @if(!empty($meta['marca_veiculo']))
+                    <div class="meta-row"><div class="meta-row-icon">🚌</div><div><div class="meta-row-lbl">Veículo</div><div class="meta-row-val">{{ e($meta['marca_veiculo']) }}@if(!empty($meta['matricula'])) · {{ e($meta['matricula']) }}@endif</div></div></div>
+                    @endif
+                    @if(!empty($meta['palco']))
+                    <div class="meta-row"><div class="meta-row-icon">🎪</div><div><div class="meta-row-lbl">Palco</div><div class="meta-row-val">{{ e($meta['palco']) }}</div></div></div>
+                    @endif
+                    @if(!empty($meta['dresscode']))
+                    <div class="meta-row"><div class="meta-row-icon">👔</div><div><div class="meta-row-lbl">Dress Code</div><div class="meta-row-val">{{ e($meta['dresscode']) }}</div></div></div>
+                    @endif
+                    @if(!empty($meta['modalidade']))
+                    <div class="meta-row"><div class="meta-row-icon">🏆</div><div><div class="meta-row-lbl">Modalidade</div><div class="meta-row-val">{{ e($meta['modalidade']) }}</div></div></div>
+                    @endif
+                    @if(!empty($meta['equipa_local']))
+                    <div class="meta-row"><div class="meta-row-icon">🏠</div><div><div class="meta-row-lbl">Equipa Casa</div><div class="meta-row-val">{{ e($meta['equipa_local']) }}</div></div></div>
+                    @endif
+                    @if(!empty($meta['equipa_visitante']))
+                    <div class="meta-row"><div class="meta-row-icon">✈️</div><div><div class="meta-row-lbl">Equipa Visitante</div><div class="meta-row-val">{{ e($meta['equipa_visitante']) }}</div></div></div>
+                    @endif
+                    @if(!empty($meta['hospedagem']))
+                    <div class="meta-row"><div class="meta-row-icon">🏨</div><div><div class="meta-row-lbl">Hospedagem / Hotel</div><div class="meta-row-val">{{ e($meta['hospedagem']) }}</div></div></div>
+                    @endif
+                    @if(!empty($meta['alimentacao']))
+                    <div class="meta-row"><div class="meta-row-icon">🍽️</div><div><div class="meta-row-lbl">Alimentação</div><div class="meta-row-val">{{ e($meta['alimentacao']) }}</div></div></div>
+                    @endif
+                    @if(!empty($meta['oradores']))
+                    <div class="meta-row"><div class="meta-row-icon">📢</div><div><div class="meta-row-lbl">Oradores</div><div class="meta-row-val">{{ e($meta['oradores']) }}</div></div></div>
+                    @endif
+                    @if(!empty($meta['patrocinadores']))
+                    <div class="meta-row"><div class="meta-row-icon">💎</div><div><div class="meta-row-lbl">Patrocinadores</div><div class="meta-row-val">{{ e($meta['patrocinadores']) }}</div></div></div>
+                    @endif
+                </div>
+
+                {{-- Paragens --}}
+                @if(count($tParagens) > 0)
+                <div class="divider"></div>
+                <div class="fl" style="margin-bottom:8px;">📍 Paragens Planeadas</div>
+                <div class="tag-row">
+                    @foreach($tParagens as $pG)
+                        <span class="tag">{{ e($pG) }}</span>
+                    @endforeach
+                </div>
+                @endif
+
+                {{-- Artistas / Atuações --}}
+                @if(count($tArtistas) > 0)
+                <div class="divider"></div>
+                <div class="fl" style="margin-bottom:8px;">🎤 Artistas / Atuações</div>
+                <div class="artist-list">
+                    @foreach($tArtistas as $art)
+                    <div class="artist-item">
+                        <div class="artist-avatar">✨</div>
+                        <div>
+                            <div class="artist-name">{{ e($art) }}</div>
+                            <div class="artist-role">Convidado Especial</div>
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
+                @endif
+
+                {{-- Palestrantes / Facilitadores --}}
+                @if(count($tPalestrantes) > 0)
+                <div class="divider"></div>
+                <div class="fl" style="margin-bottom:8px;">🎙️ Palestrantes / Facilitadores</div>
+                <div class="artist-list">
+                    @foreach($tPalestrantes as $pal)
+                    <div class="artist-item">
+                        <div class="artist-avatar">👨‍🏫</div>
+                        <div>
+                            <div class="artist-name">{{ e($pal) }}</div>
+                            <div class="artist-role">Orador</div>
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
+                @endif
+
+                {{-- Elenco / Elenco Principal --}}
+                @if(count($tElenco) > 0)
+                <div class="divider"></div>
+                <div class="fl" style="margin-bottom:8px;">🎭 Elenco / Participantes</div>
+                <div class="artist-list">
+                    @foreach($tElenco as $elc)
+                    <div class="artist-item">
+                        <div class="artist-avatar">🎬</div>
+                        <div>
+                            <div class="artist-name">{{ e($elc) }}</div>
+                            <div class="artist-role">Ator / Participante</div>
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
+                @endif
+            </div>
+        </div>
+        @endif
+
+    </div>
+
+    {{-- ═══ COLUNA DIREITA (COMPRA DE BILHETES) ═══ --}}
+    <div class="layout-right">
+        <div class="ticket-card">
+            <div class="ticket-head">
+                <div class="ticket-head-price">
+                    @if($preco == 0) Gratuito @else {{ number_format($preco,2,',','.') }} <small style="display:inline;font-size:14px;color:var(--muted)">KZ+</small> @endif
+                </div>
+                <div class="ticket-head-label">Preço inicial do ingresso</div>
+                <div class="ticket-head-avail">
+                    <span class="ticket-head-avail-dot"></span>
+                    {{ $totalDisp }} bilhetes disponíveis no total
+                </div>
+            </div>
+
+            <div class="ticket-body">
+                <div class="fl" style="margin-bottom:8px;">🎫 Selecione o tipo de Ingresso</div>
+                @foreach($evento->tiposIngresso as $tipo)
+                    @php $esg = $tipo->quantidade_disponivel <= 0; @endphp
+                    <div class="ticket-type {{ $esg ? 'esgotado' : '' }}"
+                         onclick="selecionarTipo('{{ e($tipo->nome) }}', {{ $tipo->preco }}, '{{ $tipo->id }}', {{ $tipo->quantidade_disponivel }})">
+                        <div>
+                            <div class="ticket-type-name">{{ e($tipo->nome) }}</div>
+                            <div class="ticket-type-avail">
+                                @if($esg) <span style="color:var(--rose)">Esgotado</span> @else {{ $tipo->quantidade_disponivel }} disponíveis @endif
+                            </div>
+                        </div>
+                        <div class="ticket-type-price">
+                            @if($tipo->preco == 0) Gratuito @else {{ number_format($tipo->preco,0,',','.') }}<small>KZ</small> @endif
+                        </div>
+                    </div>
+                @endforeach
+
+                <button class="buy-btn hide-mobile" @if($totalDisp<=0) disabled @endif onclick="abrirDrawer('drawer-bilhetes-mobile')">
+                    🛒 Comprar Bilhete
+                </button>
+                <div class="buy-notice">⚡ Confirmação rápida e pagamento seguro via IBAN/Multicaixa.</div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+{{-- BARRA FIXA MOBILE --}}
+<div class="bottom-bar show-mobile">
+    <div>
+        <div class="bottom-bar-price">{{ number_format($preco,0,',','.') }} <small style="font-size:10px;color:var(--muted)">KZ+</small></div>
+        <div class="bottom-bar-label">Total inicial</div>
+    </div>
+    <button class="bottom-bar-btn" @if($totalDisp<=0) disabled @endif onclick="abrirDrawer('drawer-bilhetes-mobile')">
+        🛒 Comprar
+    </button>
+</div>
+
+{{-- ═══ DRAWER: BILHETES MOBILE / COMPRA RAPIDA ═══ --}}
+<div class="drawer-overlay" id="drawer-bilhetes-mobile" onclick="if(event.target===this) fecharDrawer('drawer-bilhetes-mobile')">
+    <div class="drawer-box">
+        <div class="drawer-handle"></div>
+        <div class="drawer-title-row">
+            <div class="drawer-title">🎟️ Escolha seu Ingresso</div>
+            <button class="drawer-close" onclick="fecharDrawer('drawer-bilhetes-mobile')">×</button>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+            @foreach($evento->tiposIngresso as $tipo)
+                @php $esg = $tipo->quantidade_disponivel <= 0; @endphp
+                <div class="ticket-type {{ $esg ? 'esgotado' : '' }}"
+                     onclick="selecionarTipoMobile('{{ e($tipo->nome) }}', {{ $tipo->preco }}, '{{ $tipo->id }}', {{ $tipo->quantidade_disponivel }})">
+                    <div>
+                        <div class="ticket-type-name">{{ e($tipo->nome) }}</div>
+                        <div class="ticket-type-avail">
+                            @if($esg) <span style="color:var(--rose)">Esgotado</span> @else {{ $tipo->quantidade_disponivel }} disponíveis @endif
+                        </div>
+                    </div>
+                    <div class="ticket-type-price">
+                        @if($tipo->preco == 0) Gratuito @else {{ number_format($tipo->preco,0,',','.') }}<small>KZ</small> @endif
+                    </div>
+                </div>
+            @endforeach
+        </div>
+    </div>
+</div>
+
+{{-- ═══ DRAWER: MAIS DETALHES ═══ --}}
+<div class="drawer-overlay" id="drawer-detalhes" onclick="if(event.target===this) fecharDrawer('drawer-detalhes')">
+    <div class="drawer-box">
+        <div class="drawer-handle"></div>
+        <div class="drawer-title-row">
+            <div class="drawer-title">🔍 Informações Detalhadas</div>
+            <button class="drawer-close" onclick="fecharDrawer('drawer-detalhes')">×</button>
+        </div>
+        <div class="drawer-info-row"><span class="drawer-info-lbl">Organizador</span><span class="drawer-info-val">{{ e(optional($evento->user)->name ?? 'Não informado') }}</span></div>
+        <div class="drawer-info-row"><span class="drawer-info-lbl">Telefone</span><span class="drawer-info-val">{{ e($evento->telefone_contacto ?? 'Não informado') }}</span></div>
+        <div class="drawer-info-row"><span class="drawer-info-lbl">Email</span><span class="drawer-info-val" style="word-break:break-all;">{{ e($evento->email_contacto ?? 'Não informado') }}</span></div>
+        <div class="drawer-info-row"><span class="drawer-info-lbl">Abertura de portas</span><span class="drawer-info-val">{{ $evento->hora_inicio ? substr($evento->hora_inicio,0,5) : '—' }}</span></div>
+        @if($evento->link_externo)
+            <div class="drawer-info-row"><span class="drawer-info-lbl">Website</span><span class="drawer-info-val"><a href="{{ e($evento->link_externo) }}" target="_blank" style="color:var(--cyan);">Visitar Link externos 🔗</a></span></div>
+        @endif
+        <a href="{{ route('mensagens.index', ['user_id' => (int)$evento->user_id, 'evento_id' => (int)$evento->id]) }}" class="contactar-btn">💬 Enviar Mensagem Direta</a>
+    </div>
+</div>
+
+{{-- ═══ DRAWER: GALERIA COMPLETA ═══ --}}
+@if($temFotos)
+<div class="drawer-overlay" id="drawer-galeria" onclick="if(event.target===this) fecharDrawer('drawer-galeria')">
+    <div class="drawer-box" style="max-width:540px;">
+        <div class="drawer-handle"></div>
+        <div class="drawer-title-row">
+            <div class="drawer-title">🖼️ Galeria de Fotos ({{ $fotos->count() }})</div>
+            <button class="drawer-close" onclick="fecharDrawer('drawer-galeria')">×</button>
+        </div>
+        <div class="gallery-drawer-grid">
+            @foreach($fotos as $ft)
+                <a href="{{ asset('storage/'.$ft->caminho) }}" target="_blank">
+                    <img src="{{ asset('storage/'.$ft->caminho) }}" alt="Foto do evento" loading="lazy">
+                </a>
+            @endforeach
+        </div>
+    </div>
+</div>
+@endif
+{{-- ═══ MODAL ALPINE COM LÓGICA DE INICIALIZAÇÃO ═══ --}}
+<div x-data="{
+    modalAberto: false,
+    ingressoNome: '',
+    ingressoPreco: 0,
+    ingressoId: '',
+    quantidade: 1,
+    
+    inc() { this.quantidade++ },
+    dec() { if(this.quantidade > 1) this.quantidade-- },
+    total() { return (this.quantidade * this.ingressoPreco).toLocaleString('pt-PT') },
+    
+    fecharModal() {
+        this.modalAberto = false;
+        document.body.style.overflow = '';
+    }
+}"
+@abrir-modal.window="
+    ingressoNome = $event.detail.nome;
+    ingressoPreco = $event.detail.preco;
+    ingressoId = $event.detail.id;
+    quantidade = 1;
+    modalAberto = true;
+    document.body.style.overflow = 'hidden';
+">
+
+    {{-- Overlay Escuro --}}
+    <div x-show="modalAberto" class="modal-overlay" x-cloak style="display:none;"></div>
+
+    {{-- Container do Centro - Fecha ao clicar fora --}}
+    <div x-show="modalAberto" class="modal-center" x-cloak style="display:none;" @click="if($event.target === $el) fecharModal()">
+        
+        <div class="modal-box" 
+             x-show="modalAberto" 
+             x-transition:enter="transition ease-out duration-300" 
+             x-transition:enter-start="transform translate-y-full" 
+             x-transition:enter-end="transform translate-y-0" 
+             x-transition:leave="transition ease-in duration-200" 
+             x-transition:leave-start="transform translate-y-0" 
+             x-transition:leave-end="transform translate-y-full">
+            
+            <div class="modal-drag"></div>
+            <div class="modal-top">
+                <div>
+                    <div class="modal-secure-badge">Ambiente de Compra Seguro</div>
+                    <div class="modal-top-title">Inscrição no Evento</div>
+                </div>
+                <button type="button" class="modal-x" @click="fecharModal()">×</button>
+            </div>
+
+            <div class="modal-body">
+                {{-- Resumo do Evento --}}
+                <div class="modal-ev-row">
+                    @if($temCapa)
+                        <img class="modal-ev-thumb" src="{{ asset('storage/'.$evento->imagem_capa) }}" alt="">
+                    @elseif($temFotos)
+                        <img class="modal-ev-thumb" src="{{ asset('storage/'.$fotos->first()->caminho) }}" alt="">
+                    @else
+                        <div class="modal-ev-thumb-ph">{{ $catEmoji }}</div>
+                    @endif
+                    <div>
+                        <div class="modal-ev-name">{{ e($evento->titulo) }}</div>
+                        <div class="modal-ev-sub">📅 {{ \Carbon\Carbon::parse($evento->data_evento)->format('d/m/Y') }}</div>
+                    </div>
+                </div>
+
+                {{-- Tipo de Ingresso Selecionado --}}
+                <div class="modal-selected-type">
+                    <div>
+                        <div class="modal-selected-name" x-text="ingressoNome"></div>
+                        <div class="modal-selected-sub">Tipo de ingresso escolhido</div>
+                    </div>
+                    <div class="modal-selected-price">
+                        <span x-text="ingressoPreco == 0 ? 'Gratuito' : (ingressoPreco).toLocaleString('pt-PT')"></span>
+                        <small class="modal-selected-kz" x-show="ingressoPreco > 0">KZ</small>
+                    </div>
+                </div>
+
+                {{-- FORMULÁRIO DE ENVIO --}}
+                <form action="{{ route('reserva.guardar') }}" method="POST" enctype="multipart/form-data">
+                    @csrf
+                    <input type="hidden" name="evento_id" value="{{ $evento->id }}">
+                    <input type="hidden" name="tipo_ingresso_id" :value="ingressoId">
+
+                    {{-- QUANTIDADE --}}
+                    <div class="fg" x-show="ingressoPreco > 0">
+                        <label class="fl">Quantidade de Bilhetes</label>
+                        <div class="qty-wrapper">
+                            <span class="qty-label">Selecione a quantidade</span>
+                            <div class="qty-controls">
+                                <button type="button" class="qty-control-btn" @click="dec()">-</button>
+                                <span class="qty-value" x-text="quantidade"></span>
+                                <input type="hidden" name="quantidade" :value="quantidade">
+                                <button type="button" class="qty-control-btn" @click="inc()">+</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- TOTAL DINÂMICO --}}
+                    <div class="total-row" x-show="ingressoPreco > 0">
+                        <span class="total-label">Total a Pagar:</span>
+                        <span class="total-value">
+                            <span x-text="total()"></span> 
+                            <small style="font-size:12px; color:var(--gold);">KZ</small>
+                        </span>
+                    </div>
+
+                    {{-- CAMPOS DO CLIENTE --}}
+                    <div class="fg">
+                        <label class="fl">Nome Completo</label>
+                        <input type="text" name="nome" class="fi" placeholder="Seu nome completo" required>
+                    </div>
+
+                    <div class="fg">
+                        <label class="fl">Telefone / WhatsApp</label>
+                        <input type="text" name="telefone" class="fi" placeholder="Ex: 923 000 000" required>
+                    </div>
+
+                    {{-- UPLOAD DE COMPROVATIVO --}}
+                    <div class="fg" x-show="ingressoPreco > 0">
+                        <label class="fl">Comprovativo de Pagamento</label>
+                        <div class="upload-area">
+                            <input type="file" name="comprovativo" onchange="handleUpload(this)">
+                            <div class="upload-icon">📁</div>
+                            <div class="upload-label">Clique para carregar o comprovativo</div>
+                            <div class="upload-hint">Formatos: JPG, PNG (Máx: 2MB)</div>
+                        </div>
+                        
+                        {{-- Preview Dinâmico --}}
+                        <div class="upload-preview" id="upload-preview">
+                            <div class="upload-preview-name" id="upload-preview-name"></div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="submit-btn">
+                        <span>Confirmar Inscrição 🚀</span>
+                    </button>
+                    <p class="submit-notice">Ao confirmar, os seus dados serão enviados para a organização do evento de forma segura.</p>
+                </form>
+
+            </div>
+        </div>
+    </div>
+</div>
+@endsection

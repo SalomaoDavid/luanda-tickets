@@ -482,7 +482,6 @@ body{
 }
 @endverbatim
 </style>
-
 <div x-data="{
     modalAberto:false,
     ingressoNome:'',
@@ -620,524 +619,469 @@ body{
                 @endif
             </div>
         </div>
+{{-- META ESPECÍFICO DA CATEGORIA --}}
+@if($temMeta && !empty($meta))
+<div class="card">
+    <div class="card-head">
+        <div class="card-title">
+            @if(str_contains($catNome,'viagem') || !empty($meta['partida'])) ✈️ Detalhes da Viagem
+            @elseif(str_contains($catNome,'show') || str_contains($catNome,'musica') || str_contains($catNome,'música')) 🎤 Detalhes do Show
+            @elseif(str_contains($catNome,'festival')) 🎉 Detalhes do Festival
+            @elseif(str_contains($catNome,'desporto') || !empty($meta['equipa_local'])) ⚽ Detalhes do Jogo
+            @elseif(str_contains($catNome,'confer')) 🎙️ Conferência
+            @elseif(str_contains($catNome,'workshop') || !empty($meta['instrutor'])) 📚 Workshop
+            @elseif(str_contains($catNome,'cultura')) 🎭 Cultural
+            @elseif(str_contains($catNome,'gastro') || !empty($meta['chef'])) 🍽️ Gastronomia
+            @else ⚙️ Detalhes específicos
+            @endif
+        </div>
+    </div>
+    <div class="card-body">
 
-        {{-- META ESPECÍFICO DA CATEGORIA --}}
-        @if($temMeta)
-        <div class="card">
-            <div class="card-head">
-                <div class="card-title">
-                    @if(str_contains($catNome,'viagem')) ✈️ Detalhes da Viagem
-                    @elseif(str_contains($catNome,'show') || str_contains($catNome,'musica') || str_contains($catNome,'música')) 🎤 Detalhes do Show
-                    @elseif(str_contains($catNome,'festival')) 🎉 Detalhes do Festival
-                    @elseif(str_contains($catNome,'desporto')) ⚽ Detalhes do Jogo
-                    @elseif(str_contains($catNome,'confer')) 🎙️ Conferência
-                    @elseif(str_contains($catNome,'workshop')) 📚 Workshop
-                    @elseif(str_contains($catNome,'cultura')) 🎭 Cultural
-                    @elseif(str_contains($catNome,'gastro')) 🍽️ Gastronomia
-                    @else ⚙️ Detalhes específicos
-                    @endif
+        {{-- Rota de viagem - Ativa por Categoria OU se houver dados de Partida/Destino --}}
+        @if(str_contains($catNome, 'viagem') || !empty($meta['partida']) || !empty($meta['destino']))
+            @if(!empty($meta['partida']) || !empty($meta['destino']))
+            <div class="rota-strip">
+                <div class="rota-node">
+                    <div class="rota-lbl">Partida</div>
+                    <div class="rota-val">{{ e($meta['partida'] ?? '—') }}</div>
+                </div>
+                <div class="rota-sep">✈️</div>
+                <div class="rota-node">
+                    <div class="rota-lbl">Destino</div>
+                    <div class="rota-val">{{ e($meta['destino'] ?? '—') }}</div>
                 </div>
             </div>
-            <div class="card-body">
+            @endif
+        @endif
 
-                {{-- Rota de viagem --}}
-                @if(!empty($meta['partida']) || !empty($meta['destino']))
-                <div class="rota-strip">
-                    <div class="rota-node">
-                        <div class="rota-lbl">Partida</div>
-                        <div class="rota-val">{{ e($meta['partida'] ?? '—') }}</div>
-                    </div>
-                    <div class="rota-sep">✈️</div>
-                    <div class="rota-node">
-                        <div class="rota-lbl">Destino</div>
-                        <div class="rota-val">{{ e($meta['destino'] ?? '—') }}</div>
-                    </div>
-                </div>
+        <div class="meta-list">
+            {{-- Campos de VIAGEM --}}
+            @if(str_contains($catNome, 'viagem') || !empty($meta['motorista']) || !empty($meta['hora_partida']))
+                @if(!empty($meta['hora_partida']))
+                <div class="meta-row"><div class="meta-row-icon">1️⃣</div><div><div class="meta-row-lbl">Hora de Partida</div><div class="meta-row-val">{{ e($meta['hora_partida']) }}</div></div></div>
                 @endif
-
-                <div class="meta-list">
-                    @if(!empty($meta['hora_partida']))
-                    <div class="meta-row"><div class="meta-row-icon">🕐</div><div><div class="meta-row-lbl">Hora de Partida</div><div class="meta-row-val">{{ e($meta['hora_partida']) }}</div></div></div>
-                    @endif
-                    @if(!empty($meta['hora_chegada']))
-                    <div class="meta-row"><div class="meta-row-icon">🏁</div><div><div class="meta-row-lbl">Chegada Prevista</div><div class="meta-row-val">{{ e($meta['hora_chegada']) }}</div></div></div>
-                    @endif
-                    @if(!empty($meta['motorista']))
-                    <div class="meta-row"><div class="meta-row-icon">👤</div><div><div class="meta-row-lbl">Motorista</div><div class="meta-row-val">{{ e($meta['motorista']) }}</div></div></div>
-                    @endif
-                    @if(!empty($meta['marca_veiculo']))
-                    <div class="meta-row"><div class="meta-row-icon">🚌</div><div><div class="meta-row-lbl">Veículo</div><div class="meta-row-val">{{ e($meta['marca_veiculo']) }}@if(!empty($meta['matricula'])) · {{ e($meta['matricula']) }}@endif</div></div></div>
-                    @endif
-                    @if(!empty($meta['palco']))
-                    <div class="meta-row"><div class="meta-row-icon">🎪</div><div><div class="meta-row-lbl">Palco</div><div class="meta-row-val">{{ e($meta['palco']) }}</div></div></div>
-                    @endif
-                    @if(!empty($meta['dresscode']))
-                    <div class="meta-row"><div class="meta-row-icon">👔</div><div><div class="meta-row-lbl">Dress Code</div><div class="meta-row-val">{{ e($meta['dresscode']) }}</div></div></div>
-                    @endif
-                    @if(!empty($meta['modalidade']))
-                    <div class="meta-row"><div class="meta-row-icon">🏆</div><div><div class="meta-row-lbl">Modalidade</div><div class="meta-row-val">{{ e($meta['modalidade']) }}</div></div></div>
-                    @endif
-                    @if(!empty($meta['equipa_local']))
-                    <div class="meta-row"><div class="meta-row-icon">🏠</div><div><div class="meta-row-lbl">Equipa Casa</div><div class="meta-row-val">{{ e($meta['equipa_local']) }}</div></div></div>
-                    @endif
-                    @if(!empty($meta['equipa_visitante']))
-                    <div class="meta-row"><div class="meta-row-icon">✈️</div><div><div class="meta-row-lbl">Equipa Visitante</div><div class="meta-row-val">{{ e($meta['equipa_visitante']) }}</div></div></div>
-                    @endif
-                    @if(!empty($meta['tema']))
-                    <div class="meta-row"><div class="meta-row-icon">💡</div><div><div class="meta-row-lbl">Tema</div><div class="meta-row-val">{{ e($meta['tema']) }}</div></div></div>
-                    @endif
-                    @if(!empty($meta['instrutor']))
-                    <div class="meta-row"><div class="meta-row-icon">👨‍🏫</div><div><div class="meta-row-lbl">Instrutor</div><div class="meta-row-val">{{ e($meta['instrutor']) }}</div></div></div>
-                    @endif
-                    @if(!empty($meta['nivel']))
-                    <div class="meta-row"><div class="meta-row-icon">📊</div><div><div class="meta-row-lbl">Nível</div><div class="meta-row-val">{{ e($meta['nivel']) }}</div></div></div>
-                    @endif
-                    @if(!empty($meta['chef']))
-                    <div class="meta-row"><div class="meta-row-icon">👨‍🍳</div><div><div class="meta-row-lbl">Chef</div><div class="meta-row-val">{{ e($meta['chef']) }}</div></div></div>
-                    @endif
-                    @if(!empty($meta['tipo_culinaria']))
-                    <div class="meta-row"><div class="meta-row-icon">🍽️</div><div><div class="meta-row-lbl">Culinária</div><div class="meta-row-val">{{ e($meta['tipo_culinaria']) }}</div></div></div>
-                    @endif
-                    @if(!empty($meta['classificacao_etaria']))
-                    <div class="meta-row"><div class="meta-row-icon">🔞</div><div><div class="meta-row-lbl">Classificação</div><div class="meta-row-val">{{ e($meta['classificacao_etaria']) }}</div></div></div>
-                    @endif
-                    @if(!empty($meta['certificado']))
-                    <div class="meta-row"><div class="meta-row-icon">🎓</div><div><div class="meta-row-lbl">Certificado</div><div class="meta-row-val">Incluído</div></div></div>
-                    @endif
-                    @if(!empty($meta['idioma']))
-                    <div class="meta-row"><div class="meta-row-icon">🌐</div><div><div class="meta-row-lbl">Idioma</div><div class="meta-row-val">{{ e($meta['idioma']) }}</div></div></div>
-                    @endif
-                    @if(!empty($meta['ar_condicionado']))
-                    <div class="meta-row"><div class="meta-row-icon">❄️</div><div><div class="meta-row-lbl">Conforto</div><div class="meta-row-val">Ar condicionado</div></div></div>
-                    @endif
-                </div>
-
-                {{-- Tags --}}
-                @if(!empty($tParagens))
-                <div style="margin-top:12px;">
-                    <div class="meta-row-lbl" style="margin-bottom:6px;">📍 Paragens</div>
-                    <div class="tag-row">
-                        @foreach($tParagens as $t)
-                        <span class="tag">{{ e($t) }}</span>
-                        @endforeach
-                    </div>
-                </div>
+                @if(!empty($meta['hora_chegada']))
+                <div class="meta-row"><div class="meta-row-icon">🏁</div><div><div class="meta-row-lbl">Chegada Prevista</div><div class="meta-row-val">{{ e($meta['hora_chegada']) }}</div></div></div>
                 @endif
-
-                @if(!empty($meta['lineup']))
-                <div style="margin-top:12px;">
-                    <div class="meta-row-lbl" style="margin-bottom:6px;">🕐 Lineup</div>
-                    <pre style="font-family:inherit;font-size:12px;color:var(--muted2);white-space:pre-line;line-height:1.7;">{{ e($meta['lineup']) }}</pre>
-                </div>
+                @if(!empty($meta['motorista']))
+                <div class="meta-row"><div class="meta-row-icon">👤</div><div><div class="meta-row-lbl">Motorista</div><div class="meta-row-val">{{ e($meta['motorista']) }}</div></div></div>
                 @endif
-
-                @if(!empty($meta['menu']))
-                <div style="margin-top:12px;">
-                    <div class="meta-row-lbl" style="margin-bottom:6px;">📋 Ementa</div>
-                    <pre style="font-family:inherit;font-size:12px;color:var(--muted2);white-space:pre-line;line-height:1.7;">{{ e($meta['menu']) }}</pre>
-                </div>
+                @if(!empty($meta['marca_veiculo']))
+                <div class="meta-row"><div class="meta-row-icon">🚌</div><div><div class="meta-row-lbl">Veículo</div><div class="meta-row-val">{{ e($meta['marca_veiculo']) }}@if(!empty($meta['matricula'])) · {{ e($meta['matricula']) }}@endif</div></div></div>
                 @endif
+            @endif
+
+            {{-- Campos de SHOWS e FESTIVAIS --}}
+            @if(str_contains($catNome,'show') || str_contains($catNome,'musica') || str_contains($catNome,'música') || str_contains($catNome,'festival') || !empty($meta['palco']))
+                @if(!empty($meta['palco']))
+                <div class="meta-row"><div class="meta-row-icon">🎪</div><div><div class="meta-row-lbl">Palco</div><div class="meta-row-val">{{ e($meta['palco']) }}</div></div></div>
+                @endif
+            @endif
+
+            {{-- Campos Gerais --}}
+            @if(!empty($meta['dresscode']))
+            <div class="meta-row"><div class="meta-row-icon">👔</div><div><div class="meta-row-lbl">Dress Code</div><div class="meta-row-val">{{ e($meta['dresscode']) }}</div></div></div>
+            @endif
+
+            @if(!empty($meta['classificacao_etaria']))
+            <div class="meta-row"><div class="meta-row-icon">🔞</div><div><div class="meta-row-lbl">Classificação</div><div class="meta-row-val">{{ e($meta['classificacao_etaria']) }}</div></div></div>
+            @endif
+
+            @if(!empty($meta['nivel']))
+            <div class="meta-row"><div class="meta-row-icon">📊</div><div><div class="meta-row-lbl">Nível</div><div class="meta-row-val">{{ e($meta['nivel']) }}</div></div></div>
+            @endif
+
+            {{-- Campos do DESPORTO --}}
+            @if(str_contains($catNome, 'desporto') || !empty($meta['equipa_local']))
+                @if(!empty($meta['modalidade']))
+                <div class="meta-row"><div class="meta-row-icon">🏆</div><div><div class="meta-row-lbl">Modalidade</div><div class="meta-row-val">{{ e($meta['modalidade']) }}</div></div></div>
+                @endif
+                @if(!empty($meta['equipa_local']))
+                <div class="meta-row"><div class="meta-row-icon">🏠</div><div><div class="meta-row-lbl">Equipa Casa</div><div class="meta-row-val">{{ e($meta['equipa_local']) }}</div></div></div>
+                @endif
+                @if(!empty($meta['equipa_visitante']))
+                <div class="meta-row"><div class="meta-row-icon">✈️</div><div><div class="meta-row-lbl">Equipa Visitante</div><div class="meta-row-val">{{ e($meta['equipa_visitante']) }}</div></div></div>
+                @endif
+            @endif
+
+            {{-- Campos de CONFERÊNCIAS e WORKSHOPS --}}
+            @if(str_contains($catNome, 'confer') || str_contains($catNome, 'workshop') || !empty($meta['tema']))
+                @if(!empty($meta['tema']))
+                <div class="meta-row"><div class="meta-row-icon">💡</div><div><div class="meta-row-lbl">Tema</div><div class="meta-row-val">{{ e($meta['tema']) }}</div></div></div>
+                @endif
+                @if(!empty($meta['instrutor']))
+                <div class="meta-row"><div class="meta-row-icon">👨‍🏫</div><div><div class="meta-row-lbl">Instrutor</div><div class="meta-row-val">{{ e($meta['instrutor']) }}</div></div></div>
+                @endif
+                @if(!empty($meta['certificado']) && $meta['certificado'] == "1")
+                <div class="meta-row"><div class="meta-row-icon">🎓</div><div><div class="meta-row-lbl">Certificado</div><div class="meta-row-val">Incluído</div></div></div>
+                @endif
+            @endif
+
+            {{-- Campos de GASTRONOMIA --}}
+            @if(str_contains($catNome, 'gastro') || !empty($meta['chef']))
+                @if(!empty($meta['chef']))
+                <div class="meta-row"><div class="meta-row-icon">👨‍🍳</div><div><div class="meta-row-lbl">Chef</div><div class="meta-row-val">{{ e($meta['chef']) }}</div></div></div>
+                @endif
+                @if(!empty($meta['tipo_culinaria']))
+                <div class="meta-row"><div class="meta-row-icon">🍽️</div><div><div class="meta-row-lbl">Culinária</div><div class="meta-row-val">{{ e($meta['tipo_culinaria']) }}</div></div></div>
+                @endif
+            @endif
+
+            @if(!empty($meta['idioma']))
+            <div class="meta-row"><div class="meta-row-icon">🌐</div><div><div class="meta-row-lbl">Idioma</div><div class="meta-row-val">{{ e($meta['idioma']) }}</div></div></div>
+            @endif
+            
+            @if(!empty($meta['ar_condicionado']) && $meta['ar_condicionado'] == "1")
+            <div class="meta-row"><div class="meta-row-icon">❄️</div><div><div class="meta-row-lbl">Conforto</div><div class="meta-row-val">Ar condicionado</div></div></div>
+            @endif
+        </div>
+
+        {{-- Tags de Paragens - Exclusivo de Viagem --}}
+        @if((str_contains($catNome, 'viagem') || !empty($meta['partida'])) && !empty($tParagens))
+        <div style="margin-top:12px;">
+            <div class="meta-row-lbl" style="margin-bottom:6px;">📍 Paragens</div>
+            <div class="tag-row">
+                @foreach($tParagens as $t)
+                <span class="tag">{{ e($t) }}</span>
+                @endforeach
             </div>
         </div>
         @endif
 
-        {{-- ARTISTAS --}}
-        @if(!empty($tArtistas) || !empty($tElenco) || !empty($tPalestrantes))
-        <div class="card">
-            <div class="card-head">
-                <div class="card-title">
-                    @if(!empty($tArtistas)) 🎤 Artistas
-                    @elseif(!empty($tElenco)) 🎭 Elenco
-                    @else 🎙️ Palestrantes
-                    @endif
-                </div>
-            </div>
-            <div class="card-body">
-                <div class="artist-list">
-                    @if(!empty($tArtistas))
-                        @foreach($tArtistas as $ar)
-                        <div class="artist-item">
-                            <div class="artist-avatar">{{ strtoupper(substr($ar,0,2)) }}</div>
-                            <div><div class="artist-name">{{ e($ar) }}</div><div class="artist-role">Artista</div></div>
-                        </div>
-                        @endforeach
-                    @elseif(!empty($tElenco))
-                        @foreach($tElenco as $mb)
-                        <div class="artist-item">
-                            <div class="artist-avatar">{{ strtoupper(substr($mb,0,2)) }}</div>
-                            <div><div class="artist-name">{{ e($mb) }}</div></div>
-                        </div>
-                        @endforeach
-                    @else
-                        @foreach($tPalestrantes as $pl)
-                        <div class="artist-item">
-                            <div class="artist-avatar">{{ strtoupper(substr($pl,0,2)) }}</div>
-                            <div><div class="artist-name">{{ e($pl) }}</div><div class="artist-role">Palestrante</div></div>
-                        </div>
-                        @endforeach
-                    @endif
-                </div>
-            </div>
+        {{-- Lineup - Exclusivo de Shows/Festivais --}}
+        @if((str_contains($catNome,'show') || str_contains($catNome,'musica') || str_contains($catNome,'música') || str_contains($catNome,'festival')) && !empty($meta['lineup']))
+        <div style="margin-top:12px;">
+            <div class="meta-row-lbl" style="margin-bottom:6px;">🕐 Lineup</div>
+            <pre style="font-family:inherit;font-size:12px;color:var(--muted2);white-space:pre-line;line-height:1.7;">{{ e($meta['lineup']) }}</pre>
         </div>
         @endif
 
-        {{-- GALERIA --}}
-        @if($temFotos || $temCapa)
-        <div class="card">
-            <div class="card-head">
-                <div class="card-title">🖼 Galeria de Fotos</div>
-            </div>
-            <div class="card-body">
-                <div class="gallery-grid">
-                    @if($temCapa)
-                    <div class="gallery-item"><img src="{{ asset('storage/'.$evento->imagem_capa) }}" alt="Capa" loading="lazy"></div>
-                    @endif
-                    @foreach($fotos->take($temCapa ? 8 : 9) as $foto)
-                    <div class="gallery-item"><img src="{{ asset('storage/'.e($foto->caminho)) }}" alt="Foto" loading="lazy"></div>
-                    @endforeach
-                </div>
-                @if($fotos->count() > 8)
-                <button class="gallery-more" onclick="abrirDrawer('drawer-galeria')">Ver todas as fotos (+{{ $fotos->count() }})</button>
-                @endif
-            </div>
+        {{-- Ementa - Exclusivo de Gastronomia --}}
+        @if((str_contains($catNome, 'gastro') || !empty($meta['chef'])) && !empty($meta['menu']))
+        <div style="margin-top:12px;">
+            <div class="meta-row-lbl" style="margin-bottom:6px;">📋 Ementa</div>
+            <pre style="font-family:inherit;font-size:12px;color:var(--muted2);white-space:pre-line;line-height:1.7;">{{ e($meta['menu']) }}</pre>
         </div>
         @endif
+    </div>
+</div>
+@endif
 
-    </div>{{-- /layout-left --}}
 
-    {{-- ═══ COLUNA DIREITA (sticky - só desktop) ═══ --}}
-    <div class="layout-right hide-mobile">
+{{-- Artistas / Atuações --}}
+@if(count($tArtistas) > 0)
+<div class="divider"></div>
+<div class="fl" style="margin-bottom:8px;">🎤 Artistas / Atuações</div>
+<div class="artist-list">
+    @foreach($tArtistas as $art)
+    <div class="artist-item">
+        <div class="artist-avatar">✨</div>
+        <div>
+            <div class="artist-name">{{ e($art) }}</div>
+            <div class="artist-role">Convidado Especial</div>
+        </div>
+    </div>
+    @endforeach
+</div>
+@endif
+
+{{-- Palestrantes / Facilitadores --}}
+@if(count($tPalestrantes) > 0)
+<div class="divider"></div>
+<div class="fl" style="margin-bottom:8px;">🎙️ Palestrantes / Facilitadores</div>
+<div class="artist-list">
+    @foreach($tPalestrantes as $pal)
+    <div class="artist-item">
+        <div class="artist-avatar">👨‍🏫</div>
+        <div>
+            <div class="artist-name">{{ e($pal) }}</div>
+            <div class="artist-role">Orador</div>
+        </div>
+    </div>
+    @endforeach
+</div>
+@endif
+
+{{-- Elenco / Elenco Principal --}}
+@if(count($tElenco) > 0)
+<div class="divider"></div>
+<div class="fl" style="margin-bottom:8px;">🎭 Elenco / Participantes</div>
+<div class="artist-list">
+    @foreach($tElenco as $elc)
+    <div class="artist-item">
+        <div class="artist-avatar">🎬</div>
+        <div>
+            <div class="artist-name">{{ e($elc) }}</div>
+            <div class="artist-role">Ator / Participante</div>
+        </div>
+    </div>
+    @endforeach
+</div>
+@endif
+            
+
+    {{-- ═══ COLUNA DIREITA (COMPRA DE BILHETES) ═══ --}}
+    <div class="layout-right">
         <div class="ticket-card">
             <div class="ticket-head">
                 <div class="ticket-head-price">
-                    @if($preco == 0) Gratuito
-                    @else {{ number_format($preco,0,',','.') }} Kz
-                    @endif
+                    @if($preco == 0) Gratuito @else {{ number_format($preco,2,',','.') }} <small style="display:inline;font-size:14px;color:var(--muted)">KZ+</small> @endif
                 </div>
-                <div class="ticket-head-label">por bilhete · preço mínimo</div>
-                @if($totalDisp > 0)
+                <div class="ticket-head-label">Preço inicial do ingresso</div>
                 <div class="ticket-head-avail">
-                    <div class="ticket-head-avail-dot"></div>
-                    {{ $totalDisp }} bilhetes disponíveis
+                    <span class="ticket-head-avail-dot"></span>
+                    {{ $totalDisp }} bilhetes disponíveis no total
                 </div>
-                @else
-                <div style="color:var(--rose);font-size:12px;font-weight:600;margin-top:8px;">Esgotado</div>
-                @endif
             </div>
-            <div class="ticket-body">
 
-                @forelse($evento->tiposIngresso as $tipo)
-                <div class="ticket-type {{ $tipo->quantidade_disponivel <= 0 ? 'esgotado' : '' }}"
-                onclick="selecionarTipo('{{ addslashes(e($tipo->nome)) }}',{{ $tipo->preco }},{{ $tipo->id }},{{ $tipo->quantidade_disponivel }})">
-                    <div>
-                        <div class="ticket-type-name">{{ e($tipo->nome) }}</div>
-                        <div class="ticket-type-avail">
-                            @if($tipo->quantidade_disponivel > 0)
-                                {{ $tipo->quantidade_disponivel }} disponíveis
-                            @else
-                                Esgotado
-                            @endif
+            <div class="ticket-body">
+                <div class="fl" style="margin-bottom:8px;">🎫 Selecione o tipo de Ingresso</div>
+                @foreach($evento->tiposIngresso as $tipo)
+                    @php $esg = $tipo->quantidade_disponivel <= 0; @endphp
+                    <div class="ticket-type {{ $esg ? 'esgotado' : '' }}"
+                         onclick="selecionarTipo('{{ e($tipo->nome) }}', {{ $tipo->preco }}, '{{ $tipo->id }}', {{ $tipo->quantidade_disponivel }})">
+                        <div>
+                            <div class="ticket-type-name">{{ e($tipo->nome) }}</div>
+                            <div class="ticket-type-avail">
+                                @if($esg) <span style="color:var(--rose)">Esgotado</span> @else {{ $tipo->quantidade_disponivel }} disponíveis @endif
+                            </div>
+                        </div>
+                        <div class="ticket-type-price">
+                            @if($tipo->preco == 0) Gratuito @else {{ number_format($tipo->preco,0,',','.') }}<small>KZ</small> @endif
                         </div>
                     </div>
-                    <div>
-                        <div class="ticket-type-price">{{ number_format($tipo->preco,0,',','.') }} Kz</div>
-                        <small style="font-size:10px;color:var(--muted);">por bilhete</small>
-                    </div>
-                </div>
-                @empty
-                <p style="font-size:13px;color:var(--muted);text-align:center;padding:16px 0;">Sem bilhetes disponíveis.</p>
-                @endforelse
+                @endforeach
 
-                <div style="margin-top:12px;">
-                    @if($totalDisp > 0)
-                    <button class="buy-btn" onclick="abrirDrawer('drawer-bilhetes-mobile')">
-                        🎟 Comprar Bilhete
-                    </button>
-                    @else
-                    <button class="buy-btn" disabled>Evento Esgotado</button>
-                    @endif
-                </div>
-                <div class="buy-notice">🔒 Pagamento seguro · Bilhete emitido em até 24h</div>
-            </div>
-
-            <div class="quick-actions">
-                <button onclick="abrirDrawer('drawer-detalhes')" class="qa-btn">ℹ️ Detalhes</button>
-                <a href="{{ route('mensagens.index', ['user_id' => (int)$evento->user_id, 'evento_id' => (int)$evento->id]) }}" class="qa-btn">💬 Contactar</a>
+                <button class="buy-btn hide-mobile" @if($totalDisp<=0) disabled @endif onclick="abrirDrawer('drawer-bilhetes-mobile')">
+                    🛒 Comprar Bilhete
+                </button>
+                <div class="buy-notice">⚡ Confirmação rápida e pagamento seguro via IBAN/Multicaixa.</div>
             </div>
         </div>
     </div>
 
-</div>{{-- /layout --}}
+</div>
 
-{{-- ═══ BOTTOM BAR MOBILE ═══ --}}
+{{-- BARRA FIXA MOBILE --}}
 <div class="bottom-bar show-mobile">
-    <div style="flex:1;">
-        <div class="bottom-bar-price">
-            @if($preco==0)Gratuito@else{{ number_format($preco,0,',','.') }} Kz@endif
-        </div>
-        <div class="bottom-bar-label">por bilhete</div>
+    <div>
+        <div class="bottom-bar-price">{{ number_format($preco,0,',','.') }} <small style="font-size:10px;color:var(--muted)">KZ+</small></div>
+        <div class="bottom-bar-label">Total inicial</div>
     </div>
-    <button class="bottom-bar-btn" onclick="abrirDrawer('drawer-bilhetes-mobile')" {{ $totalDisp<=0?'disabled':'' }}>
-        🎟 {{ $totalDisp>0?'Comprar':'Esgotado' }}
+    <button class="bottom-bar-btn" @if($totalDisp<=0) disabled @endif onclick="abrirDrawer('drawer-bilhetes-mobile')">
+        🛒 Comprar
     </button>
 </div>
 
-{{-- ═══ MODAL DE COMPRA ═══ --}}
-<div x-show="modalAberto" x-cloak>
-    <div class="modal-overlay"
-         x-transition:enter="transition ease-out duration-200"
-         x-transition:enter-start="opacity-0"
-         x-transition:enter-end="opacity-100"
-         x-transition:leave="transition ease-in duration-150"
-         x-transition:leave-start="opacity-100"
-         x-transition:leave-end="opacity-0"
-         x-on:click="fecharModal()">
-    </div>
-    <div class="modal-center">
-        <div class="modal-box"
-             x-transition:enter="transition ease-out duration-250"
-             x-transition:enter-start="opacity-0 translate-y-8"
-             x-transition:enter-end="opacity-100 translate-y-0"
-             x-transition:leave="transition ease-in duration-150"
-             x-transition:leave-start="opacity-100 translate-y-0"
-             x-transition:leave-end="opacity-0 translate-y-4">
-
-            <div class="modal-drag"></div>
-
-            <div class="modal-top">
-                <div>
-                    <div class="modal-secure-badge">Reserva segura</div>
-                    <div class="modal-top-title">Finalizar compra</div>
-                </div>
-                <button class="modal-x" x-on:click="fecharModal()">✕</button>
-            </div>
-
-            <div class="modal-body">
-
-                @if($errors->any())
-                <div class="form-errs">
-                    <strong style="display:block;color:#fff;margin-bottom:5px;">Erros:</strong>
-                    <ul style="margin:0;padding-left:16px;">
-                        @foreach($errors->all() as $err)
-                        <li>{{ e($err) }}</li>
-                        @endforeach
-                    </ul>
-                </div>
-                @endif
-
-                {{-- Preview evento --}}
-                <div class="modal-ev-row">
-                    @if($temCapa)
-                        <img src="{{ asset('storage/'.$evento->imagem_capa) }}" alt="" class="modal-ev-thumb" loading="lazy">
-                    @else
-                        <div class="modal-ev-thumb-ph">{{ $catEmoji }}</div>
-                    @endif
-                    <div>
-                        <div class="modal-ev-name">{{ e($evento->titulo) }}</div>
-                        <div class="modal-ev-sub">
-                            📅 {{ \Carbon\Carbon::parse($evento->data_evento)->format('d/m/Y') }}
-                            @if($evento->hora_inicio) · {{ substr($evento->hora_inicio,0,5) }}@endif
-                            · 📍 {{ Str::limit($evento->localizacao,20) }}
-                        </div>
-                    </div>
-                </div>
-
-                {{-- Tipo selecionado --}}
-                <div class="modal-selected-type">
-                    <div>
-                        <div class="modal-selected-name" x-text="ingressoNome"></div>
-                        <div class="modal-selected-sub">Tipo de bilhete selecionado</div>
-                    </div>
-                    <div style="text-align:right;">
-                        <div class="modal-selected-price" x-text="Number(ingressoPreco).toLocaleString('pt-PT')+' Kz'"></div>
-                        <div class="modal-selected-kz">por bilhete</div>
-                    </div>
-                </div>
-
-                {{-- Form --}}
-                <form action="{{ route('reserva.guardar') }}" method="POST" enctype="multipart/form-data">
-                    @csrf
-                    <input type="hidden" name="tipo_ingresso_id" x-bind:value="ingressoId">
-                    <input type="hidden" name="evento_id" value="{{ $evento->id }}">
-                    <input type="hidden" name="quantidade" x-bind:value="quantidade">
-
-                    <div class="fg">
-                        <label class="fl">Nome do titular</label>
-                        <input type="text" name="nome_cliente" class="fi" placeholder="Nome completo" required autocomplete="name" value="{{ old('nome_cliente') }}">
-                    </div>
-
-                    <div class="fg">
-                        <label class="fl">WhatsApp</label>
-                        <input type="tel" name="whatsapp" class="fi" placeholder="+244 9XX XXX XXX" required autocomplete="tel" value="{{ old('whatsapp') }}">
-                    </div>
-
-                    <div class="fg">
-                        <label class="fl">Quantidade de bilhetes</label>
-                        <div class="qty-wrapper">
-                            <span class="qty-label">Bilhetes</span>
-                            <div class="qty-controls">
-                                <button type="button" class="qty-control-btn" x-on:click="dec()">−</button>
-                                <span class="qty-value" x-text="quantidade"></span>
-                                <button type="button" class="qty-control-btn" x-on:click="inc()">+</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="total-row">
-                        <span class="total-label">Total a pagar</span>
-                        <span class="total-value" x-text="total()+' Kz'"></span>
-                    </div>
-
-                    <div class="fg">
-                        <label class="fl">Comprovativo de pagamento</label>
-                        <div class="upload-area">
-                            <input type="file" name="comprovativo" required accept=".jpg,.jpeg,.png,.pdf" onchange="handleUpload(this)">
-                            <div class="upload-icon">📎</div>
-                            <div class="upload-label">Clica para anexar</div>
-                            <div class="upload-hint">JPG, PNG ou PDF · máx. 5 MB</div>
-                        </div>
-                        <div class="upload-preview" id="upload-preview">
-                            <span>✅</span>
-                            <span class="upload-preview-name" id="upload-preview-name"></span>
-                        </div>
-                    </div>
-
-                    <button type="submit" class="submit-btn">✅ Confirmar Reserva</button>
-                    <div class="submit-notice">🔒 Reserva segura · O staff valida o comprovativo em até 24h e emite o bilhete digital</div>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-
-{{-- DRAWER BILHETES MOBILE --}}
-<div class="drawer-overlay" id="drawer-bilhetes-mobile" onclick="if(event.target===this)fecharDrawer('drawer-bilhetes-mobile')">
+{{-- ═══ DRAWER: BILHETES MOBILE / COMPRA RAPIDA ═══ --}}
+<div class="drawer-overlay" id="drawer-bilhetes-mobile" onclick="if(event.target===this) fecharDrawer('drawer-bilhetes-mobile')">
     <div class="drawer-box">
         <div class="drawer-handle"></div>
         <div class="drawer-title-row">
-            <div class="drawer-title">🎟 Bilhetes</div>
-            <button class="drawer-close" onclick="fecharDrawer('drawer-bilhetes-mobile')">✕</button>
+            <div class="drawer-title">🎟️ Escolha seu Ingresso</div>
+            <button class="drawer-close" onclick="fecharDrawer('drawer-bilhetes-mobile')">×</button>
         </div>
-        @forelse($evento->tiposIngresso as $tipo)
-        <div class="ticket-type {{ $tipo->quantidade_disponivel <= 0 ? 'esgotado' : '' }}" style="margin-bottom:10px;"
-            onclick="selecionarTipoMobile('{{ addslashes(e($tipo->nome)) }}',{{ $tipo->preco }},{{ $tipo->id }},{{ $tipo->quantidade_disponivel }})">
-            <div>
-                <div class="ticket-type-name">{{ e($tipo->nome) }}</div>
-                <div class="ticket-type-avail">
-                    @if($tipo->quantidade_disponivel > 0) {{ $tipo->quantidade_disponivel }} disponíveis
-                    @else Esgotado @endif
+        <div style="display:flex;flex-direction:column;gap:8px;">
+            @foreach($evento->tiposIngresso as $tipo)
+                @php $esg = $tipo->quantidade_disponivel <= 0; @endphp
+                <div class="ticket-type {{ $esg ? 'esgotado' : '' }}"
+                     onclick="selecionarTipoMobile('{{ e($tipo->nome) }}', {{ $tipo->preco }}, '{{ $tipo->id }}', {{ $tipo->quantidade_disponivel }})">
+                    <div>
+                        <div class="ticket-type-name">{{ e($tipo->nome) }}</div>
+                        <div class="ticket-type-avail">
+                            @if($esg) <span style="color:var(--rose)">Esgotado</span> @else {{ $tipo->quantidade_disponivel }} disponíveis @endif
+                        </div>
+                    </div>
+                    <div class="ticket-type-price">
+                        @if($tipo->preco == 0) Gratuito @else {{ number_format($tipo->preco,0,',','.') }}<small>KZ</small> @endif
+                    </div>
                 </div>
-            </div>
-            <div>
-                <div class="ticket-type-price">{{ number_format($tipo->preco,0,',','.') }} Kz</div>
-                <small style="font-size:10px;color:var(--muted);">por bilhete</small>
-            </div>
+            @endforeach
         </div>
-        @empty
-        <p style="text-align:center;color:var(--muted);padding:20px 0;font-size:13px;">Sem bilhetes disponíveis.</p>
-        @endforelse
     </div>
 </div>
 
-{{-- DRAWER DETALHES --}}
-<div class="drawer-overlay" id="drawer-detalhes" onclick="if(event.target===this)fecharDrawer('drawer-detalhes')">
+{{-- ═══ DRAWER: MAIS DETALHES ═══ --}}
+<div class="drawer-overlay" id="drawer-detalhes" onclick="if(event.target===this) fecharDrawer('drawer-detalhes')">
     <div class="drawer-box">
         <div class="drawer-handle"></div>
         <div class="drawer-title-row">
-            <div class="drawer-title">ℹ️ Detalhes completos</div>
-            <button class="drawer-close" onclick="fecharDrawer('drawer-detalhes')">✕</button>
+            <div class="drawer-title">🔍 Informações Detalhadas</div>
+            <button class="drawer-close" onclick="fecharDrawer('drawer-detalhes')">×</button>
         </div>
-        <div class="drawer-info-row"><span class="drawer-info-lbl">Data</span><span class="drawer-info-val">{{ \Carbon\Carbon::parse($evento->data_evento)->format('d/m/Y') }}</span></div>
-        @if($evento->hora_inicio)
-        <div class="drawer-info-row">
-            <span class="drawer-info-lbl">Hora</span>
-            <span class="drawer-info-val">{{ substr($evento->hora_inicio,0,5) }}@if($evento->hora_fim) – {{ substr($evento->hora_fim,0,5) }}@endif</span>
-        </div>
+        <div class="drawer-info-row"><span class="drawer-info-lbl">Organizador</span><span class="drawer-info-val">{{ e(optional($evento->user)->name ?? 'Não informado') }}</span></div>
+        <div class="drawer-info-row"><span class="drawer-info-lbl">Telefone</span><span class="drawer-info-val">{{ e($evento->telefone_contacto ?? 'Não informado') }}</span></div>
+        <div class="drawer-info-row"><span class="drawer-info-lbl">Email</span><span class="drawer-info-val" style="word-break:break-all;">{{ e($evento->email_contacto ?? 'Não informado') }}</span></div>
+        <div class="drawer-info-row"><span class="drawer-info-lbl">Abertura de portas</span><span class="drawer-info-val">{{ $evento->hora_inicio ? substr($evento->hora_inicio,0,5) : '—' }}</span></div>
+        @if($evento->link_externo)
+            <div class="drawer-info-row"><span class="drawer-info-lbl">Website</span><span class="drawer-info-val"><a href="{{ e($evento->link_externo) }}" target="_blank" style="color:var(--cyan);">Visitar Link externos 🔗</a></span></div>
         @endif
-        @if($evento->data_fim && $evento->data_fim !== $evento->data_evento)
-        <div class="drawer-info-row"><span class="drawer-info-lbl">Termina</span><span class="drawer-info-val">{{ \Carbon\Carbon::parse($evento->data_fim)->format('d/m/Y') }}</span></div>
-        @endif
-        <div class="drawer-info-row"><span class="drawer-info-lbl">Local</span><span class="drawer-info-val">{{ e($evento->localizacao) }}</span></div>
-        @if($evento->municipio)
-        <div class="drawer-info-row"><span class="drawer-info-lbl">Município</span><span class="drawer-info-val">{{ e($evento->municipio) }}</span></div>
-        @endif
-        @if($evento->provincia)
-        <div class="drawer-info-row"><span class="drawer-info-lbl">Província</span><span class="drawer-info-val">{{ e($evento->provincia) }}</span></div>
-        @endif
-        @if($evento->lotacao_maxima)
-        <div class="drawer-info-row"><span class="drawer-info-lbl">Lotação</span><span class="drawer-info-val">{{ number_format($evento->lotacao_maxima,0,',','.') }} pessoas</span></div>
-        @endif
-        <div class="drawer-info-row"><span class="drawer-info-lbl">Formato</span><span class="drawer-info-val">{{ $evento->online ? '🌐 Online' : '📍 Presencial' }}</span></div>
-        @if($evento->categoria)
-        <div class="drawer-info-row"><span class="drawer-info-lbl">Categoria</span><span class="drawer-info-val">{{ $catEmoji }} {{ e($evento->categoria->nome) }}</span></div>
-        @endif
-        @if($evento->subcategoria)
-        <div class="drawer-info-row"><span class="drawer-info-lbl">Subcategoria</span><span class="drawer-info-val">{{ e($evento->subcategoria->nome) }}</span></div>
-        @endif
-        <a href="{{ route('mensagens.index', ['user_id' => (int)$evento->user_id, 'evento_id' => (int)$evento->id]) }}" class="contactar-btn">💬 Contactar organizador</a>
+        <a href="{{ route('mensagens.index', ['user_id' => (int)$evento->user_id, 'evento_id' => (int)$evento->id]) }}" class="contactar-btn">💬 Enviar Mensagem Direta</a>
     </div>
 </div>
 
-{{-- DRAWER GALERIA --}}
+{{-- ═══ DRAWER: GALERIA COMPLETA ═══ --}}
 @if($temFotos)
-<div class="drawer-overlay" id="drawer-galeria" onclick="if(event.target===this)fecharDrawer('drawer-galeria')">
-    <div class="drawer-box">
+<div class="drawer-overlay" id="drawer-galeria" onclick="if(event.target===this) fecharDrawer('drawer-galeria')">
+    <div class="drawer-box" style="max-width:540px;">
         <div class="drawer-handle"></div>
         <div class="drawer-title-row">
-            <div class="drawer-title">🖼️ Galeria</div>
-            <button class="drawer-close" onclick="fecharDrawer('drawer-galeria')">✕</button>
+            <div class="drawer-title">🖼️ Galeria de Fotos ({{ $fotos->count() }})</div>
+            <button class="drawer-close" onclick="fecharDrawer('drawer-galeria')">×</button>
         </div>
         <div class="gallery-drawer-grid">
-            @foreach($fotos as $foto)
-            <img src="{{ asset('storage/'.e($foto->caminho)) }}" alt="Foto" loading="lazy">
+            @foreach($fotos as $ft)
+                <a href="{{ asset('storage/'.$ft->caminho) }}" target="_blank">
+                    <img src="{{ asset('storage/'.$ft->caminho) }}" alt="Foto do evento" loading="lazy">
+                </a>
             @endforeach
         </div>
     </div>
 </div>
 @endif
-
-<script>
-function abrirDrawer(id){
-    var el=document.getElementById(id);
-    if(el){el.classList.add('open');document.body.style.overflow='hidden';}
-}
-function fecharDrawer(id){
-    var el=document.getElementById(id);
-    if(el){el.classList.remove('open');document.body.style.overflow='';}
-}
-function toggleSobre(){
-    var p=document.getElementById('sobreText');
-    var btn=document.getElementById('sobreBtn');
-    var aberto=btn.textContent.includes('menos');
-    p.style.webkitLineClamp=aberto?'4':'unset';
-    p.style.overflow=aberto?'hidden':'visible';
-    btn.textContent=aberto?'Ver mais ↓':'Ver menos ↑';
-}
-function handleUpload(input){
-    var file=input.files[0];
-    var prev=document.getElementById('upload-preview');
-    var name=document.getElementById('upload-preview-name');
-    if(file){name.textContent=file.name;prev.style.display='flex';}
-    else{prev.style.display='none';}
-}
-document.addEventListener('keydown',function(e){
-    if(e.key==='Escape'){
-        document.querySelectorAll('.drawer-overlay.open').forEach(function(d){d.classList.remove('open');});
-        document.body.style.overflow='';
+{{-- ═══ MODAL ALPINE COM LÓGICA DE INICIALIZAÇÃO ═══ --}}
+<div x-data="{
+    modalAberto: false,
+    ingressoNome: '',
+    ingressoPreco: 0,
+    ingressoId: '',
+    quantidade: 1,
+    
+    inc() { this.quantidade++ },
+    dec() { if(this.quantidade > 1) this.quantidade-- },
+    total() { return (this.quantidade * this.ingressoPreco).toLocaleString('pt-PT') },
+    
+    fecharModal() {
+        this.modalAberto = false;
+        document.body.style.overflow = '';
     }
-});
+}"
+@abrir-modal.window="
+    ingressoNome = $event.detail.nome;
+    ingressoPreco = $event.detail.preco;
+    ingressoId = $event.detail.id;
+    quantidade = 1;
+    modalAberto = true;
+    document.body.style.overflow = 'hidden';
+">
 
-function selecionarTipo(nome, preco, id, disp) {
-    if (disp <= 0) return;
-    window.dispatchEvent(new CustomEvent('abrir-modal', { detail: { nome, preco, id } }));
-}
-function selecionarTipoMobile(nome, preco, id, disp) {
-    if (disp <= 0) return;
-    fecharDrawer('drawer-bilhetes-mobile');
-    window.dispatchEvent(new CustomEvent('abrir-modal', { detail: { nome, preco, id } }));
-}
-</script>
+    {{-- Overlay Escuro --}}
+    <div x-show="modalAberto" class="modal-overlay" x-cloak style="display:none;"></div>
 
-</div>{{-- /x-data --}}
-@endif
+    {{-- Container do Centro - Fecha ao clicar fora --}}
+    <div x-show="modalAberto" class="modal-center" x-cloak style="display:none;" @click="if($event.target === $el) fecharModal()">
+        
+        <div class="modal-box" 
+             x-show="modalAberto" 
+             x-transition:enter="transition ease-out duration-300" 
+             x-transition:enter-start="transform translate-y-full" 
+             x-transition:enter-end="transform translate-y-0" 
+             x-transition:leave="transition ease-in duration-200" 
+             x-transition:leave-start="transform translate-y-0" 
+             x-transition:leave-end="transform translate-y-full">
+            
+            <div class="modal-drag"></div>
+            <div class="modal-top">
+                <div>
+                    <div class="modal-secure-badge">Ambiente de Compra Seguro</div>
+                    <div class="modal-top-title">Inscrição no Evento</div>
+                </div>
+                <button type="button" class="modal-x" @click="fecharModal()">×</button>
+            </div>
+
+            <div class="modal-body">
+                {{-- Resumo do Evento --}}
+                <div class="modal-ev-row">
+                    @if($temCapa)
+                        <img class="modal-ev-thumb" src="{{ asset('storage/'.$evento->imagem_capa) }}" alt="">
+                    @elseif($temFotos)
+                        <img class="modal-ev-thumb" src="{{ asset('storage/'.$fotos->first()->caminho) }}" alt="">
+                    @else
+                        <div class="modal-ev-thumb-ph">{{ $catEmoji }}</div>
+                    @endif
+                    <div>
+                        <div class="modal-ev-name">{{ e($evento->titulo) }}</div>
+                        <div class="modal-ev-sub">📅 {{ \Carbon\Carbon::parse($evento->data_evento)->format('d/m/Y') }}</div>
+                    </div>
+                </div>
+
+                {{-- Tipo de Ingresso Selecionado --}}
+                <div class="modal-selected-type">
+                    <div>
+                        <div class="modal-selected-name" x-text="ingressoNome"></div>
+                        <div class="modal-selected-sub">Tipo de ingresso escolhido</div>
+                    </div>
+                    <div class="modal-selected-price">
+                        <span x-text="ingressoPreco == 0 ? 'Gratuito' : (ingressoPreco).toLocaleString('pt-PT')"></span>
+                        <small class="modal-selected-kz" x-show="ingressoPreco > 0">KZ</small>
+                    </div>
+                </div>
+
+                {{-- FORMULÁRIO DE ENVIO --}}
+                <form action="{{ route('reserva.guardar') }}" method="POST" enctype="multipart/form-data">
+                    @csrf
+                    <input type="hidden" name="evento_id" value="{{ $evento->id }}">
+                    <input type="hidden" name="tipo_ingresso_id" :value="ingressoId">
+
+                    {{-- QUANTIDADE --}}
+                    <div class="fg" x-show="ingressoPreco > 0">
+                        <label class="fl">Quantidade de Bilhetes</label>
+                        <div class="qty-wrapper">
+                            <span class="qty-label">Selecione a quantidade</span>
+                            <div class="qty-controls">
+                                <button type="button" class="qty-control-btn" @click="dec()">-</button>
+                                <span class="qty-value" x-text="quantidade"></span>
+                                <input type="hidden" name="quantidade" :value="quantidade">
+                                <button type="button" class="qty-control-btn" @click="inc()">+</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- TOTAL DINÂMICO --}}
+                    <div class="total-row" x-show="ingressoPreco > 0">
+                        <span class="total-label">Total a Pagar:</span>
+                        <span class="total-value">
+                            <span x-text="total()"></span> 
+                            <small style="font-size:12px; color:var(--gold);">KZ</small>
+                        </span>
+                    </div>
+
+                    {{-- CAMPOS DO CLIENTE --}}
+                    <div class="fg">
+                        <label class="fl">Nome Completo</label>
+                        <input type="text" name="nome_cliente" class="fi" placeholder="Seu nome completo" required>
+                    </div>
+
+                    <div class="fg">
+                        <label class="fl">Telefone / WhatsApp</label>
+                        <input type="text" name="whatsapp" class="fi" placeholder="Ex: 923 000 000" required>
+                    </div>
+
+                    {{-- UPLOAD DE COMPROVATIVO --}}
+                    <div class="fg" x-show="ingressoPreco > 0">
+                        <label class="fl">Comprovativo de Pagamento</label>
+                        <div class="upload-area">
+                            <input type="file" name="comprovativo" onchange="handleUpload(this)">
+                            <div class="upload-icon">📁</div>
+                            <div class="upload-label">Clique para carregar o comprovativo</div>
+                            <div class="upload-hint">Formatos: JPG, PNG (Máx: 2MB)</div>
+                        </div>
+                        
+                        {{-- Preview Dinâmico --}}
+                        <div class="upload-preview" id="upload-preview">
+                            <div class="upload-preview-name" id="upload-preview-name"></div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="submit-btn">
+                        <span>Confirmar Inscrição 🚀</span>
+                    </button>
+                    <p class="submit-notice">Ao confirmar, os seus dados serão enviados para a organização do evento de forma segura.</p>
+                </form>
+
+            </div>
+        </div>
+    </div>
+</div>
 @endsection

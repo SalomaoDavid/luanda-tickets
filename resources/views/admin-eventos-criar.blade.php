@@ -413,19 +413,61 @@ main{max-width:100%!important;padding:0!important;}
                         </div>
                         <div class="grid2">
                             <div class="field">
-                                <label>Município</label>
-                                <select name="municipio">
-                                    @foreach(['Luanda','Talatona','Viana','Cacuaco','Cazenga','Kilamba Kiaxi','Belas','Icolo e Bengo'] as $m)
-                                        <option value="{{ $m }}" {{ old('municipio','Luanda')===$m?'selected':'' }}>{{ $m }}</option>
+                                <label for="provincia">Província</label>
+                                <select name="provincia" id="provincia" onchange="atualizarMunicipios()">
+                                    @foreach([
+                                        'Bengo', 'Benguela', 'Bié', 'Cabinda', 'Cuando', 
+                                        'Cuanza Norte', 'Cuanza Sul', 'Cubango', 'Cunene', 'Huambo', 
+                                        'Huíla', 'Icolo e Bengo', 'Luanda', 'Lunda Norte', 'Lunda Sul', 
+                                        'Malanje', 'Moxico', 'Moxico Leste', 'Namibe', 'Uíge', 'Zaire'
+                                    ] as $p)
+                                        <option value="{{ $p }}" {{ old('provincia', 'Luanda') === $p ? 'selected' : '' }}>
+                                            {{ $p }}
+                                        </option>
                                     @endforeach
                                 </select>
                             </div>
+
                             <div class="field">
-                                <label>Província</label>
-                                <select name="provincia">
-                                    @foreach(['Luanda','Benguela','Huíla','Huambo','Cabinda','Namibe','Malanje','Uíge'] as $p)
-                                        <option value="{{ $p }}" {{ old('provincia','Luanda')===$p?'selected':'' }}>{{ $p }}</option>
-                                    @endforeach
+                                <label for="municipio">Município</label>
+                                <select name="municipio" id="municipio" onchange="atualizarDistritos()">
+                                    <option value="">Selecione um Município...</option>
+                                    
+                                    @if(old('provincia', 'Luanda') === 'Luanda')
+                                        @foreach(['Luanda', 'Belas', 'Talatona', 'Viana', 'Cacuaco', 'Cazenga', 'Quiçama'] as $m)
+                                            <option value="{{ $m }}" {{ old('municipio') === $m ? 'selected' : '' }}>{{ $m }}</option>
+                                        @endforeach
+
+                                    @elseif(old('provincia') === 'Icolo e Bengo')
+                                        @foreach(['Icolo e Bengo', 'Catete', 'Bom Jesus', 'Calomboloca'] as $m)
+                                            <option value="{{ $m }}" {{ old('municipio') === $m ? 'selected' : '' }}>{{ $m }}</option>
+                                        @endforeach
+
+                                    @elseif(old('provincia') === 'Benguela')
+                                        @foreach(['Benguela', 'Lobito', 'Catumbela', 'Baía Farta', 'Balombo', 'Bocoio', 'Caimbambo', 'Chongorói', 'Cubal', 'Ganda'] as $m)
+                                            <option value="{{ $m }}" {{ old('municipio') === $m ? 'selected' : '' }}>{{ $m }}</option>
+                                        @endforeach
+
+                                    @elseif(old('provincia') === 'Cabinda')
+                                        @foreach(['Cabinda', 'Belize', 'Buco-Zau', 'Cacongo'] as $m)
+                                            <option value="{{ $m }}" {{ old('municipio') === $m ? 'selected' : '' }}>{{ $m }}</option>
+                                        @endforeach
+
+                                    @elseif(old('provincia') === 'Malanje')
+                                        @foreach(['Malanje', 'Cacuso', 'Calandula', 'Cambundi-Catembo', 'Cangandala', 'Caombo', 'Cuaba Nzogo', 'Cunda-Dia-Baze', 'Luquembo', 'Marimba', 'Massango', 'Mucari', 'Quela', 'Quirima'] as $m)
+                                            <option value="{{ $m }}" {{ old('municipio') === $m ? 'selected' : '' }}>{{ $m }}</option>
+                                        @endforeach
+
+                                    @elseif(old('provincia') === 'Cuanza Norte')
+                                        @foreach(['Cazengo', 'Ambaca', 'Banga', 'Bolongongo', 'Cambambe', 'Golungo Alto', 'Gonguembo', 'Lucala', 'Ngonguembo', 'Quiculungo', 'Samba Caju'] as $m)
+                                            <option value="{{ $m }}" {{ old('municipio') === $m ? 'selected' : '' }}>{{ $m }}</option>
+                                        @endforeach
+
+                                    @elseif(old('provincia') === 'Cuanza Sul')
+                                        @foreach(['Sumbe', 'Amboim', 'Cassongue', 'Conda', 'Ebo', 'Libolo', 'Mussende', 'Porto Amboim', 'Quilenda', 'Quibala', 'Seles', 'Waku Kungo'] as $m)
+                                            <option value="{{ $m }}" {{ old('municipio') === $m ? 'selected' : '' }}>{{ $m }}</option>
+                                        @endforeach
+                                    @endif
                                 </select>
                             </div>
                         </div>

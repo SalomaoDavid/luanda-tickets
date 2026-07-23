@@ -15,11 +15,17 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+
+    $this->call([
+        CategoriaSeeder::class,
+        SubcategoriaSeeder::class,
+    ]);
         // 1. Cria a usuária Creator (você)
         $user1 = \App\Models\User::factory()->create([
             'name' => 'Salomao',
             'email' => 'salomaodavid70@gmail.com',
-            'password' => bcrypt('123456') // senha padrão para teste
+            'password' => bcrypt('123456'), // senha padrão para teste
+            'role' => 'admin'
         ]);
 
         // 2. Cria um contato para você conversar

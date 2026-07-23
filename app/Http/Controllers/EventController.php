@@ -59,8 +59,13 @@ class EventController extends Controller
             'tiposIngresso',
             'fotos:id,evento_id,caminho'
         ])->findOrFail($id);
+        $meta = $evento->meta ?? [];
+        
+        $temMeta = !empty($meta);
+        $catNome = isset($evento->categoria) ? strtolower($evento->categoria->nome) : '';
+        $tParagens = isset($meta['paragens']) ? (is_array($meta['paragens']) ? $meta['paragens'] : json_decode($meta['paragens'], true)) : [];
 
-        return view('evento-detalhes', compact('evento'));
+        return view('evento-detalhes', compact('evento', 'meta', 'temMeta', 'catNome', 'tParagens'));
     }
 
     public function todosEventos(Request $request)

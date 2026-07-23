@@ -354,7 +354,7 @@ main { max-width: 100% !important; padding: 0 !important; }
                 </div>
                 <div class="info-row">
                     <span class="info-label">Criado em</span>
-                    <span class="info-val">{{ $evento->created_at->format('d/m/Y') }}</span>
+                    <span class="info-val">{{ $evento->created_at->format('d/m/Y') ?: '--/--/----' }}</span>
                 </div>
                 <div class="info-row">
                     <span class="info-label">Última edição</span>

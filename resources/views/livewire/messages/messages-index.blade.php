@@ -1,10 +1,11 @@
-<div class="min-h-screen flex items-center justify-center p-2 md:p-4">
+<div class="flex-1 w-full h-[calc(100vh-64px)] min-w-0 overflow-hidden flex items-center justify-center bg-[#020617] p-0">
 
 <style>
     #msg-sidebar { display: flex; }
     #msg-chat    { display: none; flex-direction: column; }
     @media(min-width:768px){
-        #msg-sidebar { display: flex !important; width: 320px; }
+        /* Reduzimos a largura da lista de 320px para 260px (aproximadamente 25% do container) */
+        #msg-sidebar { display: flex !important; width: 260px; }
         #msg-chat    { display: flex !important; }
     }
     #msg-container.show-chat #msg-sidebar { display: none; }
@@ -20,14 +21,15 @@
     .online-person-name { font-size: 9px; font-weight: 700; color: #94a3b8; white-space: nowrap; max-width: 44px; overflow: hidden; text-overflow: ellipsis; text-align: center; }
 </style>
 
+{{-- Usamos a lógica reativa do Livewire no ID do container para evitar que o layout feche sozinho --}}
 <div id="msg-container"
-     class="w-full max-w-5xl overflow-hidden flex"
+     class="w-full max-w-5xl overflow-hidden flex {{ $selectedConversation ? 'show-chat' : '' }}"
      style="height: calc(100vh - 100px); min-height: 500px;
             background: rgba(15,23,42,0.85); backdrop-filter: blur(20px);
             border: 1px solid rgba(59,130,246,0.15); border-radius: 32px;">
 
-    {{-- SIDEBAR --}}
-    <aside id="msg-sidebar" class="flex-col flex-shrink-0 w-full md:w-80"
+    {{-- SIDEBAR (Reduzido para w-64 no desktop para ficar mais compacto) --}}
+    <aside id="msg-sidebar" class="flex-col flex-shrink-0 w-full md:w-64"
            style="border-right: 1px solid rgba(59,130,246,0.15);">
 
         {{-- Header --}}
@@ -94,12 +96,12 @@
                 $isSelected     = $selectedConversation && $selectedConversation->id === $conv->id;
             @endphp
 
+            {{-- Removeu-se o onclick problemático daqui. O Livewire agora trata de tudo dinamicamente através da classe inserida no container pai --}}
             <div class="flex items-center gap-3 px-4 py-3 cursor-pointer transition group"
                  style="{{ $isSelected
                     ? 'background: rgba(59,130,246,0.15); border-left: 3px solid #3b82f6;'
                     : 'border-left: 3px solid transparent;' }}"
-                 wire:click="loadConversation({{ $conv->id }})"
-                 onclick="if(window.innerWidth < 768) document.getElementById('msg-container').classList.add('show-chat')">
+                 wire:click="loadConversation({{ $conv->id }})">
 
                 <div class="relative flex-shrink-0">
                     <img src="{{ $receiver->avatar ? asset('storage/'.$receiver->avatar) : 'https://ui-avatars.com/api/?name='.urlencode($receiver->name).'&background=0ea5e9&color=fff&size=64' }}"
@@ -143,10 +145,10 @@
     {{-- ÁREA DO CHAT --}}
     <main id="msg-chat" class="flex-1 flex-col" style="min-width: 0; overflow: hidden;">
 
-        {{-- Botão voltar mobile --}}
+        {{-- Botão voltar mobile: Executa uma ação no backend para desmarcar a conversa e atualizar o estado global --}}
         <div class="flex md:hidden items-center px-4 py-2 border-b border-white/10 flex-shrink-0"
              style="background: rgba(15,23,42,0.95);">
-            <button onclick="document.getElementById('msg-container').classList.remove('show-chat')"
+            <button wire:click="$set('selectedConversationId', null)"
                     class="text-blue-400 font-bold text-sm flex items-center gap-1">
                 ← Voltar
             </button>
@@ -170,13 +172,4 @@
     </main>
 </div>
 
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        @if($selectedConversation)
-        if (window.innerWidth < 768) {
-            document.getElementById('msg-container').classList.add('show-chat');
-        }
-        @endif
-    });
-</script>
 </div>

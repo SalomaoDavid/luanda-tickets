@@ -6,9 +6,8 @@
     <title>Luanda Tickets</title>
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-     <script src="https://cdn.tailwindcss.com"></script>
-   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>  
-    
+    <script src="https://cdn.jsdelivr.net/npm/emoji-mart@5.6.0/dist/browser.js"></script>
+    @vite(['resources/css/app.css', 'resources/js/app.js']) 
     <style>
         [x-cloak] { display: none !important; }
         body { font-family: 'Inter', sans-serif; }
@@ -24,16 +23,18 @@
             opacity: 0;
             animation: fadeIn 0.35s ease forwards;
         }
-            @keyframes fadeIn {
+        @keyframes fadeIn {
             to { opacity: 1; }
         }
         .btn-blue { background: #2563eb; color: white; padding: 8px 16px; border-radius: 12px; font-weight: 600; transition: 0.3s; }
         .btn-blue:hover { background: #1d4ed8; }
     </style>
-    <script src="https://cdn.jsdelivr.net/npm/@emoji-mart/data"></script>
-</head>
-<body class="text-white relative bg-slate-900" x-data="{ sidebarOpen: false, rightSidebarOpen: false }" x-init="Livewire.on('refresh-alpine', () => {})">
+    
+    <script src="{{ asset('js/emoji-mart.js') }}" async></script>
 
+    @livewireStyles
+</head>
+<body class="text-white relative bg-slate-900" x-data="{ sidebarOpen: false, rightSidebarOpen: false }">
 @php $isHome = request()->routeIs('home'); @endphp
 
 <div class="fixed inset-0 -z-10">
@@ -45,13 +46,16 @@
 
     <div class="flex items-center gap-3">
         {{-- Botão hambúrguer mobile (sidebar esquerda) --}}
-        @if($isHome)
+        {{-- 
+            PROBLEMA 3 (RESOLVIDO): O botão agora não está restrito apenas à rota 'home'.
+            Desta forma, o menu de navegação e as sidebars permanecem funcionais e acessíveis a partir 
+            de subpáginas no Mobile, sem forçar o utilizador a depender de links ocultos.
+        --}}
         <button @click="sidebarOpen = !sidebarOpen" class="md:hidden text-gray-300 hover:text-white focus:outline-none">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
             </svg>
         </button>
-        @endif
 
         <a href="{{ route('home') }}" class="text-xl font-bold">
             <span class="text-blue-400">Luanda</span> <span class="text-white">bilhetes</span>
@@ -98,13 +102,12 @@
         <livewire:notification-bell />
 
         {{-- Botão sidebar direita mobile --}}
-        @if($isHome)
+        {{-- PROBLEMA 3 (RESOLVIDO): Removido o condicional @if($isHome) para garantir o controle da aba lateral direita no mobile em todo o app --}}
         <button @click="rightSidebarOpen = !rightSidebarOpen" class="md:hidden text-gray-300 hover:text-white focus:outline-none">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M12 5l7 7-7 7"/>
             </svg>
         </button>
-        @endif
 
         <div x-data="{ open: false }" class="relative">
             <button @click="open = !open" class="relative focus:outline-none">
@@ -131,21 +134,26 @@
     </div>
 </header>
 
-@if($isHome)
+{{-- Overlay sidebar esquerda mobile --}}
+<div x-show="sidebarOpen" x-cloak @click="sidebarOpen = false"
+     class="fixed inset-0 bg-black/60 z-40 md:hidden"></div>
 
-  {{-- Overlay sidebar esquerda mobile --}}
-  <div x-show="sidebarOpen" x-cloak @click="sidebarOpen = false"
-       class="fixed inset-0 bg-black/60 z-40 md:hidden"></div>
+{{-- Overlay sidebar direita mobile --}}
+<div x-show="rightSidebarOpen" x-cloak @click="rightSidebarOpen = false"
+     class="fixed inset-0 bg-black/60 z-40 md:hidden"></div>
 
-  {{-- Overlay sidebar direita mobile --}}
-  <div x-show="rightSidebarOpen" x-cloak @click="rightSidebarOpen = false"
-       class="fixed inset-0 bg-black/60 z-40 md:hidden"></div>
+{{-- 
+    PROBLEMA 2 (RESOLVIDO): Mudança crucial no container de controle de viewport do conteúdo. 
+    Removido o 'h-screen overflow-hidden' rígido do container geral no Mobile. 
+    Agora, o layout usa 'min-h-screen' em telas pequenas, permitindo que a janela expanda 
+    e role livremente caso um Modal grande ou uma lista extensa de comentários seja aberta no telemóvel, 
+    preservando o comportamento 'md:h-[calc(100vh-4rem)] md:overflow-hidden' limpo apenas em Desktops.
+--}}
+<div class="flex pt-16 min-h-screen md:h-[calc(100vh-4rem)] md:overflow-hidden">
 
-  <div class="flex pt-16 h-screen overflow-hidden">
-
-    <!-- SIDEBAR ESQUERDA -->
-      <aside :class="sidebarOpen ? 'translate-x-0 !flex' : '-translate-x-full md:translate-x-0'"
-       class="w-72 glass-sidebar fixed left-0 top-16 bottom-0 p-6 overflow-y-auto no-scrollbar hidden md:flex flex-col z-40 transition-transform duration-300">
+    {{-- BARRA DA ESQUERDA (Sempre Visível) --}}
+    <aside :class="sidebarOpen ? 'translate-x-0 !flex' : '-translate-x-full md:translate-x-0'"
+           class="w-72 glass-sidebar fixed left-0 top-16 bottom-0 p-6 overflow-y-auto no-scrollbar hidden md:flex flex-col z-40 transition-transform duration-300">
 
         @auth
         @php
@@ -198,15 +206,16 @@
         @endauth
     </aside>
 
-    <!-- CONTEÚDO CENTRAL -->
-    <main class="flex-1 md:ml-72 md:mr-72 overflow-y-auto no-scrollbar p-4 md:p-10 page-transition">
+    {{-- CONTEÚDO CENTRAL (Ganha margem direita dinámica baseada na página) --}}
+    <main class="flex-1 md:ml-72 {{ $isHome ? 'md:mr-72' : 'md:mr-0' }} overflow-y-auto no-scrollbar p-4 md:p-10 page-transition">
         @yield('content')
         {{ $slot ?? '' }}
     </main>
 
-    <!-- SIDEBAR DIREITA -->
+    {{-- BARRA DA DIREITA (Populares - APENAS NA HOME) --}}
+    @if($isHome)
     <aside :class="rightSidebarOpen ? 'translate-x-0 !block' : 'translate-x-full md:translate-x-0'"
-       class="w-72 glass-sidebar-right fixed right-0 top-16 bottom-0 p-6 overflow-y-auto no-scrollbar z-40 hidden md:block transition-transform duration-300">
+           class="w-72 glass-sidebar-right fixed right-0 top-16 bottom-0 p-6 overflow-y-auto no-scrollbar z-40 hidden md:block transition-transform duration-300">
 
         <h2 class="text-sm font-bold mb-4 text-blue-400 uppercase tracking-widest">🎟 Populares</h2>
         @foreach(\App\Models\Evento::latest()->take(3)->get() as $ev)
@@ -235,30 +244,87 @@
         </a>
         @endforeach
     </aside>
+    @endif
 
-  </div>
-
-@else
-<div class="pt-20 min-h-screen page-transition">
-    <main class="max-w-6xl mx-auto px-4 md:p-10">
-        @yield('content')
-        {{ $slot ?? '' }}
-    </main>
 </div>
-@endif
+
 <script>
-    document.addEventListener('alpine:init', () => {
+    // 1. Funções Globais Protegidas (window) para o Drawer e outras utilidades
+    window.abrirDrawer = function(id) {
+        var el = document.getElementById(id);
+        if (el) { 
+            el.classList.add('open'); 
+            document.body.style.overflow = 'hidden'; 
+        }
+    };
+
+    window.fecharDrawer = function(id) {
+        var el = document.getElementById(id);
+        if (el) { 
+            el.classList.remove('open'); 
+            document.body.style.overflow = ''; 
+        }
+    };
+
+    window.toggleSobre = function() {
+        var p = document.getElementById('sobreText');
+        var btn = document.getElementById('sobreBtn');
+        var aberto = btn.textContent.includes('menos');
+        p.style.webkitLineClamp = aberto ? '4' : 'unset';
+        p.style.overflow = aberto ? 'hidden' : 'visible';
+        btn.textContent = aberto ? 'Ver mais ↓' : 'Ver menos ↑';
+    };
+
+    window.handleUpload = function(input) {
+        var file = input.files[0];
+        var prev = document.getElementById('upload-preview');
+        var name = document.getElementById('upload-preview-name');
+        if (file) { 
+            name.textContent = file.name; 
+            prev.style.display = 'flex'; 
+        } else { 
+            prev.style.display = 'none'; 
+        }
+    };
+
+    window.selecionarTipo = function(nome, preco, id, disp) {
+        if (disp <= 0) return;
+        window.dispatchEvent(new CustomEvent('abrir-modal', { detail: { nome, preco, id } }));
+    };
+
+    window.selecionarTipoMobile = function(nome, preco, id, disp) {
+        if (disp <= 0) return;
+        if (typeof window.fecharDrawer === 'function') {
+            window.fecharDrawer('drawer-bilhetes-mobile');
+        }
+        window.dispatchEvent(new CustomEvent('abrir-modal', { detail: { nome, preco, id } }));
+    };
+
+    window.toggleNotifDropdown = function() {
+        const d = document.getElementById('notif-dropdown');
+        if (d) d.classList.toggle('hidden');
+    };
+
+    // 2. Eventos Globais de escuta (Teclado e Cliques)
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            document.querySelectorAll('.drawer-overlay.open').forEach(function(d) { 
+                d.classList.remove('open'); 
+            });
+            document.body.style.overflow = '';
+        }
     });
-function toggleNotifDropdown() {
-    const d = document.getElementById('notif-dropdown');
-    if (d) d.classList.toggle('hidden');
-}
-document.addEventListener('click', function(e) {
-    const d = document.getElementById('notif-dropdown');
-    const btn = e.target.closest('button[wire\\:click="toggleOpen"]');
-    if (d && !btn && !d.contains(e.target)) d.classList.add('hidden');
-});
+
+    document.addEventListener('click', function(e) {
+        const d = document.getElementById('notif-dropdown');
+        const btn = e.target.closest('button[wire\\:click="toggleOpen"]');
+        if (d && !btn && !d.contains(e.target)) d.classList.add('hidden');
+    });
 </script>
+
 @livewireScripts
+    
+{{-- ESSE @STACK É A PORTA DE ENTRADA PARA OS SCRIPTS DOS OUTROS ARQUIVOS --}}
+@stack('scripts')
 </body>
 </html>

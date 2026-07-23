@@ -17,14 +17,14 @@
                 {{ auth()->user()->role === 'admin' ? 'Faturamento Global' : 'Meu Faturamento' }}
             </p>
             <h3 class="text-2xl font-black text-white mt-2">
-                {{ number_format($pagamentos->sum('total'), 0, ',', '.') }} Kz
+                {{ number_format($reservas->sum('total'), 0, ',', '.') }} Kz
             </h3>
         </div>
         
         {{-- Card de Ingressos --}}
         <div class="bg-white/5 rounded-2xl p-6 border-l-4 border-sky-500">
             <p class="text-[10px] font-black uppercase text-slate-500 tracking-widest">Bilhetes Vendidos</p>
-            <h3 class="text-2xl font-black text-white mt-2">{{ $pagamentos->count() }}</h3>
+            <h3 class="text-2xl font-black text-white mt-2">{{ $reservas->count() }}</h3>
         </div>
     </div>
 
@@ -41,7 +41,7 @@
             </thead>
             <tbody>
     {{-- A variável enviada pelo Controller é $pagamentos --}}
-            @foreach($pagamentos as $pago)
+            @foreach($reservas as $pago)
             <tr class="border-b border-gray-50 hover:bg-gray-50/50 transition">
                 {{-- Aqui usamos $pago (singular) para pegar os dados de cada linha --}}
                 <td class="p-6 font-bold text-gray-900">{{ $pago->nome_cliente }}</td>
