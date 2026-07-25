@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="max-w-7xl mx-auto px-4 py-10">
+<div class="w-full px-2 py-6 md:max-w-7xl md:mx-auto md:px-4 md:py-10">
     <div class="flex justify-between items-center mb-8">
         <h1 class="text-3xl font-black text-white uppercase italic">✅ Vendas Confirmadas</h1>
         <a href="{{ route('admin.reservas') }}" class="bg-white/10 text-slate-400 px-6 py-2 rounded-full font-bold hover:bg-white/20 transition text-xs uppercase tracking-widest">

@@ -6,68 +6,78 @@ use App\Models\Reserva;
 use App\Models\Conversation;
 use App\Models\Pedido;
 use App\Models\Bilhete;
+use App\Models\TipoIngresso;
+use App\Services\BilheteService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use App\Notifications\TicketPurchasedNotification;
 
 class BookingController extends Controller
 {
     /**
-     * Confirma a reserva, gera o pedido e os bilhetes individuais.
+     * Confirma a reserva, gera o pedido, subtrai stock e emite bilhetes seguros.
      */
     public function confirmarReserva($id)
     {
         return DB::transaction(function () use ($id) {
 
-            // ✅ Select específico nas relações — só colunas necessárias
             $reserva = Reserva::with([
-                'tipoIngresso:id,evento_id,nome,preco',
+                'tipoIngresso:id,evento_id,nome,preco,quantidade_disponivel',
                 'tipoIngresso.evento:id,user_id,titulo',
                 'tipoIngresso.evento.user:id,name',
-                'user:id,name,email'
+                'user:id,name,email',
             ])->findOrFail($id);
 
-            $evento = $reserva->tipoIngresso->evento;
+            $evento       = $reserva->tipoIngresso->evento;
+            $tipoIngresso = $reserva->tipoIngresso;
 
-            // Verificação de permissão — lógica intacta
+            // ── Verificação de permissão ──
             if (auth()->user()->role !== 'admin' && $evento->user_id !== auth()->id()) {
                 abort(403, 'Ação não autorizada.');
             }
 
-            // 1. Atualizar Status — usando updateQuietly (sem disparar eventos desnecessários)
+            // ── Verificação de stock (última linha de defesa antes de confirmar) ──
+            if ($tipoIngresso->quantidade_disponivel < $reserva->quantidade) {
+                return redirect()->back()->with('error',
+                    "Não há bilhetes suficientes disponíveis. Disponíveis: {$tipoIngresso->quantidade_disponivel}, pedido: {$reserva->quantidade}."
+                );
+            }
+
+            // 1. Atualiza status da reserva
             $reserva->updateQuietly(['status' => 'pago']);
 
-            // 2. Criar o Pedido Financeiro — lógica intacta
+            // 2. Subtrai a quantidade do stock
+            //    decrement é atómico — sem race conditions
+            //    O trigger MySQL garante que não fica negativo
+            TipoIngresso::where('id', $tipoIngresso->id)
+                ->decrement('quantidade_disponivel', $reserva->quantidade);
+
+            // 3. Cria o pedido financeiro
             $pedido = Pedido::create([
                 'user_id'           => $reserva->user_id,
                 'total_pago'        => $reserva->total,
                 'metodo_pagamento'  => 'Transferencia',
                 'status'            => 'pago',
-                'comprovativo_path' => $reserva->comprovativo_path
+                'comprovativo_path' => $reserva->comprovativo_path,
             ]);
 
-            // 3. Gerar Bilhetes em batch (insert único em vez de N inserts)
-            $bilhetes = [];
-            for ($i = 0; $i < $reserva->quantidade; $i++) {
-                $bilhetes[] = [
-                    'pedido_id'         => $pedido->id,
-                    'evento_id'         => $evento->id,
-                    'tipo_ingressos_id' => $reserva->tipo_ingresso_id,
-                    'codigo_unico'      => (string) Str::uuid(),
-                    'validado_em'       => null,
-                    'created_at'        => now(),
-                    'updated_at'        => now(),
-                ];
-            }
-            Bilhete::insert($bilhetes); // ✅ 1 query em vez de N queries
+            // 4. Emite bilhetes com HMAC + lote + auditoria
+            BilheteService::emitirLote(
+                pedidoId:       $pedido->id,
+                eventoId:       $evento->id,
+                tipoIngressoId: $reserva->tipo_ingresso_id,
+                userId:         $reserva->user_id ?? auth()->id(),
+                quantidade:     $reserva->quantidade,
+                total:          $reserva->total,
+                ip:             request()->ip()
+            );
 
-            // 4. Notificação — lógica intacta
+            // 5. Notificação
             if ($reserva->user_id && $evento->user_id !== $reserva->user_id) {
                 $evento->user->notify(new TicketPurchasedNotification($reserva));
             }
 
-            // 5. Lógica de Chat — lógica intacta
+            // 6. Lógica de Chat — intacta
             $conversation = Conversation::where('evento_id', $evento->id)
                 ->whereHas('users', function ($q) use ($reserva) {
                     if ($reserva->user_id) {
@@ -83,7 +93,7 @@ class BookingController extends Controller
 
                 $conversation->messages()->create([
                     'user_id' => $evento->user_id,
-                    'body'    => "Olá! O seu pagamento para o evento '{$evento->titulo}' foi confirmado com sucesso. Seus bilhetes já estão disponíveis no seu perfil!"
+                    'body'    => "Olá! O seu pagamento para o evento '{$evento->titulo}' foi confirmado com sucesso. Os seus bilhetes já estão disponíveis no seu perfil!",
                 ]);
             }
 
@@ -92,7 +102,7 @@ class BookingController extends Controller
     }
 
     /**
-     * Lista as reservas pendentes para o Admin ou Criador do Evento.
+     * Lista reservas pendentes para Admin ou Criador.
      */
     public function adminReservas()
     {
@@ -106,11 +116,10 @@ class BookingController extends Controller
             });
         }
 
-        // ✅ Select específico — sem carregar colunas desnecessárias
         $reservas = $query->with([
             'tipoIngresso:id,evento_id,nome,preco',
             'tipoIngresso.evento:id,user_id,titulo',
-            'user:id,name,email'
+            'user:id,name,email',
         ])
         ->orderBy('created_at', 'desc')
         ->get();
@@ -119,7 +128,7 @@ class BookingController extends Controller
     }
 
     /**
-     * Lista as reservas já pagas (Histórico).
+     * Lista reservas pagas (histórico).
      */
     public function adminPagos()
     {
@@ -133,15 +142,30 @@ class BookingController extends Controller
             });
         }
 
-        // ✅ Select específico — sem carregar colunas desnecessárias
-        $reservas = $query->with([
+        $pagamentos = $query->with([
             'tipoIngresso:id,evento_id,nome,preco',
             'tipoIngresso.evento:id,user_id,titulo',
-            'user:id,name,email'
+            'user:id,name,email',
         ])
         ->orderBy('updated_at', 'desc')
         ->get();
 
-        return view('admin-pagos', compact('reservas'));
+        return view('admin-pagos', compact('pagamentos'));
+    }
+
+    /**
+     * Elimina uma reserva pendente.
+     */
+    public function eliminarReserva($id)
+    {
+        $reserva = Reserva::findOrFail($id);
+
+        if (auth()->user()->role !== 'admin') {
+            abort(403);
+        }
+
+        $reserva->delete();
+
+        return redirect()->back()->with('success', 'Reserva eliminada.');
     }
 }

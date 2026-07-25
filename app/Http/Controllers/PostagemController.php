@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Postagem;
 use App\Models\PostagemReacao;
 use App\Models\PostagemComentario;
+use App\Notifications\PostagemLikedNotification;
+use App\Notifications\PostagemComentarioNotification;
 use Illuminate\Http\Request;
 
 class PostagemController extends Controller
@@ -20,38 +22,48 @@ class PostagemController extends Controller
             return response()->json(['error' => 'Tipo inválido'], 400);
         }
 
-        // ✅ Select específico — só colunas necessárias
-        $reacao = PostagemReacao::select('id', 'tipo', 'user_id', 'postagem_id')
+        $postagem = Postagem::select('id','user_id','conteudo')->findOrFail($id);
+
+        $reacao = PostagemReacao::select('id','tipo','user_id','postagem_id')
             ->where('user_id', auth()->id())
             ->where('postagem_id', $id)
             ->first();
 
         if ($reacao) {
             if ($reacao->tipo === $tipo) {
-                // Mesmo tipo — remove (toggle off)
                 $reacao->delete();
                 $ativo     = false;
                 $tipoAtivo = null;
             } else {
-                // Tipo diferente — troca a reação usando updateQuietly
-                $reacao->updateQuietly(['tipo' => $tipo]); // ✅ sem disparar eventos
+                $reacao->updateQuietly(['tipo' => $tipo]);
                 $ativo     = true;
                 $tipoAtivo = $tipo;
+
+                // Notifica o dono da postagem ao trocar reação
+                if ($postagem->user_id !== auth()->id()) {
+                    $reacao->load('user:id,name,avatar');
+                    $postagem->user->notify(new PostagemLikedNotification($reacao, $postagem));
+                }
             }
         } else {
-            // Sem reação — cria nova
-            PostagemReacao::create([
+            $novaReacao = PostagemReacao::create([
                 'user_id'     => auth()->id(),
                 'postagem_id' => $id,
                 'tipo'        => $tipo,
             ]);
             $ativo     = true;
             $tipoAtivo = $tipo;
+
+            // ── Notifica o dono da postagem ──
+            if ($postagem->user_id !== auth()->id()) {
+                $novaReacao->load('user:id,name,avatar');
+                $postagem->load('user:id,name');
+                $postagem->user->notify(new PostagemLikedNotification($novaReacao, $postagem));
+            }
         }
 
-        // ✅ Busca contagens direto na BD em vez de carregar o modelo completo
-        $totalCurtidas = PostagemReacao::where('postagem_id', $id)->where('tipo', 'curtida')->count();
-        $totalAdoros   = PostagemReacao::where('postagem_id', $id)->where('tipo', 'adoro')->count();
+        $totalCurtidas = PostagemReacao::where('postagem_id', $id)->where('tipo','curtida')->count();
+        $totalAdoros   = PostagemReacao::where('postagem_id', $id)->where('tipo','adoro')->count();
 
         return response()->json([
             'ativo'         => $ativo,
@@ -65,12 +77,21 @@ class PostagemController extends Controller
     {
         $request->validate(['corpo' => 'required|string|max:500']);
 
+        $postagem = Postagem::select('id','user_id','conteudo')->findOrFail($id);
+
         $comentario = PostagemComentario::create([
             'user_id'     => auth()->id(),
             'postagem_id' => $id,
             'parent_id'   => $request->parent_id ?? null,
             'corpo'       => $request->corpo,
         ]);
+
+        // ── Notifica o dono da postagem ──
+        if ($postagem->user_id !== auth()->id()) {
+            $comentario->load('user:id,name,avatar');
+            $postagem->load('user:id,name');
+            $postagem->user->notify(new PostagemComentarioNotification($comentario, $postagem));
+        }
 
         if (request()->ajax()) {
             return response()->json(['success' => true, 'comentario_id' => $comentario->id]);
@@ -81,8 +102,7 @@ class PostagemController extends Controller
 
     public function eliminarComentario($id)
     {
-        // ✅ Select específico — só colunas necessárias para verificar permissão
-        $comentario = PostagemComentario::select('id', 'user_id')->findOrFail($id);
+        $comentario = PostagemComentario::select('id','user_id')->findOrFail($id);
 
         if ($comentario->user_id !== auth()->id()) {
             return response()->json(['error' => 'Sem permissão'], 403);

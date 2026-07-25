@@ -49,8 +49,25 @@ class LoginRequest extends FormRequest
             ]);
         }
 
-        RateLimiter::clear($this->throttleKey());
-    }
+        $user = Auth::user();
+
+        if ($user->is_blocked) {
+            Auth::logout();
+            throw ValidationException::withMessages([
+                'email' => 'A sua conta foi bloqueada por desrespeitar as nossas políticas. Estamos a verificar a sua conta.',
+            ]);
+        }
+
+        if ($user->suspended_at && $user->suspended_at > now()) {
+            Auth::logout();
+            $data = $user->suspended_at->format('d/m/Y');
+            throw ValidationException::withMessages([
+                'email' => "A sua conta foi suspensa por desrespeitar as nossas políticas. A suspensão termina a {$data}. Estamos a verificar a sua conta.",
+            ]);
+        }
+        
+            RateLimiter::clear($this->throttleKey());
+        }
 
     /**
      * Ensure the login request is not rate limited.

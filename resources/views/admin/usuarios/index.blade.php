@@ -423,6 +423,18 @@
                     </form>
                     @endif
 
+                    {{-- Bloquear / Desbloquear --}}
+                    @if(Route::has('admin.usuarios.bloquear'))
+                    <form action="{{ route('admin.usuarios.bloquear', $user->id) }}" method="POST">
+                        @csrf @method('PATCH')
+                        <button type="submit"
+                            class="usr-exp-btn {{ $user->is_blocked ? 'green' : 'red' }}"
+                            onclick="return confirm('{{ $user->is_blocked ? 'Desbloquear' : 'Bloquear' }} {{ $user->name }}?')">
+                            {{ $user->is_blocked ? '🔓 Desbloquear' : '🚫 Bloquear' }}
+                        </button>
+                    </form>
+                    @endif
+
                     {{-- Eliminar --}}
                     @if(Route::has('admin.usuarios.destroy'))
                     <form action="{{ route('admin.usuarios.destroy', $user->id) }}" method="POST"

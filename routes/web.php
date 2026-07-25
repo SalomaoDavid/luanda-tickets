@@ -8,6 +8,7 @@ use App\Http\Controllers\NewsController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\ReservaController;
 use App\Http\Controllers\SocialController;
+use App\Http\Controllers\NotificacaoController;
 use App\Http\Controllers\PostagemController;
 use App\Http\Controllers\TicketController;
 use App\Http\Controllers\AdminEventoController;
@@ -58,13 +59,22 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/social/publicar', [SocialController::class, 'publicar'])->name('social.publicar');
     // Reações nas postagens
     Route::post('/postagens/{id}/reagir/{tipo}', [PostagemController::class, 'toggleReacao'])->name('postagem.reagir');
-
+    Route::get('/notificacoes', [NotificacaoController::class, 'index'])->name('notificacoes.index');
+    Route::post('/notificacoes/{id}/lida', [NotificacaoController::class, 'marcarLida'])->name('notificacoes.marcarLida');
+    Route::post('/notificacoes/marcar-todas', [NotificacaoController::class, 'marcarTodas'])->name('notificacoes.marcarTodas');
     // Comentários nas postagens
     Route::post('/postagens/{id}/comentar', [PostagemController::class, 'comentar'])->name('postagem.comentar');
     Route::delete('/postagens/comentarios/{id}', [PostagemController::class, 'eliminarComentario'])->name('postagem.comentario.eliminar');
     Route::delete('/post/{id}/eliminar', [SocialController::class, 'eliminarPost'])->name('post.eliminar');
 
     // Perfil do Usuário
+
+    Route::post('/perfil/{id}/seguir',    [ProfileController::class, 'toggleSeguir'])->name('perfil.seguir');
+    Route::post('/perfil/{id}/bloquear',  [ProfileController::class, 'toggleBloquear'])->name('perfil.bloquear');
+    Route::post('/perfil/{id}/denunciar', [ProfileController::class, 'denunciar'])->name('perfil.denunciar');
+    Route::get('/perfil/{id}/seguidores', [ProfileController::class, 'seguidores'])->name('perfil.seguidores');
+    Route::get('/perfil/{id}/seguindo',   [ProfileController::class, 'seguindo'])->name('perfil.seguindo');
+
     Route::get('/u/{id}', [ProfileController::class, 'show'])->name('profile.show');
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
@@ -84,16 +94,19 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     
     // Dashboard Administrativo
     Route::get('/dashboard', [SiteController::class, 'adminDashboard'])->name('admin.dashboard');
+    Route::get('/admin/analises', [SiteController::class, 'analisesSistema'])->name('admin.analises');
+    Route::get('/admin/analises/relatorio/pdf', [SiteController::class, 'relatorioPdf'])->name('admin.analises.pdf');
+    Route::get('/admin/analises/bilhete/{codigo}/pdf', [SiteController::class, 'relatorioBilhete'])->name('admin.analises.bilhete.pdf');
     
     // Gestão de Membros (Selo e Cargos)
     Route::get('/usuarios', [UserController::class, 'index'])->name('admin.usuarios.index');
     Route::patch('/usuarios/{user}/role', [UserController::class, 'updateRole'])->name('admin.usuarios.role');
     Route::patch('/usuarios/{user}/verify', [UserController::class, 'toggleVerify'])->name('admin.usuarios.verify');
     // web.php
-    Route::patch('/admin/usuarios/{id}/suspend', [AdminUsuarioController::class, 'suspend'])->name('admin.usuarios.suspend');
-    Route::delete('/admin/usuarios/{id}', [AdminUsuarioController::class, 'destroy'])->name('admin.usuarios.destroy');
-
-    // Sincronizador de Notícias
+    Route::patch('/usuarios/{id}/suspend', [UserController::class, 'suspend'])->name('admin.usuarios.suspend');
+    Route::delete('/usuarios/{id}', [UserController::class, 'destroy'])->name('admin.usuarios.destroy');
+    Route::patch('/usuarios/{id}/bloquear', [UserController::class, 'bloquear'])->name('admin.usuarios.bloquear');
+    
     Route::get('/noticias/sincronizar', [NewsController::class, 'sincronizar'])->name('noticias.sincronizar');
 
     // Gestão de Eventos (Onde você e os promotores trabalham)

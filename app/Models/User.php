@@ -11,58 +11,49 @@ class User extends Authenticatable
     use HasFactory, Notifiable;
 
     protected $fillable = [
-        'name',
-        'email',
-        'password',
-        'avatar',
-        'role',
-        'bio',
-        'is_verified',
-        'last_seen',
+        'name', 'email', 'password', 'avatar', 'cover',
+        'role', 'bio', 'is_verified', 'last_seen',
+        'is_blocked', 'suspended_at',
     ];
 
-    protected $hidden = [
-        'password',
-        'remember_token',
-    ];
+    protected $hidden = ['password', 'remember_token'];
 
     protected function casts(): array
     {
         return [
             'email_verified_at' => 'datetime',
             'password'          => 'hashed',
-            'last_seen'         => 'datetime', // ← FIX: converte para Carbon automaticamente
+            'last_seen'         => 'datetime',
+            'suspended_at'      => 'datetime',
+            'is_blocked'        => 'boolean',
+            'is_verified'       => 'boolean',
         ];
     }
 
-    // ── ONLINE ────────────────────────────────────────────────
+    // ── ONLINE ──────────────────────────────────────────────
     public function isOnline(): bool
     {
         return $this->last_seen !== null &&
                $this->last_seen->diffInMinutes(now()) < 5;
     }
 
-    // ── ROLES ─────────────────────────────────────────────────
-    public function isAdmin(): bool
+    // ── ROLES ───────────────────────────────────────────────
+    public function isAdmin(): bool    { return $this->role === 'admin'; }
+    public function isCreator(): bool  { return in_array($this->role, ['creator','admin']); }
+    public function isSuspended(): bool
     {
-        return $this->role === 'admin';
+        return $this->suspended_at !== null && $this->suspended_at->isFuture();
     }
 
-    public function isCreator(): bool
-    {
-        return $this->role === 'creator' || $this->role === 'admin';
-    }
-
-    // ── AVATAR ────────────────────────────────────────────────
+    // ── AVATAR URL ──────────────────────────────────────────
     public function getAvatarUrlAttribute(): string
     {
-        if ($this->avatar) {
-            return asset('storage/' . $this->avatar);
-        }
-        return "https://ui-avatars.com/api/?name=" . urlencode($this->name) . "&color=7F9CF5&background=EBF4FF";
+        return $this->avatar
+            ? asset('storage/'.$this->avatar)
+            : 'https://ui-avatars.com/api/?name='.urlencode($this->name).'&color=7F9CF5&background=EBF4FF';
     }
 
-    // ── RELAÇÕES ──────────────────────────────────────────────
+    // ── RELAÇÕES ────────────────────────────────────────────
     public function pedidos()
     {
         return $this->hasMany(Pedido::class);
@@ -85,16 +76,42 @@ class User extends Authenticatable
 
     public function eventosCurtidos()
     {
-        return $this->belongsToMany(\App\Models\Evento::class, 'curtidas', 'user_id', 'evento_id')->withTimestamps();
+        return $this->belongsToMany(\App\Models\Evento::class, 'curtidas', 'user_id', 'evento_id')
+                    ->withTimestamps();
     }
 
+    // ── SEGUIDORES ──────────────────────────────────────────
     public function seguidores()
     {
-        return $this->belongsToMany(User::class, 'seguidores', 'seguido_id', 'seguidor_id')->withTimestamps();
+        return $this->belongsToMany(User::class, 'seguidores', 'seguido_id', 'seguidor_id')
+                    ->withTimestamps();
     }
 
     public function seguindo()
     {
-        return $this->belongsToMany(User::class, 'seguidores', 'seguidor_id', 'seguido_id')->withTimestamps();
+        return $this->belongsToMany(User::class, 'seguidores', 'seguidor_id', 'seguido_id')
+                    ->withTimestamps();
+    }
+
+    public function estaSeguindo(int $userId): bool
+    {
+        return $this->seguindo()->where('seguido_id', $userId)->exists();
+    }
+
+    // ── BLOQUEIOS ──────────────────────────────────────────
+    public function bloqueados()
+    {
+        return $this->belongsToMany(User::class, 'bloqueios', 'bloqueador_id', 'bloqueado_id')
+                    ->withTimestamps();
+    }
+
+    public function estaBloqueado(int $userId): bool
+    {
+        return $this->bloqueados()->where('bloqueado_id', $userId)->exists();
+    }
+
+    public function foiBloqueadoPor(int $userId): bool
+    {
+        return static::find($userId)?->estaBloqueado($this->id) ?? false;
     }
 }

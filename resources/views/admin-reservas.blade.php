@@ -30,7 +30,8 @@
 body { background: var(--ink); }
 
 /* ── WRAPPER ── */
-.rv-wrap { max-width: 1100px; margin: 0 auto; padding: 20px 16px 80px; }
+.rv-wrap { width: 100%; padding: 12px 8px 80px; }
+@media only screen and (min-width: 768px) { .rv-wrap { max-width: 1100px; margin: 0 auto; padding: 20px 16px 80px; } }
 
 /* ── HERO HEADER ── */
 .rv-hero {

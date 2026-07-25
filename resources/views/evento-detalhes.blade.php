@@ -55,8 +55,8 @@ body{
 }
 
 /* ─── PAGE ─── */
-.page{max-width:1080px;margin:0 auto;padding:24px 16px 120px;}
-
+.page{width:100%;padding:12px 8px 120px;}
+@media only screen and (min-width:768px){.page{max-width:1080px;margin:0 auto;padding:24px 16px 120px;}}
 /* ─── HERO BANNER ─── */
 .hero{
     position:relative;

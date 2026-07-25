@@ -56,7 +56,7 @@ body {
 .sc-wrap {
   position: relative; z-index: 1;
   max-width: 520px; margin: 0 auto;
-  padding: 20px 16px 60px;
+  padding: 120px 16px 60px;
 }
 
 /* ── HEADER ── */
