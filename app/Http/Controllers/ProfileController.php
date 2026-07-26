@@ -68,12 +68,15 @@ class ProfileController extends Controller
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
         $user = $request->user();
-        $user->fill($request->validated());
+
+        // Campos de texto
+        $user->fill($request->only(['name','email','bio']));
 
         if ($user->isDirty('email')) {
             $user->email_verified_at = null;
         }
 
+        // Ficheiros
         if ($request->hasFile('avatar')) {
             if ($user->avatar) Storage::disk('public')->delete($user->avatar);
             $user->avatar = $request->file('avatar')->store('avatars','public');
@@ -83,6 +86,19 @@ class ProfileController extends Controller
             if ($user->cover) Storage::disk('public')->delete($user->cover);
             $user->cover = $request->file('cover')->store('covers','public');
         }
+
+        // ── Privacidade ──────────────────────────────────────
+        $user->visibilidade_perfil = $request->input('visibilidade_perfil', 'publico');
+        $user->quem_mensagens      = $request->input('quem_mensagens', 'todos');
+        $user->mostrar_bilhetes    = $request->boolean('mostrar_bilhetes');
+        $user->mostrar_seguidores  = $request->boolean('mostrar_seguidores');
+        $user->pesquisavel         = $request->boolean('pesquisavel');
+
+        // ── Notificações ─────────────────────────────────────
+        $user->notif_eventos    = $request->boolean('notif_eventos');
+        $user->notif_bilhetes   = $request->boolean('notif_bilhetes');
+        $user->notif_mensagens  = $request->boolean('notif_mensagens');
+        $user->notif_seguidores = $request->boolean('notif_seguidores');
 
         $user->save();
 
@@ -229,7 +245,7 @@ class ProfileController extends Controller
             'eventos.id','eventos.user_id','eventos.categoria_id',
             'eventos.titulo','eventos.localizacao','eventos.data_evento',
             'eventos.hora_inicio','eventos.imagem_capa',
-            'eventos.lotacao_maxima','eventos.status',
+            'eventos.lotacao_maxima','eventos.status','eventos.created_at',
         ];
 
         $with = [

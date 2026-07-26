@@ -14,6 +14,15 @@ class User extends Authenticatable
         'name', 'email', 'password', 'avatar', 'cover',
         'role', 'bio', 'is_verified', 'last_seen',
         'is_blocked', 'suspended_at',
+        'visibilidade_perfil',
+        'quem_mensagens',
+        'mostrar_bilhetes',
+        'mostrar_seguidores',
+        'pesquisavel',
+        'notif_eventos',
+        'notif_bilhetes',
+        'notif_mensagens',
+        'notif_seguidores',
     ];
 
     protected $hidden = ['password', 'remember_token'];
@@ -27,6 +36,13 @@ class User extends Authenticatable
             'suspended_at'      => 'datetime',
             'is_blocked'        => 'boolean',
             'is_verified'       => 'boolean',
+            'mostrar_bilhetes'   => 'boolean',
+            'mostrar_seguidores' => 'boolean',
+            'pesquisavel'        => 'boolean',
+            'notif_eventos'      => 'boolean',
+            'notif_bilhetes'     => 'boolean',
+            'notif_mensagens'    => 'boolean',
+            'notif_seguidores'   => 'boolean',
         ];
     }
 

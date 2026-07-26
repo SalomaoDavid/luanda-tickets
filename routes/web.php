@@ -68,13 +68,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/post/{id}/eliminar', [SocialController::class, 'eliminarPost'])->name('post.eliminar');
 
     // Perfil do Usuário
-
     Route::post('/perfil/{id}/seguir',    [ProfileController::class, 'toggleSeguir'])->name('perfil.seguir');
     Route::post('/perfil/{id}/bloquear',  [ProfileController::class, 'toggleBloquear'])->name('perfil.bloquear');
     Route::post('/perfil/{id}/denunciar', [ProfileController::class, 'denunciar'])->name('perfil.denunciar');
     Route::get('/perfil/{id}/seguidores', [ProfileController::class, 'seguidores'])->name('perfil.seguidores');
     Route::get('/perfil/{id}/seguindo',   [ProfileController::class, 'seguindo'])->name('perfil.seguindo');
-
+    
     Route::get('/u/{id}', [ProfileController::class, 'show'])->name('profile.show');
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
