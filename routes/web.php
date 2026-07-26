@@ -33,6 +33,9 @@ Route::get('/', [EventController::class, 'index'])->name('home');
 Route::get('/evento/{id}', [EventController::class, 'show'])->name('evento.detalhes');
 Route::get('/explorar', [EventController::class, 'todosEventos'])->name('eventos.todos');
 
+Route::get('/u/{id}', [ProfileController::class, 'show'])->name('profile.show');
+Route::get('/perfil/{id}/seguidores', [ProfileController::class, 'seguidores'])->name('perfil.seguidores');
+Route::get('/perfil/{id}/seguindo',   [ProfileController::class, 'seguindo'])->name('perfil.seguindo');
 // Notícias
 Route::get('/noticias', [NewsController::class, 'index'])->name('noticias.index');
 Route::get('/noticia/{slug}', [NewsController::class, 'show'])->name('noticias.detalhes');
@@ -71,10 +74,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/perfil/{id}/seguir',    [ProfileController::class, 'toggleSeguir'])->name('perfil.seguir');
     Route::post('/perfil/{id}/bloquear',  [ProfileController::class, 'toggleBloquear'])->name('perfil.bloquear');
     Route::post('/perfil/{id}/denunciar', [ProfileController::class, 'denunciar'])->name('perfil.denunciar');
-    Route::get('/perfil/{id}/seguidores', [ProfileController::class, 'seguidores'])->name('perfil.seguidores');
-    Route::get('/perfil/{id}/seguindo',   [ProfileController::class, 'seguindo'])->name('perfil.seguindo');
     
-    Route::get('/u/{id}', [ProfileController::class, 'show'])->name('profile.show');
+    
+    
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');

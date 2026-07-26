@@ -70,7 +70,9 @@ class ProfileController extends Controller
         $user = $request->user();
 
         // Campos de texto
-        $user->fill($request->only(['name','email','bio']));
+        $user->name  = $request->name;
+        $user->email = $request->email;
+        $user->bio   = $request->bio;
 
         if ($user->isDirty('email')) {
             $user->email_verified_at = null;
@@ -87,18 +89,18 @@ class ProfileController extends Controller
             $user->cover = $request->file('cover')->store('covers','public');
         }
 
-        // ── Privacidade ──────────────────────────────────────
+        // Privacidade — atribuição directa para garantir que false também é guardado
         $user->visibilidade_perfil = $request->input('visibilidade_perfil', 'publico');
         $user->quem_mensagens      = $request->input('quem_mensagens', 'todos');
-        $user->mostrar_bilhetes    = $request->boolean('mostrar_bilhetes');
-        $user->mostrar_seguidores  = $request->boolean('mostrar_seguidores');
-        $user->pesquisavel         = $request->boolean('pesquisavel');
+        $user->mostrar_bilhetes    = $request->has('mostrar_bilhetes') ? 1 : 0;
+        $user->mostrar_seguidores  = $request->has('mostrar_seguidores') ? 1 : 0;
+        $user->pesquisavel         = $request->has('pesquisavel') ? 1 : 0;
 
-        // ── Notificações ─────────────────────────────────────
-        $user->notif_eventos    = $request->boolean('notif_eventos');
-        $user->notif_bilhetes   = $request->boolean('notif_bilhetes');
-        $user->notif_mensagens  = $request->boolean('notif_mensagens');
-        $user->notif_seguidores = $request->boolean('notif_seguidores');
+        // Notificações — mesmo padrão
+        $user->notif_eventos    = $request->has('notif_eventos')    ? 1 : 0;
+        $user->notif_bilhetes   = $request->has('notif_bilhetes')   ? 1 : 0;
+        $user->notif_mensagens  = $request->has('notif_mensagens')  ? 1 : 0;
+        $user->notif_seguidores = $request->has('notif_seguidores') ? 1 : 0;
 
         $user->save();
 

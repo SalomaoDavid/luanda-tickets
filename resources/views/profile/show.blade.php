@@ -2,7 +2,34 @@
 @section('title', $user->name . ' — Luanda Bilhetes')
 @section('content')
 
-@php $handle = strtolower(preg_replace('/\s+/', '.', trim($user->name))); @endphp
+@php
+$handle = strtolower(preg_replace('/\s+/', '.', trim($user->name)));
+
+// ── Privacidade ──────────────────────────────────────
+$visibilidade   = $user->visibilidade_perfil ?? 'publico';
+$quemMsg        = $user->quem_mensagens ?? 'todos';
+$mostrarSeguid  = $user->mostrar_seguidores ?? true;
+
+// Verifica se o visitante pode ver o conteúdo
+$podeVerTudo = $isOwner;
+if (!$isOwner) {
+    if ($visibilidade === 'publico') {
+        $podeVerTudo = true;
+    } elseif ($visibilidade === 'seguidores') {
+        $podeVerTudo = auth()->check() && auth()->user()->estaSeguindo($user->id);
+    } else {
+        // privado
+        $podeVerTudo = false;
+    }
+}
+
+// Pode enviar mensagem?
+$podeMensagem = $isOwner ? false : match($quemMsg) {
+    'todos'      => auth()->check(),
+    'seguidores' => auth()->check() && auth()->user()->estaSeguindo($user->id),
+    default      => false,
+};
+@endphp
 
 <style>
 *, *::before, *::after { box-sizing: border-box; }
@@ -557,7 +584,9 @@
                         style="{{ $euSigo ? 'background:#1e293b;border:1px solid #334155;color:#e2e8f0;' : '' }}">
                     {{ $euSigo ? '✓ A seguir' : '+ Seguir' }}
                 </button>
+                @if($podeMensagem)
                 <a href="{{ route('mensagens.index', ['user_id' => $user->id]) }}" class="btn-msg">💬</a>
+                @endif
                 @endauth
             @endif
             <div class="btn-more" onclick="abrirDrawer('drawer-mais')">⋯</div>
@@ -565,8 +594,10 @@
     </div>
 
     <div class="p-stats">
+        @if(($mostrarSeguid || $isOwner) && $podeVerTudo)
         <div class="p-stat" onclick="verSeguidores({{ $user->id }})"><div class="p-stat-num" id="total-seguidores">{{ $user->seguidores_count ?? 0 }}</div><div class="p-stat-lbl">Seguidores</div></div>
         <div class="p-stat" onclick="verSeguindo({{ $user->id }})"><div class="p-stat-num">{{ $user->seguindo_count ?? 0 }}</div><div class="p-stat-lbl">A seguir</div></div>
+        @endif
         <div class="p-stat"><div class="p-stat-num">{{ $statsCount }}</div><div class="p-stat-lbl">{{ $statsLabel }}</div></div>
         <div class="p-stat"><div class="p-stat-num">{{ $postagens->count() }}</div><div class="p-stat-lbl">Posts</div></div>
         <div class="p-stat"><div class="p-stat-num">{{ $statsCount2 }}</div><div class="p-stat-lbl">{{ $statsLabel2 }}</div></div>
@@ -581,17 +612,20 @@
             <div class="p-qa-icon">📝</div><div class="p-qa-label">Posts</div>
             <div class="p-qa-badge">{{ $postagens->count() }}</div>
         </div>
-        <div class="p-qa-btn" onclick="abrirDrawer('drawer-galeria')">
+        @if($podeVerTudo)<div class="p-qa-btn" onclick="abrirDrawer('drawer-galeria')">
             <div class="p-qa-icon">📸</div><div class="p-qa-label">Galeria</div>
         </div>
+        @endif
         @if($eventos->count()>0)
-        <div class="p-qa-btn" onclick="abrirDrawer('drawer-agenda')">
+        @if($podeVerTudo)<div class="p-qa-btn" onclick="abrirDrawer('drawer-agenda')">
             <div class="p-qa-icon">📅</div><div class="p-qa-label">Agenda</div>
         </div>
         @endif
-        <div class="p-qa-btn" onclick="abrirDrawer('drawer-interesses')">
+        @endif
+        @if($podeVerTudo)<div class="p-qa-btn" onclick="abrirDrawer('drawer-interesses')">
             <div class="p-qa-icon">🏷</div><div class="p-qa-label">Interesses</div>
         </div>
+        @endif
         @if($isOwner)
         <div class="p-qa-btn" onclick="abrirModalBilhetes()">
             <div class="p-qa-icon">🎫</div><div class="p-qa-label">Bilhetes</div>
@@ -606,6 +640,25 @@
 </div>
 
 {{-- PANEL EVENTOS --}}
+@if(!$podeVerTudo && !$isOwner)
+<div style="background:#0d1526;border:1px solid rgba(6,182,212,.15);border-radius:16px;padding:40px 20px;text-align:center;margin-top:16px;">
+    @if($visibilidade === 'privado')
+    <div style="font-size:40px;margin-bottom:12px;">🔒</div>
+    <div style="font-size:15px;font-weight:700;color:#fff;margin-bottom:6px;">Perfil privado</div>
+    <div style="font-size:12px;color:#64748b;">Este perfil é privado. Apenas seguidores aprovados podem ver o conteúdo.</div>
+    @else
+    <div style="font-size:40px;margin-bottom:12px;">👥</div>
+    <div style="font-size:15px;font-weight:700;color:#fff;margin-bottom:6px;">Conteúdo reservado a seguidores</div>
+    <div style="font-size:12px;color:#64748b;margin-bottom:16px;">Segue este perfil para ver as publicações e eventos.</div>
+    @auth
+    <button onclick="toggleSeguir({{ $user->id }})" id="followBtn"
+            style="padding:10px 24px;border-radius:12px;background:linear-gradient(135deg,#06b6d4,#0ea5e9);color:#fff;font-size:13px;font-weight:700;border:none;cursor:pointer;">
+        + Seguir
+    </button>
+    @endauth
+    @endif
+</div>
+@else
 <div class="p-panel active" id="panel-eventos">
     @forelse($eventos as $evento)
     @php
@@ -703,6 +756,30 @@
     @endforelse
 </div>
 
+@endif {{-- /podeVerTudo --}}
+
+{{-- DRAWER SEGUIDORES --}}
+<div class="drawer-overlay" id="drawer-seguidores" onclick="if(event.target===this)fecharDrawer('drawer-seguidores')">
+    <div class="drawer-box">
+        <div class="drawer-handle"></div>
+        <div class="drawer-title">👥 Seguidores <button class="drawer-close" onclick="fecharDrawer('drawer-seguidores')">✕</button></div>
+        <div id="lista-seguidores" style="display:flex;flex-direction:column;gap:8px;">
+            <div style="text-align:center;padding:20px;color:#64748b;font-size:13px;">A carregar...</div>
+        </div>
+    </div>
+</div>
+
+{{-- DRAWER SEGUINDO --}}
+<div class="drawer-overlay" id="drawer-seguindo" onclick="if(event.target===this)fecharDrawer('drawer-seguindo')">
+    <div class="drawer-box">
+        <div class="drawer-handle"></div>
+        <div class="drawer-title">👣 A seguir <button class="drawer-close" onclick="fecharDrawer('drawer-seguindo')">✕</button></div>
+        <div id="lista-seguindo" style="display:flex;flex-direction:column;gap:8px;">
+            <div style="text-align:center;padding:20px;color:#64748b;font-size:13px;">A carregar...</div>
+        </div>
+    </div>
+</div>
+
 {{-- ✅ DRAWER GALERIA --}}
 <div class="drawer-overlay" id="drawer-galeria" onclick="if(event.target===this) fecharDrawer('drawer-galeria')">
     <div class="drawer-box">
@@ -787,7 +864,13 @@
         <div class="mutual-list">
             @foreach(\App\Models\User::where('id','!=',$user->id)->where('id','!=',auth()->id())->take(6)->get() as $u)
             <div class="mutual-item">
-                <div class="mutual-ava" style="background:linear-gradient(135deg,#0c3a4a,#1e6a7a)">{{ strtoupper(substr($u->name,0,2)) }}</div>
+                <div class="mutual-ava" style="background:linear-gradient(135deg,#0c3a4a,#1e6a7a);overflow:hidden;">
+                @if($u->avatar)
+                    <img src="{{ asset('storage/'.$u->avatar) }}" style="width:100%;height:100%;object-fit:cover;" alt="">
+                @else
+                    {{ strtoupper(substr($u->name,0,2)) }}
+                @endif
+                </div>
                 <div class="mutual-info"><div class="mutual-name">{{ $u->name }}</div><div class="mutual-sub">{{ ucfirst($u->role) }}</div></div>
                 <a href="{{ route('profile.show',$u->id) }}" class="mutual-btn">Ver</a>
             </div>
@@ -962,8 +1045,37 @@ async function partilharPerfil(userId) {
         alert('Link copiado!');
     }
 }
-function verSeguidores(userId) { /* futuro: abrir drawer com lista */ }
-function verSeguindo(userId)   { /* futuro: abrir drawer com lista */ }
+async function carregarLista(url, containerId, drawerId) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    abrirDrawer(drawerId);
+    container.innerHTML = '<div style="text-align:center;padding:20px;color:#64748b;font-size:13px;">A carregar...</div>';
+    try {
+        const res = await fetch(url, { headers: {'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest'} });
+        const data = await res.json();
+        const users = data.data || [];
+        if (users.length === 0) {
+            container.innerHTML = '<div style="text-align:center;padding:30px;color:#64748b;font-size:13px;">Sem resultados</div>';
+            return;
+        }
+        container.innerHTML = users.map(u => `
+            <a href="/u/${u.id}" style="display:flex;align-items:center;gap:12px;padding:10px;border-radius:12px;background:#111c2d;border:1px solid rgba(6,182,212,.1);text-decoration:none;transition:border-color .2s;">
+                <div style="width:42px;height:42px;border-radius:50%;overflow:hidden;flex-shrink:0;background:linear-gradient(135deg,#0c3a4a,#1e6a7a);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;color:#06b6d4;border:2px solid rgba(6,182,212,.3);">
+                    ${u.avatar ? `<img src="/storage/${u.avatar}" style="width:100%;height:100%;object-fit:cover;" alt="">` : u.name.substring(0,2).toUpperCase()}
+                </div>
+                <div style="flex:1;min-width:0;">
+                    <div style="font-size:13px;font-weight:700;color:#fff;">${u.name}</div>
+                    <div style="font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:.5px;">${u.role}</div>
+                </div>
+                <span style="font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;background:rgba(6,182,212,.1);border:1px solid rgba(6,182,212,.2);color:#06b6d4;">Ver</span>
+            </a>
+        `).join('');
+    } catch(e) {
+        container.innerHTML = '<div style="text-align:center;padding:20px;color:#f87171;font-size:13px;">Erro ao carregar</div>';
+    }
+}
+function verSeguidores(userId) { carregarLista(`/perfil/${userId}/seguidores`, 'lista-seguidores', 'drawer-seguidores'); }
+function verSeguindo(userId)   { carregarLista(`/perfil/${userId}/seguindo`,   'lista-seguindo',   'drawer-seguindo'); }
 function toggleFollow(){} // mantido por compatibilidade
 function abrirDrawer(id){document.getElementById(id)?.classList.add('open');document.body.style.overflow='hidden';}
 function fecharDrawer(id){document.getElementById(id)?.classList.remove('open');document.body.style.overflow='';}
