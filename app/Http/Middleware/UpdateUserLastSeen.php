@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Symfony\Component\HttpFoundation\Response;
 
 class UpdateUserLastSeen
@@ -11,12 +12,13 @@ class UpdateUserLastSeen
     public function handle(Request $request, Closure $next): Response
     {
         if (auth()->check()) {
-            $user = auth()->user();
+            $userId  = auth()->id();
+            $cacheKey = "user_last_seen_{$userId}";
 
-            // Só atualiza se nunca foi definido ou se passaram 2+ minutos
-            // Evita uma query à BD em cada request
-            if (!$user->last_seen || $user->last_seen->diffInMinutes(now()) >= 2) {
-                $user->updateQuietly(['last_seen' => now()]);
+            // Cache por 2 minutos — evita query à BD em cada request
+            if (!Cache::has($cacheKey)) {
+                auth()->user()->updateQuietly(['last_seen' => now()]);
+                Cache::put($cacheKey, true, now()->addMinutes(2));
             }
         }
 

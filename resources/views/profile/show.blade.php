@@ -573,23 +573,29 @@ $podeMensagem = $isOwner ? false : match($quemMsg) {
         <div class="p-actions">
             @if($isOwner)
                 <a href="{{ route('profile.edit') }}" class="btn-edit">✏️ Editar</a>
+                <div class="btn-more" onclick="abrirDrawer('drawer-mais')">⋯</div>
             @else
                 @auth
                 @php
                     $euSigo   = auth()->user()->estaSeguindo($user->id);
                     $estaBloq = auth()->user()->estaBloqueado($user->id);
                 @endphp
+                {{-- Seguir aparece sempre: permite seguir para ganhar acesso (excepto perfil privado) --}}
+                @if($visibilidade !== 'privado' || $euSigo)
                 <button class="btn-follow" id="followBtn"
                         onclick="toggleSeguir({{ $user->id }})"
                         style="{{ $euSigo ? 'background:#1e293b;border:1px solid #334155;color:#e2e8f0;' : '' }}">
                     {{ $euSigo ? '✓ A seguir' : '+ Seguir' }}
                 </button>
+                @endif
                 @if($podeMensagem)
                 <a href="{{ route('mensagens.index', ['user_id' => $user->id]) }}" class="btn-msg">💬</a>
                 @endif
+                @if($podeVerTudo)
+                <div class="btn-more" onclick="abrirDrawer('drawer-mais')">⋯</div>
+                @endif
                 @endauth
             @endif
-            <div class="btn-more" onclick="abrirDrawer('drawer-mais')">⋯</div>
         </div>
     </div>
 
@@ -604,6 +610,7 @@ $podeMensagem = $isOwner ? false : match($quemMsg) {
     </div>
 
     <div class="p-quick-actions">
+        @if($podeVerTudo)
         <div class="p-qa-btn active" id="qa-eventos" onclick="switchPanel('eventos')">
             <div class="p-qa-icon">🎟</div><div class="p-qa-label">Eventos</div>
             <div class="p-qa-badge">{{ $eventos->count() }}</div>
@@ -612,17 +619,21 @@ $podeMensagem = $isOwner ? false : match($quemMsg) {
             <div class="p-qa-icon">📝</div><div class="p-qa-label">Posts</div>
             <div class="p-qa-badge">{{ $postagens->count() }}</div>
         </div>
-        @if($podeVerTudo)<div class="p-qa-btn" onclick="abrirDrawer('drawer-galeria')">
+        @endif
+        @if($podeVerTudo)
+        <div class="p-qa-btn" onclick="abrirDrawer('drawer-galeria')">
             <div class="p-qa-icon">📸</div><div class="p-qa-label">Galeria</div>
         </div>
         @endif
         @if($eventos->count()>0)
-        @if($podeVerTudo)<div class="p-qa-btn" onclick="abrirDrawer('drawer-agenda')">
+        @if($podeVerTudo)
+        <div class="p-qa-btn" onclick="abrirDrawer('drawer-agenda')">
             <div class="p-qa-icon">📅</div><div class="p-qa-label">Agenda</div>
         </div>
         @endif
         @endif
-        @if($podeVerTudo)<div class="p-qa-btn" onclick="abrirDrawer('drawer-interesses')">
+        @if($podeVerTudo)
+        <div class="p-qa-btn" onclick="abrirDrawer('drawer-interesses')">
             <div class="p-qa-icon">🏷</div><div class="p-qa-label">Interesses</div>
         </div>
         @endif

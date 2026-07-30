@@ -25,6 +25,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'admin' => \App\Http\Middleware\AdminMiddleware::class,
+            'creator' => \App\Http\Middleware\CreatorMiddleware::class,
         ]);
 
         $middleware->web(append: [
@@ -90,8 +91,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 ->with('error', $mensagem);
         });
 
-        // ── 4. ROTA NÃO ENCONTRADA (404 HTTP) ────────────────────────
-        // URL inexistente no web.php
+        /// ── 4. ROTA NÃO ENCONTRADA (404 HTTP) ────────────────────────
         $exceptions->render(function (NotFoundHttpException $e, $request) {
             if ($request->expectsJson() || $request->ajax()) {
                 return response()->json(['error' => 'Página não encontrada.'], 404);

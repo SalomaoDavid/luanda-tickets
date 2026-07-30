@@ -17,17 +17,19 @@ class ProfileUpdateRequest extends FormRequest
                 Rule::unique(User::class)->ignore($this->user()->id),
             ],
             'bio'    => ['nullable', 'string', 'max:300'],
-            'avatar' => ['nullable', 'image', 'max:2048'],
-            'cover'  => ['nullable', 'image', 'max:5120'],
 
-            // ── Privacidade ──────────────────────────────────
+            // Tipo de ficheiro restrito explicitamente
+            'avatar' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:2048'],
+            'cover'  => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:5120'],
+
+            // Privacidade
             'visibilidade_perfil' => ['nullable', 'in:publico,seguidores,privado'],
             'quem_mensagens'      => ['nullable', 'in:todos,seguidores,ninguem'],
             'mostrar_bilhetes'    => ['nullable', 'boolean'],
             'mostrar_seguidores'  => ['nullable', 'boolean'],
             'pesquisavel'         => ['nullable', 'boolean'],
 
-            // ── Notificações ─────────────────────────────────
+            // Notificações
             'notif_eventos'    => ['nullable', 'boolean'],
             'notif_bilhetes'   => ['nullable', 'boolean'],
             'notif_mensagens'  => ['nullable', 'boolean'],

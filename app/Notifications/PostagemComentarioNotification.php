@@ -2,21 +2,37 @@
 
 namespace App\Notifications;
 
-use App\Models\PostagemComentario;
-use App\Models\Postagem;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Notification;
-use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Notifications\Messages\BroadcastMessage;
 
-class PostagemComentarioNotification extends Notification implements ShouldBroadcast
+class PostagemComentarioNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
     public function __construct(
-        public PostagemComentario $comentario,
-        public Postagem $postagem
+        public int    $comentarioId,
+        public int    $userId,
+        public string $userName,
+        public ?string $userPhoto,
+        public int    $postagemId,
+        public string $postagemPreview,
+        public string $preview,
     ) {}
+
+    public static function fromComentario(\App\Models\PostagemComentario $comentario, \App\Models\Postagem $postagem): self
+    {
+        return new self(
+            comentarioId:    $comentario->id,
+            userId:          $comentario->user_id,
+            userName:        $comentario->user->name,
+            userPhoto:       $comentario->user->avatar_url ?? null,
+            postagemId:      $postagem->id,
+            postagemPreview: str($postagem->conteudo)->limit(50),
+            preview:         str($comentario->corpo)->limit(60),
+        );
+    }
 
     public function via(object $notifiable): array
     {
@@ -26,13 +42,13 @@ class PostagemComentarioNotification extends Notification implements ShouldBroad
     public function toDatabase(object $notifiable): array
     {
         return [
-            'comentario_id'   => $this->comentario->id,
-            'user_id'         => $this->comentario->user_id,
-            'user_name'       => $this->comentario->user->name,
-            'user_photo'      => $this->comentario->user->avatar_url ?? null,
-            'postagem_id'     => $this->postagem->id,
-            'postagem_preview'=> str($this->postagem->conteudo)->limit(50),
-            'preview'         => str($this->comentario->corpo)->limit(60),
+            'comentario_id'    => $this->comentarioId,
+            'user_id'          => $this->userId,
+            'user_name'        => $this->userName,
+            'user_photo'       => $this->userPhoto,
+            'postagem_id'      => $this->postagemId,
+            'postagem_preview' => $this->postagemPreview,
+            'preview'          => $this->preview,
         ];
     }
 

@@ -123,20 +123,34 @@ class ChatBox extends Component
     /**
      * Envia mensagem com trava de bloqueio
      */
-    public function sendMessage()
+    public function sendMessage($body = null)
     {
-        if (empty(trim($this->messageBody)) || !$this->conversation) return;
+        $text = trim($body !== null ? $body : $this->messageBody);
+
+        if (empty($text) || !$this->conversation) return;
 
         if ($this->conversation->is_blocked) return;
 
         $message = Message::create([
             'conversation_id' => $this->conversation->id,
             'user_id'         => auth()->id(),
-            'body'            => $this->messageBody,
+            'body'            => $text,
         ]);
 
         $this->conversation->touch();
         $this->messageBody = '';
+
+        // ✅ Envia via WebSocket (ShouldBroadcastNow) para quem estiver com a
+        // conversa aberta do outro lado — chega quase instantaneamente,
+        // sem esperar pelo próximo wire:poll.
+        // Protegido em try/catch: se o Reverb/Pusher falhar por qualquer
+        // motivo (config, rede, etc.), a mensagem continua enviada na mesma
+        // — só perde-se o "empurrão" em tempo real, nunca a mensagem em si.
+        try {
+            broadcast(new \App\Events\MessageSent($message));
+        } catch (\Throwable $e) {
+            report($e);
+        }
 
         $this->dispatch('scroll-down');
         $this->dispatch('refresh-list');
@@ -154,7 +168,11 @@ class ChatBox extends Component
         if ($hasUnread) {
             $receiver = \App\Models\User::find($receiverId);
             if ($receiver) {
-                $receiver->notify(new \App\Notifications\NewMessageNotification($message));
+                try {
+                    $receiver->notify(new \App\Notifications\NewMessageNotification($message->id));
+                } catch (\Throwable $e) {
+                    report($e);
+                }
             }
         }
     }

@@ -3,7 +3,7 @@
 @section('content')
 
 @php
-$fotos     = $evento->fotos;
+$fotos         = $evento->fotos;
 $temCapa   = $evento->imagem_capa;
 $temFotos  = $fotos->count() > 0;
 $preco     = optional($evento->tiposIngresso->sortBy('preco')->first())->preco ?? 0;
@@ -15,7 +15,18 @@ if (is_array($rawMeta))      { $meta = $rawMeta; }
 elseif (is_string($rawMeta)) { $meta = json_decode($rawMeta, true) ?? []; }
 
 $catNome  = strtolower(optional($evento->categoria)->nome ?? '');
-$catEmoji = optional($evento->categoria)->emoji ?? '🎟';
+$catNome2 = strtolower(optional($evento->categoria)->nome ?? '');
+$catEmoji = match(true) {
+    str_contains($catNome2,'música') || str_contains($catNome2,'musica') || str_contains($catNome2,'show') => '🎵',
+    str_contains($catNome2,'festa') || str_contains($catNome2,'festival') => '🎉',
+    str_contains($catNome2,'desporto') => '⚽',
+    str_contains($catNome2,'arte') || str_contains($catNome2,'cultura') => '🎨',
+    str_contains($catNome2,'gastro') || str_contains($catNome2,'comida') => '🍽',
+    str_contains($catNome2,'negócio') || str_contains($catNome2,'negocio') => '💼',
+    str_contains($catNome2,'viagem') => '✈️',
+    str_contains($catNome2,'confer') || str_contains($catNome2,'workshop') => '🎙️',
+    default => '🎟',
+};
 $temMeta  = !empty(array_filter($meta));
 
 $tParagens     = isset($meta['paragens'])     ? (is_array($meta['paragens'])     ? $meta['paragens']     : (json_decode($meta['paragens'],     true) ?? [])) : [];
@@ -132,8 +143,30 @@ body{
     grid-template-columns:1fr;
     gap:20px;
 }
-.layout-left{display:flex;flex-direction:column;gap:20px;}
-.layout-right{display:flex;flex-direction:column;gap:20px;}
+.layout-left{display:flex;flex-direction:column;gap:16px;}
+.layout-right{display:flex;flex-direction:column;gap:16px;}
+
+/* ─── CARDS HORIZONTAIS (abaixo do hero) ─── */
+.cards-row{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:12px;
+    margin-bottom:0;
+}
+@media only screen and (min-width:640px){
+    .cards-row{grid-template-columns:1fr 1fr;}
+}
+@media only screen and (min-width:1024px){
+    .cards-row{grid-template-columns:1fr 1fr 1fr;gap:14px;}
+}
+
+/* Cards compactos no desktop */
+@media only screen and (min-width:768px){
+    .card-body{padding:14px 18px;}
+    .card-head{padding:12px 18px 10px;}
+    .info-item{padding:9px 12px;}
+    .sobre-text{font-size:13px;}
+}
 
 /* ─── CARD BASE ─── */
 .card{
@@ -143,7 +176,7 @@ body{
     overflow:hidden;
 }
 .card-head{
-    padding:18px 22px 14px;
+    padding:14px 20px 12px;
     border-bottom:1px solid var(--border);
     display:flex;align-items:center;justify-content:space-between;
 }
@@ -152,7 +185,7 @@ body{
     font-size:14px;font-weight:800;color:var(--txt);
     display:flex;align-items:center;gap:8px;
 }
-.card-body{padding:18px 22px;}
+.card-body{padding:16px 20px;}
 
 /* ─── SOBRE ─── */
 .sobre-text{
@@ -468,9 +501,9 @@ body{
 .show-mobile{display:flex;}
 
 @media only screen and (min-width: 768px) {
-    .hero{height:380px;}
-    .hero-title{font-size:36px;}
-    .layout{grid-template-columns:1fr 340px;}
+    .hero{height:360px;}
+    .hero-title{font-size:34px;}
+    .layout{grid-template-columns:1fr;}
     .hide-mobile{display:block;}
     .show-mobile{display:none;}
     .modal-center{align-items:center;padding:20px;}
@@ -480,6 +513,32 @@ body{
     .drawer-box{border-radius:24px;max-width:480px;max-height:82vh;}
     .drawer-handle{display:none;}
 }
+/* ─── MODAL BANCÁRIO ─── */
+.modal-banco-overlay{position:fixed;inset:0;z-index:980;background:rgba(4,6,13,.92);backdrop-filter:blur(14px);}
+.modal-banco-center{position:fixed;inset:0;z-index:981;display:flex;align-items:flex-end;justify-content:center;pointer-events:none;}
+.modal-banco-box{pointer-events:auto;width:100%;max-width:480px;background:var(--card);border:1px solid var(--border2);border-radius:28px 28px 0 0;max-height:92vh;overflow-y:auto;scrollbar-width:none;padding-bottom:20px;}
+.modal-banco-box::-webkit-scrollbar{display:none;}
+.modal-banco-drag{width:36px;height:4px;border-radius:2px;background:var(--border2);margin:14px auto 0;display:block;}
+.modal-banco-head{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.modal-banco-title{font-family:'Syne',sans-serif;font-size:17px;font-weight:900;color:var(--txt);}
+.modal-banco-x{width:32px;height:32px;border-radius:9px;background:var(--card2);border:1px solid var(--border);color:var(--muted);font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.modal-banco-body{padding:18px 20px;}
+.modal-banco-sub{font-size:13px;color:var(--muted2);margin-bottom:16px;line-height:1.6;}
+.banco-card{background:var(--card2);border:1px solid var(--border2);border-radius:14px;padding:14px 16px;margin-bottom:10px;}
+.banco-card:last-of-type{margin-bottom:0;}
+.banco-header{display:flex;align-items:center;gap:12px;margin-bottom:12px;}
+.banco-logo{width:40px;height:40px;border-radius:9px;object-fit:contain;background:#fff;padding:4px;flex-shrink:0;}
+.banco-logo-ph{width:40px;height:40px;border-radius:9px;background:linear-gradient(135deg,#0c1a2e,#1a3060);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+.banco-nome{font-size:14px;font-weight:800;color:var(--txt);}
+.banco-titular{font-size:11px;color:var(--muted);}
+.banco-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-top:1px solid var(--border);}
+.banco-lbl{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);}
+.banco-val{font-family:'Space Mono',monospace;font-size:13px;font-weight:700;color:var(--txt);}
+.copiar-btn{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:8px;background:rgba(0,212,255,.08);border:1px solid var(--border2);color:var(--cyan);font-size:11px;font-weight:700;cursor:pointer;transition:all .2s;}
+.copiar-btn:hover{background:rgba(0,212,255,.16);}
+.modal-banco-separator{height:1px;background:var(--border);margin:16px 0;}
+.ja-paguei-btn{width:100%;padding:10px 14px;border-radius:14px;background:linear-gradient(135deg,var(--emerald),#00a87a);color:#fff;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .2s;box-shadow:0 4px 20px rgba(0,200,150,.3);}
+.ja-paguei-btn:hover{transform:translateY(-1px);box-shadow:0 6px 28px rgba(0,200,150,.4);}
 @endverbatim
 </style>
 <div x-data="{
@@ -553,72 +612,161 @@ body{
     {{-- ═══ COLUNA ESQUERDA ═══ --}}
     <div class="layout-left">
 
-        {{-- SOBRE --}}
-        <div class="card">
-            <div class="card-head">
-                <div class="card-title">📋 Sobre o Evento</div>
-            </div>
-            <div class="card-body">
-                <p class="sobre-text" id="sobreText" style="display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden;">
-                    {!! nl2br(e($evento->descricao)) !!}
-                </p>
-                <button class="ver-mais-btn" onclick="toggleSobre()">
-                    <span id="sobreBtn">Ver mais ↓</span>
-                </button>
-            </div>
-        </div>
+        {{-- CARDS HORIZONTAIS --}}
+        <div class="cards-row">
 
-        {{-- INFO RÁPIDA --}}
-        <div class="card">
-            <div class="card-head">
-                <div class="card-title">📌 Informações</div>
+            {{-- CARD SOBRE --}}
+            <div class="card">
+                <div class="card-head">
+                    <div class="card-title">📋 Sobre o Evento</div>
+                </div>
+                <div class="card-body">
+                    <p class="sobre-text" id="sobreText" style="display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical;overflow:hidden;">
+                        {!! nl2br(e($evento->descricao)) !!}
+                    </p>
+                    <button class="ver-mais-btn" onclick="toggleSobre()">
+                        <span id="sobreBtn">Ver mais ↓</span>
+                    </button>
+
+                    {{-- Info rápida integrada --}}
+                    <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:5px;">
+                        <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted2);">
+                            <span style="font-size:15px;">📅</span>
+                            <span>{{ \Carbon\Carbon::parse($evento->data_evento)->translatedFormat('d M Y') }}</span>
+                        </div>
+                        @if($evento->hora_inicio)
+                        <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted2);">
+                            <span style="font-size:15px;">🕐</span>
+                            <span>{{ substr($evento->hora_inicio,0,5) }}@if($evento->hora_fim) – {{ substr($evento->hora_fim,0,5) }}@endif</span>
+                        </div>
+                        @endif
+                        <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted2);">
+                            <span style="font-size:15px;">📍</span>
+                            <span>{{ e($evento->localizacao) }}</span>
+                        </div>
+                        @if($evento->municipio || $evento->provincia)
+                        <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted2);">
+                            <span style="font-size:15px;">🗺</span>
+                            <span>{{ e($evento->municipio) }}@if($evento->municipio && $evento->provincia), @endif{{ e($evento->provincia) }}</span>
+                        </div>
+                        @endif
+                        @if($evento->lotacao_maxima)
+                        <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted2);">
+                            <span style="font-size:15px;">👥</span>
+                            <span>Lotação: {{ number_format($evento->lotacao_maxima) }} pessoas</span>
+                        </div>
+                        @endif
+                        @if($evento->online)
+                        <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--emerald);">
+                            <span style="font-size:15px;">🌐</span>
+                            <span>Evento Online</span>
+                        </div>
+                        @endif
+                        @if($evento->link_externo)
+                        <div style="display:flex;align-items:center;gap:8px;font-size:12px;">
+                            <span style="font-size:15px;">🔗</span>
+                            <a href="{{ e($evento->link_externo) }}" target="_blank" style="color:var(--cyan);text-decoration:none;">Site oficial</a>
+                        </div>
+                        @endif
+                    </div>
+                </div>
+                <div class="quick-actions">
+                    <button onclick="abrirDrawer('drawer-detalhes')" class="qa-btn">🔍 Detalhes</button>
+                    <a href="{{ route('mensagens.index', ['user_id' => (int)$evento->user_id, 'evento_id' => (int)$evento->id]) }}" class="qa-btn">💬 Contactar</a>
+                </div>
             </div>
-            <div class="card-body">
-                <div class="info-grid">
-                    <div class="info-item">
-                        <div class="info-item-icon">📅</div>
-                        <div class="info-item-lbl">Data</div>
-                        <div class="info-item-val">{{ \Carbon\Carbon::parse($evento->data_evento)->format('d/m/Y') }}</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-item-icon">🕐</div>
-                        <div class="info-item-lbl">Hora</div>
-                        <div class="info-item-val">{{ $evento->hora_inicio ? substr($evento->hora_inicio,0,5) : '—' }}</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-item-icon">📍</div>
-                        <div class="info-item-lbl">Local</div>
-                        <div class="info-item-val">{{ Str::limit($evento->localizacao,22) }}</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-item-icon">👥</div>
-                        <div class="info-item-lbl">Lotação</div>
-                        <div class="info-item-val">{{ $evento->lotacao_maxima ? number_format($evento->lotacao_maxima) : '—' }}</div>
-                    </div>
-                    @if($evento->municipio)
-                    <div class="info-item">
-                        <div class="info-item-icon">🏙</div>
-                        <div class="info-item-lbl">Município</div>
-                        <div class="info-item-val">{{ e($evento->municipio) }}</div>
-                    </div>
+
+            {{-- CARD BILHETES (compacto) --}}
+            <div class="card">
+                <div class="card-head">
+                    <div class="card-title">🎟 Bilhetes</div>
+                    @if($totalDisp > 0)
+                    <span style="font-size:10px;font-weight:700;color:var(--emerald);background:rgba(0,200,150,.1);border:1px solid rgba(0,200,150,.2);padding:2px 8px;border-radius:20px;">
+                        {{ $totalDisp }} disponíveis
+                    </span>
+                    @else
+                    <span style="font-size:10px;font-weight:700;color:var(--rose);">Esgotado</span>
                     @endif
-                    @if($evento->provincia)
-                    <div class="info-item">
-                        <div class="info-item-icon">🗺</div>
-                        <div class="info-item-lbl">Província</div>
-                        <div class="info-item-val">{{ e($evento->provincia) }}</div>
+                </div>
+                <div class="card-body">
+                    <div style="font-family:'Syne',sans-serif;font-size:26px;font-weight:900;color:var(--gold);margin-bottom:4px;">
+                        @if($preco == 0) Gratuito @else {{ number_format($preco,0,',','.') }} Kz @endif
                     </div>
+                    <div style="font-size:11px;color:var(--muted);margin-bottom:14px;">preço mínimo por bilhete</div>
+
+                    @foreach($evento->tiposIngresso->take(3) as $tipo)
+                    @php $esg = $tipo->quantidade_disponivel <= 0; @endphp
+                    <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-radius:10px;background:var(--card2);border:1px solid var(--border);margin-bottom:6px;{{ $esg ? 'opacity:.5;' : 'cursor:pointer;' }}"
+                         @if(!$esg) onclick="abrirModalBanco('{{ addslashes(e($tipo->nome)) }}',{{ $tipo->preco }},{{ $tipo->id }},{{ $tipo->quantidade_disponivel }})" @endif>
+                        <div>
+                            <div style="font-size:12px;font-weight:700;color:var(--txt);">{{ e($tipo->nome) }}</div>
+                            <div style="font-size:10px;color:var(--muted);">{{ $esg ? 'Esgotado' : $tipo->quantidade_disponivel.' disponíveis' }}</div>
+                        </div>
+                        <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:900;color:var(--gold);">
+                            @if($tipo->preco == 0) Grátis @else {{ number_format($tipo->preco,0,',','.') }} Kz @endif
+                        </div>
+                    </div>
+                    @endforeach
+
+                    @if($totalDisp > 0)
+                    <button class="buy-btn" style="margin-top:10px;" onclick="abrirDrawer('drawer-bilhetes-mobile')">
+                        🛒 Comprar Bilhete
+                    </button>
+                    <div class="buy-notice" style="margin-top:10px;">⚡ Confirmação rápida e pagamento seguro via IBAN/Multicaixa.</div>
+                    @else
+                    <button class="buy-btn" disabled style="margin-top:10px;">Evento Esgotado</button>
                     @endif
                 </div>
             </div>
-            <div class="quick-actions">
-                <button onclick="abrirDrawer('drawer-detalhes')" class="qa-btn">🔍 Mais detalhes</button>
-                <a href="{{ route('mensagens.index', ['user_id' => (int)$evento->user_id, 'evento_id' => (int)$evento->id]) }}" class="qa-btn">💬 Contactar</a>
-                @if($evento->link_externo)
-                <a href="{{ e($evento->link_externo) }}" target="_blank" rel="noopener noreferrer" class="qa-btn">🔗 Site</a>
-                @endif
+
+            {{-- CARD ORGANIZADOR --}}
+            <div class="card">
+                <div class="card-head">
+                    <div class="card-title">👤 Organizador</div>
+                </div>
+                <div class="card-body">
+                    @php $org = $evento->user; @endphp
+                    @if($org)
+                    <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
+                        <div style="width:48px;height:48px;border-radius:50%;overflow:hidden;flex-shrink:0;background:linear-gradient(135deg,#0c3a4a,#1e6a7a);border:2px solid var(--border2);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;color:var(--cyan);">
+                            @if($org->avatar)
+                                <img src="{{ asset('storage/'.$org->avatar) }}" style="width:100%;height:100%;object-fit:cover;" alt="">
+                            @else
+                                {{ strtoupper(substr($org->name,0,2)) }}
+                            @endif
+                        </div>
+                        <div>
+                            <div style="font-size:14px;font-weight:700;color:var(--txt);">{{ e($org->name) }}</div>
+                            <div style="font-size:11px;color:var(--muted);">{{ ucfirst($org->role) }}</div>
+                        </div>
+                    </div>
+                    <div style="display:flex;flex-direction:column;gap:8px;">
+                        <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted2);">
+                            <span>📅</span>
+                            <span>Membro desde {{ $org->created_at->translatedFormat('M Y') }}</span>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted2);">
+                            <span>🎟</span>
+                            <span>{{ $org->eventos()->count() }} evento(s) criado(s)</span>
+                        </div>
+                    </div>
+                    <div style="display:flex;gap:8px;margin-top:14px;">
+                        <a href="{{ route('profile.show', $org->id) }}"
+                           style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:8px;border-radius:10px;background:rgba(0,212,255,.06);border:1px solid var(--border2);color:var(--cyan);font-size:12px;font-weight:600;text-decoration:none;transition:all .2s;">
+                            👁 Ver perfil
+                        </a>
+                        <a href="{{ route('mensagens.index', ['user_id' => (int)$evento->user_id]) }}"
+                           style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:8px;border-radius:10px;background:rgba(0,212,255,.06);border:1px solid var(--border2);color:var(--muted2);font-size:12px;font-weight:600;text-decoration:none;transition:all .2s;">
+                            💬 Contactar
+                        </a>
+                    </div>
+                    @else
+                    <div style="font-size:13px;color:var(--muted);text-align:center;padding:16px 0;">Informação não disponível</div>
+                    @endif
+                </div>
             </div>
-        </div>
+
+        </div>{{-- /cards-row --}}
 {{-- META ESPECÍFICO DA CATEGORIA --}}
 @if($temMeta && !empty($meta))
 <div class="card">
@@ -819,49 +967,10 @@ body{
     @endforeach
 </div>
 @endif
-            
 
-    {{-- ═══ COLUNA DIREITA (COMPRA DE BILHETES) ═══ --}}
-    <div class="layout-right">
-        <div class="ticket-card">
-            <div class="ticket-head">
-                <div class="ticket-head-price">
-                    @if($preco == 0) Gratuito @else {{ number_format($preco,2,',','.') }} <small style="display:inline;font-size:14px;color:var(--muted)">KZ+</small> @endif
-                </div>
-                <div class="ticket-head-label">Preço inicial do ingresso</div>
-                <div class="ticket-head-avail">
-                    <span class="ticket-head-avail-dot"></span>
-                    {{ $totalDisp }} bilhetes disponíveis no total
-                </div>
-            </div>
+    </div>{{-- /layout-left --}}
 
-            <div class="ticket-body">
-                <div class="fl" style="margin-bottom:8px;">🎫 Selecione o tipo de Ingresso</div>
-                @foreach($evento->tiposIngresso as $tipo)
-                    @php $esg = $tipo->quantidade_disponivel <= 0; @endphp
-                    <div class="ticket-type {{ $esg ? 'esgotado' : '' }}"
-                         onclick="selecionarTipo('{{ e($tipo->nome) }}', {{ $tipo->preco }}, '{{ $tipo->id }}', {{ $tipo->quantidade_disponivel }})">
-                        <div>
-                            <div class="ticket-type-name">{{ e($tipo->nome) }}</div>
-                            <div class="ticket-type-avail">
-                                @if($esg) <span style="color:var(--rose)">Esgotado</span> @else {{ $tipo->quantidade_disponivel }} disponíveis @endif
-                            </div>
-                        </div>
-                        <div class="ticket-type-price">
-                            @if($tipo->preco == 0) Gratuito @else {{ number_format($tipo->preco,0,',','.') }}<small>KZ</small> @endif
-                        </div>
-                    </div>
-                @endforeach
-
-                <button class="buy-btn hide-mobile" @if($totalDisp<=0) disabled @endif onclick="abrirDrawer('drawer-bilhetes-mobile')">
-                    🛒 Comprar Bilhete
-                </button>
-                <div class="buy-notice">⚡ Confirmação rápida e pagamento seguro via IBAN/Multicaixa.</div>
-            </div>
-        </div>
-    </div>
-
-</div>
+</div>{{-- /layout --}}
 
 {{-- BARRA FIXA MOBILE --}}
 <div class="bottom-bar show-mobile">
@@ -886,7 +995,7 @@ body{
             @foreach($evento->tiposIngresso as $tipo)
                 @php $esg = $tipo->quantidade_disponivel <= 0; @endphp
                 <div class="ticket-type {{ $esg ? 'esgotado' : '' }}"
-                     onclick="selecionarTipoMobile('{{ e($tipo->nome) }}', {{ $tipo->preco }}, '{{ $tipo->id }}', {{ $tipo->quantidade_disponivel }})">
+                     onclick="abrirModalBanco('{{ e($tipo->nome) }}', {{ $tipo->preco }}, {{ $tipo->id }}, {{ $tipo->quantidade_disponivel }})">
                     <div>
                         <div class="ticket-type-name">{{ e($tipo->nome) }}</div>
                         <div class="ticket-type-avail">
@@ -940,6 +1049,63 @@ body{
     </div>
 </div>
 @endif
+
+{{-- ═══ MODAL BANCÁRIO (JS puro) ═══ --}}
+<div id="modal-banco-overlay" onclick="fecharModalBanco()"
+     style="display:none;position:fixed;inset:0;z-index:980;background:rgba(4,6,13,.92);backdrop-filter:blur(14px);"></div>
+<div id="modal-banco-center"
+     style="display:none;position:fixed;inset:0;z-index:981;align-items:flex-end;justify-content:center;">
+    <div class="modal-banco-box" onclick="event.stopPropagation()">
+        <div class="modal-banco-drag"></div>
+        <div class="modal-banco-head">
+            <div class="modal-banco-title">🏦 Dados para Pagamento</div>
+            <button class="modal-banco-x" onclick="fecharModalBanco()">✕</button>
+        </div>
+        <div class="modal-banco-body">
+            <div style="background:var(--card2);border:1px solid var(--border2);border-radius:12px;padding:12px 14px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;">
+                <div>
+                    <div style="font-size:13px;font-weight:800;color:var(--txt);" id="banco-tipo-nome">—</div>
+                    <div style="font-size:11px;color:var(--muted);">Tipo de bilhete seleccionado</div>
+                </div>
+                <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:900;color:var(--gold);" id="banco-tipo-preco">—</div>
+            </div>
+            <div class="modal-banco-sub">📋 Copie os dados bancários, efectue o pagamento e clique em "Já paguei".</div>
+            @forelse($contasBancarias as $conta)
+            <div class="banco-card">
+                <div class="banco-header">
+                    @if($conta->logo)
+                        <img src="{{ asset('images/bancos/'.$conta->logo) }}" class="banco-logo" alt="{{ $conta->nome_banco }}">
+                    @else
+                        <div class="banco-logo-ph">🏦</div>
+                    @endif
+                    <div>
+                        <div class="banco-nome">{{ e($conta->nome_banco) }}</div>
+                        <div class="banco-titular">{{ e($conta->titular) }}</div>
+                    </div>
+                </div>
+                <div class="banco-row">
+                    <div><div class="banco-lbl">IBAN</div><div class="banco-val" id="iban-{{ $conta->id }}">{{ e($conta->iban) }}</div></div>
+                    <button class="copiar-btn" onclick="copiarTexto('iban-{{ $conta->id }}', this)">📋 Copiar IBAN</button>
+                </div>
+                @if($conta->numero_conta)
+                <div class="banco-row">
+                    <div><div class="banco-lbl">Nº Conta</div><div class="banco-val" id="conta-{{ $conta->id }}">{{ e($conta->numero_conta) }}</div></div>
+                    <button class="copiar-btn" onclick="copiarTexto('conta-{{ $conta->id }}', this)">📋 Copiar</button>
+                </div>
+                @endif
+            </div>
+            @empty
+            <div style="text-align:center;padding:20px;color:var(--muted);font-size:13px;">⚠️ Nenhuma conta bancária disponível.</div>
+            @endforelse
+            <div class="modal-banco-separator"></div>
+            <button class="ja-paguei-btn" onclick="jaEfetueiPagamento()">
+                ✅ Já efectuei o pagamento — Preencher dados e anexar comprovativo
+            </button>
+            <div style="font-size:11px;color:var(--muted);text-align:center;margin-top:10px;line-height:1.6;">O staff valida o comprovativo em até 24h</div>
+        </div>
+    </div>
+</div>
+
 {{-- ═══ MODAL ALPINE COM LÓGICA DE INICIALIZAÇÃO ═══ --}}
 <div x-data="{
     modalAberto: false,
@@ -1084,4 +1250,55 @@ body{
         </div>
     </div>
 </div>
+
+<script>
+// ── Funções globais ──────────────────────────────────────────
+function abrirDrawer(id){const el=document.getElementById(id);if(el){el.classList.add('open');document.body.style.overflow='hidden';}}
+function fecharDrawer(id){const el=document.getElementById(id);if(el){el.classList.remove('open');document.body.style.overflow='';}}
+function toggleSobre(){var p=document.getElementById('sobreText');var btn=document.getElementById('sobreBtn');var aberto=btn.textContent.includes('menos');p.style.webkitLineClamp=aberto?'4':'unset';p.style.overflow=aberto?'hidden':'visible';btn.textContent=aberto?'Ver mais ↓':'Ver menos ↑';}
+function handleUpload(input){var file=input.files[0];var prev=document.getElementById('upload-preview');var name=document.getElementById('upload-preview-name');if(file){name.textContent=file.name;prev.style.display='flex';}else{prev.style.display='none';}}
+function copiarTexto(elementId, btn) {
+    const texto = document.getElementById(elementId)?.textContent?.trim();
+    if (!texto) return;
+    navigator.clipboard.writeText(texto).then(() => {
+        const original = btn.innerHTML;
+        btn.innerHTML = '✅ Copiado!';
+        btn.style.color = '#00c896';
+        setTimeout(() => { btn.innerHTML = original; btn.style.color = ''; }, 2000);
+    });
+}
+function abrirModalBanco(nome, preco, id, disp) {
+    if (parseInt(disp) <= 0) return;
+    fecharDrawer('drawer-bilhetes-mobile');
+    window._bilheteSeleccionado = {nome, preco: parseFloat(preco), id: parseInt(id)};
+    const nomeEl  = document.getElementById('banco-tipo-nome');
+    const precoEl = document.getElementById('banco-tipo-preco');
+    if (nomeEl)  nomeEl.textContent  = nome;
+    if (precoEl) precoEl.textContent = Number(preco).toLocaleString('pt-PT') + ' Kz';
+    const overlay = document.getElementById('modal-banco-overlay');
+    const center  = document.getElementById('modal-banco-center');
+    if (overlay) overlay.style.display = 'block';
+    if (center)  center.style.display  = 'flex';
+    document.body.style.overflow = 'hidden';
+}
+function fecharModalBanco() {
+    const overlay = document.getElementById('modal-banco-overlay');
+    const center  = document.getElementById('modal-banco-center');
+    if (overlay) overlay.style.display = 'none';
+    if (center)  center.style.display  = 'none';
+    document.body.style.overflow = '';
+}
+function jaEfetueiPagamento() {
+    fecharModalBanco();
+    const b = window._bilheteSeleccionado;
+    if (b) window.dispatchEvent(new CustomEvent('abrir-modal', {detail:{nome:b.nome,preco:b.preco,id:b.id}}));
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        document.querySelectorAll('.drawer-overlay.open').forEach(function(d){d.classList.remove('open');});
+        document.body.style.overflow = '';
+    }
+});
+</script>
 @endsection

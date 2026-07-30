@@ -1,6 +1,21 @@
-<div class="flex-1 w-full h-[calc(100vh-64px)] min-w-0 overflow-hidden flex items-center justify-center bg-[#020617] p-0">
+<div class="flex-1 w-full min-w-0 overflow-hidden flex items-center justify-center bg-[#020617] p-0"
+     style="height: calc(100vh - 64px); height: calc(100dvh - 64px);">
 
 <style>
+    /* Estas regras sobrepõem o <main> do layout partilhado (app.blade.php)
+       SEM alterar esse ficheiro — só têm efeito enquanto esta página de
+       mensagens está aberta, porque só aqui é que este <style> existe.
+       :not(#msg-chat) exclui o nosso próprio <main> interno do chat. */
+    main:not(#msg-chat) {
+        overflow: hidden !important;
+        padding: 0 !important;
+        height: calc(100vh - 64px) !important;
+        height: calc(100dvh - 64px) !important;
+    }
+    #msg-container { border-radius: 0; }
+    @media(min-width:768px){
+        #msg-container { border-radius: 32px; }
+    }
     #msg-sidebar { display: flex; }
     #msg-chat    { display: none; flex-direction: column; }
     @media(min-width:768px){
@@ -23,10 +38,10 @@
 
 {{-- Usamos a lógica reativa do Livewire no ID do container para evitar que o layout feche sozinho --}}
 <div id="msg-container"
-     class="w-full max-w-5xl overflow-hidden flex {{ $selectedConversation ? 'show-chat' : '' }}"
-     style="height: calc(100vh - 100px); min-height: 500px;
+     class="overflow-hidden flex {{ $selectedConversation ? 'show-chat' : '' }}"
+     style="width: 100%; height: 100%;
             background: rgba(15,23,42,0.85); backdrop-filter: blur(20px);
-            border: 1px solid rgba(59,130,246,0.15); border-radius: 32px;">
+            border: 1px solid rgba(59,130,246,0.15);">
 
     {{-- SIDEBAR (Reduzido para w-64 no desktop para ficar mais compacto) --}}
     <aside id="msg-sidebar" class="flex-col flex-shrink-0 w-full md:w-64"
@@ -143,7 +158,8 @@
     </aside>
 
     {{-- ÁREA DO CHAT --}}
-    <main id="msg-chat" class="flex-1 flex-col" style="min-width: 0; overflow: hidden;">
+    <main id="msg-chat" class="flex-1 flex-col" style="min-width: 0; overflow: hidden;"
+          data-conversation-id="{{ $selectedConversation->id ?? '' }}">
 
         {{-- Botão voltar mobile: Executa uma ação no backend para desmarcar a conversa e atualizar o estado global --}}
         <div class="flex md:hidden items-center px-4 py-2 border-b border-white/10 flex-shrink-0"
@@ -171,5 +187,218 @@
         @endif
     </main>
 </div>
+
+<script>
+(function () {
+    // Trava o scroll da página (body/html) só enquanto esta página de
+    // mensagens está aberta — não mexe no app.blade.php. Ao navegar para
+    // outra página (recarregamento normal do Laravel), isto desaparece
+    // sozinho porque o estilo inline não sobrevive à navegação.
+    const prevBodyOverflow = document.body.style.overflow;
+    const prevHtmlOverflow = document.documentElement.style.overflow;
+    document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
+
+    window.addEventListener('beforeunload', function () {
+        document.body.style.overflow = prevBodyOverflow;
+        document.documentElement.style.overflow = prevHtmlOverflow;
+    });
+
+    // Evita que uma sessão expirada (419) ou um erro (404/500) do Livewire,
+    // ao ficar muito tempo parado nesta página, substitua o ecrã inteiro
+    // por uma página de erro crua. Mostra só um aviso discreto.
+    document.addEventListener('livewire:init', () => {
+        Livewire.hook('request', ({ fail }) => {
+            fail(({ status, preventDefault }) => {
+                if ([404, 419, 500, 503].includes(status)) {
+                    preventDefault();
+
+                    let toast = document.getElementById('livewire-lost-toast');
+                    if (!toast) {
+                        toast = document.createElement('div');
+                        toast.id = 'livewire-lost-toast';
+                        toast.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1e293b;color:#fff;padding:10px 18px;border-radius:14px;font-size:12px;font-weight:700;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,.4);border:1px solid rgba(59,130,246,.3);';
+                        document.body.appendChild(toast);
+                    }
+                    toast.textContent = status === 419
+                        ? 'Sessão expirada — toca para atualizar'
+                        : 'Ligação perdida — toca para atualizar';
+                    toast.onclick = () => window.location.reload();
+                    clearTimeout(window.__livewireToastTimeout);
+                    window.__livewireToastTimeout = setTimeout(() => toast.remove(), 5000);
+                }
+            });
+        });
+    });
+})();
+
+// ═══════════════════════════════════════════════════════════════════
+// LÓGICA DO CHAT (envio, scroll, emojis, tempo real)
+// ───────────────────────────────────────────────────────────────────
+// Isto vive aqui, no componente PAI (messages-index), que só é montado
+// UMA VEZ quando a página carrega — e nunca é destruído. O chat-box
+// (filho) É destruído e recriado a cada troca de conversa, e um
+// <script> dentro dele só corre no carregamento inicial da página,
+// nunca quando é inserido depois (ex: selecionar da lista). Por isso
+// usamos DELEGAÇÃO DE EVENTOS aqui: um único listener, sempre vivo,
+// que funciona seja qual for a conversa aberta no momento.
+// ═══════════════════════════════════════════════════════════════════
+(function () {
+    function chatFindComponent(el) {
+        if (!window.Livewire) return null;
+        const root = el.closest('[wire\\:id]');
+        if (!root) return null;
+        return window.Livewire.find(root.getAttribute('wire:id'));
+    }
+
+    function chatAutoResize(el) {
+        if (!el) return;
+        el.style.height = 'auto';
+        el.style.height = Math.min(el.scrollHeight, 100) + 'px';
+    }
+
+    function chatScrollToBottom() {
+        const c = document.getElementById('chat-content');
+        if (c) c.scrollTop = c.scrollHeight;
+    }
+
+    let sending = false;
+    async function chatHandleSend() {
+        const input = document.getElementById('message-input');
+        if (!input || sending) return;
+        const val = input.value.trim();
+        if (val === '') return;
+
+        const component = chatFindComponent(input);
+        if (!component) return;
+
+        sending = true;
+        input.value = '';
+        chatAutoResize(input);
+
+        try {
+            await component.call('sendMessage', val);
+        } catch (err) {
+            console.error('[chat] falhou o envio da mensagem:', err);
+        } finally {
+            sending = false;
+            input.focus();
+            requestAnimationFrame(() => input.focus());
+            setTimeout(() => { input.focus(); chatScrollToBottom(); }, 60);
+        }
+    }
+
+    // Clique no botão de enviar (delegado — funciona para qualquer conversa)
+    document.addEventListener('click', function (e) {
+        if (e.target.closest('#send-btn')) {
+            e.preventDefault();
+            chatHandleSend();
+        }
+    });
+
+    // Enter para enviar, Shift+Enter para nova linha
+    document.addEventListener('keydown', function (e) {
+        if (e.target && e.target.id === 'message-input' && e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            chatHandleSend();
+        }
+    });
+
+    // Auto-resize do textarea
+    document.addEventListener('input', function (e) {
+        if (e.target && e.target.id === 'message-input') {
+            chatAutoResize(e.target);
+        }
+    });
+
+    // Scroll para o fundo depois de qualquer atualização do Livewire
+    // (nova mensagem recebida, refresh do poll, etc.)
+    document.addEventListener('livewire:updated', () => {
+        setTimeout(chatScrollToBottom, 50);
+    });
+    window.addEventListener('scroll-down', () => setTimeout(chatScrollToBottom, 100));
+
+    // ── Seletor de emojis (delegado da mesma forma) ──
+    document.addEventListener('click', async (e) => {
+        const btn = e.target.closest('#emoji-btn');
+        if (!btn) return;
+
+        const container = document.getElementById('emoji-picker-container');
+        const input = document.getElementById('message-input');
+        if (!container || !input) return;
+
+        if (container.childElementCount === 0) {
+            try {
+                const { Picker } = await import('https://cdn.jsdelivr.net/npm/emoji-mart@5.6.0/+esm');
+                const picker = new Picker({
+                    data: window.EmojiMartData,
+                    theme: 'dark',
+                    locale: 'pt',
+                    set: 'native',
+                    skinTonePosition: 'none',
+                    onEmojiSelect: (emoji) => {
+                        const start = input.selectionStart;
+                        input.value = input.value.slice(0, start) + emoji.native + input.value.slice(input.selectionEnd);
+                        input.dispatchEvent(new Event('input', { bubbles: true }));
+                        const alpineData = window.Alpine && Alpine.$data(btn.parentElement);
+                        if (alpineData) alpineData.showPicker = false;
+                        input.focus();
+                        chatAutoResize(input);
+                    }
+                });
+                container.appendChild(picker);
+            } catch (err) {
+                console.error('Erro crítico ao carregar seletor de emojis:', err);
+            }
+        }
+    });
+
+    // ── Tempo real (WebSocket / Laravel Echo) ──
+    // Observa o atributo data-conversation-id do #msg-chat (que o
+    // Livewire atualiza normalmente, mesmo sem o script do filho
+    // correr) e subscreve o canal certo sempre que a conversa muda.
+    window.__activeChatChannels = window.__activeChatChannels || new Set();
+
+    function subscribeRealtime(conversationId) {
+        if (!window.Echo || !conversationId) return;
+
+        window.__activeChatChannels.forEach(function (chId) {
+            if (chId !== conversationId) {
+                window.Echo.leave('chat.' + chId);
+                window.__activeChatChannels.delete(chId);
+            }
+        });
+
+        if (window.__activeChatChannels.has(conversationId)) return;
+        window.__activeChatChannels.add(conversationId);
+
+        window.Echo.private('chat.' + conversationId)
+            .listen('.MessageSent', function () {
+                const input = document.getElementById('message-input');
+                const component = input ? chatFindComponent(input) : null;
+                if (component) {
+                    component.call('$refresh').then(chatScrollToBottom);
+                }
+            });
+    }
+
+    const msgChat = document.getElementById('msg-chat');
+    if (msgChat) {
+        let lastConvId = null;
+        const checkConv = () => {
+            const id = msgChat.getAttribute('data-conversation-id');
+            if (id && id !== lastConvId) {
+                lastConvId = id;
+                subscribeRealtime(id);
+            }
+        };
+        checkConv();
+        new MutationObserver(checkConv).observe(msgChat, {
+            attributes: true,
+            attributeFilter: ['data-conversation-id']
+        });
+    }
+})();
+</script>
 
 </div>

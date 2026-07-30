@@ -11,37 +11,24 @@ use Illuminate\Validation\ValidationException;
 
 class LoginRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
         return true;
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
-     */
     public function rules(): array
     {
         return [
-            'email' => ['required', 'string', 'email'],
+            'email'    => ['required', 'string', 'email'],
             'password' => ['required', 'string'],
         ];
     }
 
-    /**
-     * Attempt to authenticate the request's credentials.
-     *
-     * @throws \Illuminate\Validation\ValidationException
-     */
     public function authenticate(): void
     {
         $this->ensureIsNotRateLimited();
 
-        if (! Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
+        if (!Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
@@ -54,29 +41,26 @@ class LoginRequest extends FormRequest
         if ($user->is_blocked) {
             Auth::logout();
             throw ValidationException::withMessages([
-                'email' => 'A sua conta foi bloqueada por desrespeitar as nossas políticas. Estamos a verificar a sua conta.',
+                'email' => 'A sua conta foi bloqueada. Contacte o suporte.',
             ]);
         }
 
-        if ($user->suspended_at && $user->suspended_at > now()) {
+        if ($user->suspended_at && $user->suspended_at->isFuture()) {
             Auth::logout();
             $data = $user->suspended_at->format('d/m/Y');
             throw ValidationException::withMessages([
-                'email' => "A sua conta foi suspensa por desrespeitar as nossas políticas. A suspensão termina a {$data}. Estamos a verificar a sua conta.",
+                'email' => "A sua conta está suspensa até {$data}.",
             ]);
         }
-        
-            RateLimiter::clear($this->throttleKey());
-        }
 
-    /**
-     * Ensure the login request is not rate limited.
-     *
-     * @throws \Illuminate\Validation\ValidationException
-     */
+        // Limpa o rate limiter AQUI — dentro do authenticate()
+        RateLimiter::clear($this->throttleKey());
+    }
+
     public function ensureIsNotRateLimited(): void
     {
-        if (! RateLimiter::tooManyAttempts($this->throttleKey(), 3)) {
+        // 5 tentativas (padrão Laravel) em vez de 3
+        if (!RateLimiter::tooManyAttempts($this->throttleKey(), 5)) {
             return;
         }
 
@@ -92,11 +76,8 @@ class LoginRequest extends FormRequest
         ]);
     }
 
-    /**
-     * Get the rate limiting throttle key for the request.
-     */
     public function throttleKey(): string
     {
-        return Str::transliterate(Str::lower($this->string('email')).'|'.$this->ip());
+        return Str::transliterate(Str::lower($this->string('email')) . '|' . $this->ip());
     }
 }

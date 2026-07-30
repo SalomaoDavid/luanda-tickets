@@ -6,15 +6,15 @@ use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-class AdminMiddleware
+class CreatorMiddleware
 {
     public function handle(Request $request, Closure $next): Response
     {
-        // Apenas admin puro — criadores não entram aqui
-        if (auth()->check() && auth()->user()->role === 'admin') {
+        // Admin e criadores passam — para rotas partilhadas
+        if (auth()->check() && in_array(auth()->user()->role, ['admin', 'creator'])) {
             return $next($request);
         }
 
-        return redirect('/')->with('error', 'Acesso restrito a administradores!');
+        return redirect('/')->with('error', 'Acesso restrito!');
     }
 }

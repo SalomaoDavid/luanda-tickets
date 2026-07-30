@@ -2,21 +2,35 @@
 
 namespace App\Notifications;
 
-use App\Models\Curtida;
-use App\Models\User;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Notification;
-use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Notifications\Messages\BroadcastMessage;
 
-class FollowedUserLikedEventNotification extends Notification implements ShouldBroadcast
+class FollowedUserLikedEventNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
     public function __construct(
-        public Curtida $curtida,
-        public User $quemCurtiu
+        public int    $userId,
+        public string $userName,
+        public ?string $userPhoto,
+        public int    $eventoId,
+        public string $eventoTitulo,
+        public ?string $eventoCapa,
     ) {}
+
+    public static function fromCurtida(\App\Models\Curtida $curtida, \App\Models\User $quemCurtiu): self
+    {
+        return new self(
+            userId:       $quemCurtiu->id,
+            userName:     $quemCurtiu->name,
+            userPhoto:    $quemCurtiu->avatar_url ?? null,
+            eventoId:     $curtida->evento_id,
+            eventoTitulo: $curtida->evento->titulo,
+            eventoCapa:   $curtida->evento->imagem_capa ?? null,
+        );
+    }
 
     public function via(object $notifiable): array
     {
@@ -26,12 +40,12 @@ class FollowedUserLikedEventNotification extends Notification implements ShouldB
     public function toDatabase(object $notifiable): array
     {
         return [
-            'user_id'       => $this->quemCurtiu->id,
-            'user_name'     => $this->quemCurtiu->name,
-            'user_photo'    => $this->quemCurtiu->avatar_url ?? null,
-            'evento_id'     => $this->curtida->evento_id,
-            'evento_titulo' => $this->curtida->evento->titulo,
-            'evento_capa'   => $this->curtida->evento->imagem_capa ?? null,
+            'user_id'       => $this->userId,
+            'user_name'     => $this->userName,
+            'user_photo'    => $this->userPhoto,
+            'evento_id'     => $this->eventoId,
+            'evento_titulo' => $this->eventoTitulo,
+            'evento_capa'   => $this->eventoCapa,
         ];
     }
 

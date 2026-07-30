@@ -12,10 +12,13 @@ class NotificacaoController extends Controller
     {
         $user = auth()->user();
 
-        // Busca todas as notificações agrupadas por data
-        $todasNotificacoes = $user->notifications()->latest()->get();
+        // CORRIGIDO: limit(100) + só colunas necessárias em vez de get() sem limite
+        $todasNotificacoes = $user->notifications()
+            ->select('id','type','data','read_at','created_at','notifiable_id')
+            ->latest()
+            ->limit(100)
+            ->get();
 
-        // Agrupa por período
         $grupos = [];
         foreach ($todasNotificacoes as $notif) {
             $data = $notif->created_at;
@@ -35,7 +38,8 @@ class NotificacaoController extends Controller
             $grupos[$grupo][] = $notif;
         }
 
-        $totalNaoLidas = $user->unreadNotifications->count();
+        // CORRIGIDO: 1 query em vez de 2
+        $totalNaoLidas = $todasNotificacoes->whereNull('read_at')->count();
 
         return view('notificacoes', compact('grupos', 'totalNaoLidas'));
     }

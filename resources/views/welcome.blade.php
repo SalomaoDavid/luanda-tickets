@@ -206,6 +206,7 @@
 </div>
 
 {{-- ESPAÇO DE PUBLICAÇÃO --}}
+@auth
 <div class="bg-white p-3 md:p-4 rounded-2xl shadow-xl mb-4">
     <form method="POST" action="{{ route('social.publicar') }}">
         @csrf
@@ -220,7 +221,7 @@
         </div>
     </form>
 </div>
-
+@endauth
 {{-- FEED UNIFICADO --}}
 @foreach($feed as $entry)
 
@@ -355,7 +356,7 @@
             </div>
             {{-- Categoria badge --}}
             @if($evento->categoria)
-            <span class="ev-card-cat">{{ $evento->categoria->emoji }} {{ $evento->categoria->nome }}</span>
+            <span class="ev-card-cat">{{ $evento->categoria->nome }} {{ $evento->categoria->nome }}</span>
             @endif
         </div>
 

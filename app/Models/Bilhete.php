@@ -12,11 +12,15 @@ class Bilhete extends Model
         'evento_id',
         'tipo_ingressos_id',
         'codigo_unico',
-        'hmac_assinatura',
+        // hmac_assinatura REMOVIDO — só definido pelo BilheteService
         'lote_id',
         'tentativas_invalidas',
         'bloqueado',
         'validado_em',
+    ];
+
+    protected $hidden = [
+        'hmac_assinatura', // Nunca exposta em respostas JSON
     ];
 
     protected $casts = [
@@ -44,17 +48,11 @@ class Bilhete extends Model
 
     // ── SEGURANÇA ─────────────────────────────────────────────
 
-    /**
-     * Verifica se a assinatura HMAC do bilhete é válida.
-     */
     public function hmacValido(): bool
     {
         return BilheteService::verificarHmac($this);
     }
 
-    /**
-     * Verifica se o bilhete está apto para validação na entrada.
-     */
     public function aptoParaEntrada(): array
     {
         if ($this->bloqueado) {
@@ -77,15 +75,11 @@ class Bilhete extends Model
         return ['apto' => true, 'motivo' => null];
     }
 
-    /**
-     * Regista tentativa inválida e bloqueia após 5 tentativas.
-     */
     public function registarTentativaInvalida(): void
     {
         $novasTentativas = $this->tentativas_invalidas + 1;
         $bloquear        = $novasTentativas >= 5;
 
-        // updateQuietly não dispara eventos — mas o trigger MySQL protege
         $this->updateQuietly([
             'tentativas_invalidas' => $novasTentativas,
             'bloqueado'            => $bloquear,

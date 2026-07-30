@@ -402,6 +402,8 @@ body{background:var(--bg);font-family:var(--sans);color:var(--t1);min-height:100
                         <a href="{{ route('admin.usuarios.index') }}" class="qlink"><div class="qlink-icon">👥</div><div class="qlink-label">Utilizadores</div></a>
                         @endif
                         <a href="{{ route('admin.analises') }}" class="qlink" style="border-color:rgba(167,139,250,.2);"><div class="qlink-icon">🔬</div><div class="qlink-label" style="color:var(--purple);">Análises</div></a>
+                        <a href="{{ route('admin.saldos') }}" class="qlink" style="border-color:rgba(245,158,11,.2);"><div class="qlink-icon">💰</div><div class="qlink-label" style="color:var(--amber);">Saldos</div></a>
+                        <a href="{{ route('admin.contas-bancarias') }}" class="qlink" style="border-color:rgba(6,182,212,.3);"><div class="qlink-icon">🏦</div><div class="qlink-label" style="color:var(--sky);">Contas Bancárias</div></a>
                     </div>
                 </div>
             </div>

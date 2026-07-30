@@ -2,17 +2,42 @@
 
 namespace App\Notifications;
 
-use App\Models\Reserva;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Notification;
-use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Notifications\Messages\BroadcastMessage;
 
-class TicketPurchasedNotification extends Notification implements ShouldBroadcast
+class TicketPurchasedNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
-    public function __construct(public Reserva $reserva) {}
+    // Dados primitivos em vez de objectos Eloquent — serialização segura
+    public function __construct(
+        public int    $reservaId,
+        public ?int   $compradorId,
+        public string $compradorNome,
+        public ?string $compradorFoto,
+        public int    $eventoId,
+        public string $eventoTitulo,
+        public int    $quantidade,
+        public float  $totalPago,
+    ) {}
+
+    // Factory method — resolve os dados antes de criar a notificação
+    public static function fromReserva(\App\Models\Reserva $reserva): self
+    {
+        $evento = $reserva->tipoIngresso->evento;
+        return new self(
+            reservaId:      $reserva->id,
+            compradorId:    $reserva->user_id,
+            compradorNome:  $reserva->user?->name ?? $reserva->nome_cliente,
+            compradorFoto:  $reserva->user?->avatar_url ?? null,
+            eventoId:       $evento->id,
+            eventoTitulo:   $evento->titulo,
+            quantidade:     $reserva->quantidade,
+            totalPago:      $reserva->total,
+        );
+    }
 
     public function via(object $notifiable): array
     {
@@ -21,17 +46,15 @@ class TicketPurchasedNotification extends Notification implements ShouldBroadcas
 
     public function toDatabase(object $notifiable): array
     {
-        $evento = $this->reserva->tipoIngresso->evento;
-
         return [
-            'reserva_id'     => $this->reserva->id,
-            'comprador_id'   => $this->reserva->user_id,
-            'comprador_nome' => $this->reserva->user->name ?? $this->reserva->nome_cliente,
-            'comprador_foto' => $this->message->user->avatar_url ?? null,
-            'evento_id'      => $evento->id,
-            'evento_titulo'  => $evento->titulo,
-            'quantidade'     => $this->reserva->quantidade,
-            'total_pago'     => $this->reserva->total,
+            'reserva_id'     => $this->reservaId,
+            'comprador_id'   => $this->compradorId,
+            'comprador_nome' => $this->compradorNome,
+            'comprador_foto' => $this->compradorFoto,
+            'evento_id'      => $this->eventoId,
+            'evento_titulo'  => $this->eventoTitulo,
+            'quantidade'     => $this->quantidade,
+            'total_pago'     => $this->totalPago,
         ];
     }
 

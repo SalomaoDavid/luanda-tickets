@@ -2,17 +2,35 @@
 
 namespace App\Notifications;
 
-use App\Models\Message;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Notification;
-use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Notifications\Messages\BroadcastMessage;
 
-class NewMessageNotification extends Notification implements ShouldBroadcast
+class NewMessageNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
-    public function __construct(public Message $message) {}
+    public function __construct(
+        public int    $messageId,
+        public int    $conversationId,
+        public int    $senderId,
+        public string $senderName,
+        public ?string $senderPhoto,
+        public string $preview,
+    ) {}
+
+    public static function fromMessage(\App\Models\Message $message): self
+    {
+        return new self(
+            messageId:      $message->id,
+            conversationId: $message->conversation_id,
+            senderId:       $message->user_id,
+            senderName:     $message->user->name,
+            senderPhoto:    $message->user->avatar_url ?? null,
+            preview:        str($message->body)->limit(60),
+        );
+    }
 
     public function via(object $notifiable): array
     {
@@ -22,12 +40,12 @@ class NewMessageNotification extends Notification implements ShouldBroadcast
     public function toDatabase(object $notifiable): array
     {
         return [
-            'message_id'      => $this->message->id,
-            'conversation_id' => $this->message->conversation_id,
-            'sender_id'       => $this->message->user_id,
-            'sender_name'     => $this->message->user->name,
-            'sender_photo' => $this->message->user->avatar_url ?? null,
-            'preview'         => str($this->message->body)->limit(60),
+            'message_id'      => $this->messageId,
+            'conversation_id' => $this->conversationId,
+            'sender_id'       => $this->senderId,
+            'sender_name'     => $this->senderName,
+            'sender_photo'    => $this->senderPhoto,
+            'preview'         => $this->preview,
         ];
     }
 

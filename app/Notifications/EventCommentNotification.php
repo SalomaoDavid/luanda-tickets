@@ -2,17 +2,37 @@
 
 namespace App\Notifications;
 
-use App\Models\Comentario;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Notification;
-use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Notifications\Messages\BroadcastMessage;
 
-class EventCommentNotification extends Notification implements ShouldBroadcast
+class EventCommentNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
-    public function __construct(public Comentario $comentario) {}
+    public function __construct(
+        public int    $comentarioId,
+        public int    $userId,
+        public string $userName,
+        public ?string $userPhoto,
+        public int    $eventoId,
+        public string $eventoTitulo,
+        public string $preview,
+    ) {}
+
+    public static function fromComentario(\App\Models\Comentario $comentario): self
+    {
+        return new self(
+            comentarioId: $comentario->id,
+            userId:       $comentario->user_id,
+            userName:     $comentario->user->name,
+            userPhoto:    $comentario->user->avatar_url ?? null,
+            eventoId:     $comentario->evento_id,
+            eventoTitulo: $comentario->evento->titulo,
+            preview:      str($comentario->corpo)->limit(60),
+        );
+    }
 
     public function via(object $notifiable): array
     {
@@ -22,13 +42,13 @@ class EventCommentNotification extends Notification implements ShouldBroadcast
     public function toDatabase(object $notifiable): array
     {
         return [
-            'comentario_id' => $this->comentario->id,
-            'user_id'       => $this->comentario->user_id,
-            'user_name'     => $this->comentario->user->name,
-            'user_photo'    => $this->comentario->user->avatar_url ?? null,
-            'evento_id'     => $this->comentario->evento_id,
-            'evento_titulo' => $this->comentario->evento->titulo,
-            'preview'       => str($this->comentario->corpo)->limit(60),
+            'comentario_id' => $this->comentarioId,
+            'user_id'       => $this->userId,
+            'user_name'     => $this->userName,
+            'user_photo'    => $this->userPhoto,
+            'evento_id'     => $this->eventoId,
+            'evento_titulo' => $this->eventoTitulo,
+            'preview'       => $this->preview,
         ];
     }
 

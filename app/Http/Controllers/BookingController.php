@@ -19,7 +19,10 @@ class BookingController extends Controller
      */
     public function confirmarReserva($id)
     {
-        return DB::transaction(function () use ($id) {
+        // Variáveis para usar fora da transacção
+        $notificacaoReserva = null;
+
+        DB::transaction(function () use ($id, &$notificacaoReserva) {
 
             $reserva = Reserva::with([
                 'tipoIngresso:id,evento_id,nome,preco,quantidade_disponivel',
@@ -36,32 +39,29 @@ class BookingController extends Controller
                 abort(403, 'Ação não autorizada.');
             }
 
-            // ── Verificação de stock (última linha de defesa antes de confirmar) ──
+            // ── Verificação de stock ──
             if ($tipoIngresso->quantidade_disponivel < $reserva->quantidade) {
-                return redirect()->back()->with('error',
-                    "Não há bilhetes suficientes disponíveis. Disponíveis: {$tipoIngresso->quantidade_disponivel}, pedido: {$reserva->quantidade}."
-                );
+                throw new \Exception("Não há bilhetes suficientes. Disponíveis: {$tipoIngresso->quantidade_disponivel}, pedido: {$reserva->quantidade}.");
             }
 
             // 1. Atualiza status da reserva
-            $reserva->updateQuietly(['status' => 'pago']);
+            $reserva->status = 'pago';
+            $reserva->save();
 
-            // 2. Subtrai a quantidade do stock
-            //    decrement é atómico — sem race conditions
-            //    O trigger MySQL garante que não fica negativo
+            // 2. Subtrai stock
             TipoIngresso::where('id', $tipoIngresso->id)
                 ->decrement('quantidade_disponivel', $reserva->quantidade);
 
             // 3. Cria o pedido financeiro
-            $pedido = Pedido::create([
-                'user_id'           => $reserva->user_id,
-                'total_pago'        => $reserva->total,
-                'metodo_pagamento'  => 'Transferencia',
-                'status'            => 'pago',
-                'comprovativo_path' => $reserva->comprovativo_path,
-            ]);
+            $pedido = new Pedido();
+            $pedido->user_id          = $reserva->user_id;
+            $pedido->total_pago       = $reserva->total;
+            $pedido->metodo_pagamento = 'Transferencia';
+            $pedido->status           = 'pago';
+            $pedido->comprovativo_path = $reserva->comprovativo_path; // atribuição directa
+            $pedido->save();
 
-            // 4. Emite bilhetes com HMAC + lote + auditoria
+            // 4. Emite bilhetes
             BilheteService::emitirLote(
                 pedidoId:       $pedido->id,
                 eventoId:       $evento->id,
@@ -72,12 +72,10 @@ class BookingController extends Controller
                 ip:             request()->ip()
             );
 
-            // 5. Notificação
-            if ($reserva->user_id && $evento->user_id !== $reserva->user_id) {
-                $evento->user->notify(new TicketPurchasedNotification($reserva));
-            }
+            // 5. Registar divisão de saldos
+            \App\Http\Controllers\SaldoController::registarDivisao($reserva);
 
-            // 6. Lógica de Chat — intacta
+            // 6. Chat
             $conversation = Conversation::where('evento_id', $evento->id)
                 ->whereHas('users', function ($q) use ($reserva) {
                     if ($reserva->user_id) {
@@ -90,15 +88,27 @@ class BookingController extends Controller
                     $conversation->users()->syncWithoutDetaching([$reserva->user_id]);
                 }
                 $conversation->users()->syncWithoutDetaching([$evento->user_id]);
-
                 $conversation->messages()->create([
                     'user_id' => $evento->user_id,
-                    'body'    => "Olá! O seu pagamento para o evento '{$evento->titulo}' foi confirmado com sucesso. Os seus bilhetes já estão disponíveis no seu perfil!",
+                    'body'    => "Olá! O seu pagamento para o evento '{$evento->titulo}' foi confirmado. Os seus bilhetes já estão disponíveis!",
                 ]);
             }
 
-            return redirect()->back()->with('success', 'Pagamento confirmado e bilhetes gerados com sucesso!');
+            // Guardar referência para notificação fora da transacção
+            $notificacaoReserva = $reserva;
         });
+
+        // Notificação FORA da transacção
+        if ($notificacaoReserva && $notificacaoReserva->user_id) {
+            $notificacaoReserva->load('tipoIngresso.evento.user');
+            if ($notificacaoReserva->tipoIngresso->evento->user_id !== $notificacaoReserva->user_id) {
+                $notificacaoReserva->tipoIngresso->evento->user->notify(
+                    TicketPurchasedNotification::fromReserva($notificacaoReserva)
+                );
+            }
+        }
+
+        return redirect()->back()->with('success', 'Pagamento confirmado e bilhetes gerados com sucesso!');
     }
 
     /**
@@ -122,7 +132,7 @@ class BookingController extends Controller
             'user:id,name,email',
         ])
         ->orderBy('created_at', 'desc')
-        ->get();
+        ->paginate(20);
 
         return view('admin-reservas', compact('reservas'));
     }
@@ -148,7 +158,7 @@ class BookingController extends Controller
             'user:id,name,email',
         ])
         ->orderBy('updated_at', 'desc')
-        ->get();
+        ->paginate(20);
 
         return view('admin-pagos', compact('pagamentos'));
     }
@@ -160,8 +170,9 @@ class BookingController extends Controller
     {
         $reserva = Reserva::findOrFail($id);
 
-        if (auth()->user()->role !== 'admin') {
-            abort(403);
+        $evento = $reserva->tipoIngresso?->evento;
+        if (auth()->user()->role !== 'admin' && $evento?->user_id !== auth()->id()) {
+            abort(403, 'Ação não autorizada.');
         }
 
         $reserva->delete();

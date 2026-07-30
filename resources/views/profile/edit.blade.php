@@ -151,9 +151,9 @@ select.form-input{cursor:pointer;-webkit-appearance:none;}
     </div>
     <div class="p-cover-fade"></div>
     <label class="cover-edit-overlay" style="cursor:pointer;">
-        <input type="file" id="cover-input" name="cover" accept="image/*" style="display:none"
-               onchange="previewCover(this);markDirty()">
-        <div class="cover-edit-btn">📷 Alterar capa</div>
+    <input type="file" id="cover-input" name="cover" accept="image/*" form="profileForm" style="display:none"
+           onchange="previewCover(this);markDirty()">
+    <div class="cover-edit-btn">📷 Alterar capa</div>
     </label>
 </div>
 
@@ -161,7 +161,7 @@ select.form-input{cursor:pointer;-webkit-appearance:none;}
 <div class="p-header">
     <div class="p-top">
         <label class="p-ava" style="cursor:pointer;">
-            <input type="file" id="avatar-input" name="avatar" accept="image/*" style="display:none"
+            <input type="file" id="avatar-input" name="avatar" accept="image/*" form="profileForm" style="display:none"
                    onchange="previewAvatar(this);markDirty()">
             @if($user->avatar)
                 <img id="avatar-preview" src="{{ asset('storage/'.$user->avatar) }}" alt="">
@@ -455,6 +455,63 @@ select.form-input{cursor:pointer;-webkit-appearance:none;}
         </div>
     </div>
 </form>
+
+{{-- DADOS BANCÁRIOS (fora do form principal) --}}
+@if(auth()->user()->role === 'creator' || auth()->user()->role === 'admin')
+@php $dadosBancarios = \App\Models\DadosBancariosCriador::where('user_id', auth()->id())->first(); @endphp
+<div class="section" style="margin-top:14px;">
+    <div class="section-head" onclick="toggleSection(this)">
+        <div class="section-head-left">
+            <div class="section-icon" style="background:rgba(16,185,129,.12);">🏦</div>
+            <div>
+                <div class="section-title-txt">Dados Bancários para Recebimento</div>
+                <div class="section-sub">Privado — só o admin vê. Necessário para receber os 90% das vendas.</div>
+            </div>
+        </div>
+        <span class="section-chevron">⌄</span>
+    </div>
+    <div class="section-body">
+        @if(session('status') === 'dados-bancarios-guardados')
+        <div style="background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.25);border-radius:10px;padding:10px 14px;margin-bottom:12px;color:#34d399;font-size:12px;">
+            ✅ Dados bancários guardados com sucesso!
+        </div>
+        @endif
+        <form method="POST" action="{{ route('dados-bancarios.guardar') }}">
+            @csrf
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="form-label">Nome do Banco</label>
+                    <input type="text" name="nome_banco" class="form-input"
+                           value="{{ old('nome_banco', $dadosBancarios->nome_banco ?? '') }}"
+                           placeholder="Ex: BFA, BAI, BIC..." required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Titular da Conta</label>
+                    <input type="text" name="titular" class="form-input"
+                           value="{{ old('titular', $dadosBancarios->titular ?? '') }}"
+                           placeholder="Nome completo do titular" required>
+                </div>
+                <div class="form-group full">
+                    <label class="form-label">IBAN</label>
+                    <input type="text" name="iban" class="form-input"
+                           value="{{ old('iban', $dadosBancarios->iban ?? '') }}"
+                           placeholder="AO06 0006 0000 0000 0000 1014 3" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Número de Conta (opcional)</label>
+                    <input type="text" name="numero_conta" class="form-input"
+                           value="{{ old('numero_conta', $dadosBancarios->numero_conta ?? '') }}"
+                           placeholder="Opcional">
+                </div>
+            </div>
+            <button type="submit" class="btn-save-full" style="margin-top:8px;">
+                💾 Guardar Dados Bancários
+            </button>
+        </form>
+    </div>
+</div>
+@endif
+
 
 {{-- MODAL ELIMINAR CONTA --}}
 <div id="modal-delete" class="modal-delete" onclick="if(event.target===this)this.classList.remove('open')">

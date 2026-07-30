@@ -39,10 +39,11 @@ class PostagemController extends Controller
                 $ativo     = true;
                 $tipoAtivo = $tipo;
 
-                // Notifica o dono da postagem ao trocar reação
                 if ($postagem->user_id !== auth()->id()) {
                     $reacao->load('user:id,name,avatar');
-                    $postagem->user->notify(new PostagemLikedNotification($reacao, $postagem));
+                    $postagem->user->notify(
+                        PostagemLikedNotification::fromReacao($reacao, $postagem)
+                    );
                 }
             }
         } else {
@@ -54,11 +55,13 @@ class PostagemController extends Controller
             $ativo     = true;
             $tipoAtivo = $tipo;
 
-            // ── Notifica o dono da postagem ──
             if ($postagem->user_id !== auth()->id()) {
                 $novaReacao->load('user:id,name,avatar');
                 $postagem->load('user:id,name');
-                $postagem->user->notify(new PostagemLikedNotification($novaReacao, $postagem));
+                // CORRIGIDO: $novaReacao em vez de $reacao
+                $postagem->user->notify(
+                    PostagemLikedNotification::fromReacao($novaReacao, $postagem)
+                );
             }
         }
 
@@ -86,11 +89,13 @@ class PostagemController extends Controller
             'corpo'       => $request->corpo,
         ]);
 
-        // ── Notifica o dono da postagem ──
         if ($postagem->user_id !== auth()->id()) {
             $comentario->load('user:id,name,avatar');
             $postagem->load('user:id,name');
-            $postagem->user->notify(new PostagemComentarioNotification($comentario, $postagem));
+            // CORRIGIDO: PostagemComentarioNotification em vez de PostagemLikedNotification
+            $postagem->user->notify(
+                PostagemComentarioNotification::fromComentario($comentario, $postagem)
+            );
         }
 
         if (request()->ajax()) {

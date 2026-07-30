@@ -11,35 +11,42 @@ use Illuminate\View\View;
 
 class AuthenticatedSessionController extends Controller
 {
-    /**
-     * Display the login view.
-     */
     public function create(): View
     {
         return view('auth.login');
     }
 
-    /**
-     * Handle an incoming authentication request.
-     */
     public function store(LoginRequest $request): RedirectResponse
     {
         $request->authenticate();
+
+        // Verificar bloqueio
+        $user = Auth::user();
+        if ($user->is_blocked) {
+            Auth::logout();
+            $request->session()->invalidate();
+            return redirect()->route('login')
+                ->with('error', 'A tua conta foi bloqueada. Contacta o suporte.');
+        }
+
+        // Verificar suspensão
+        if ($user->suspended_at && $user->suspended_at->isFuture()) {
+            Auth::logout();
+            $request->session()->invalidate();
+            $ate = $user->suspended_at->format('d/m/Y');
+            return redirect()->route('login')
+                ->with('error', "A tua conta está suspensa até {$ate}.");
+        }
 
         $request->session()->regenerate();
 
         return redirect()->intended(route('dashboard', absolute: false));
     }
 
-    /**
-     * Destroy an authenticated session.
-     */
     public function destroy(Request $request): RedirectResponse
     {
         Auth::guard('web')->logout();
-
         $request->session()->invalidate();
-
         $request->session()->regenerateToken();
 
         return redirect('/');

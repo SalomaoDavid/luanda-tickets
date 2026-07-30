@@ -63,7 +63,7 @@
 
 {{-- MENSAGENS --}}
 <div id="chat-content"
-     wire:poll.3s="$refresh"
+     wire:poll.15s.visible="$refresh"
      class="overflow-y-auto p-4 space-y-3"
      style="flex: 1 1 0; min-height: 0;
             background: linear-gradient(180deg, rgba(2,6,23,0.3) 0%, rgba(15,23,42,0.2) 100%);
@@ -101,9 +101,8 @@
             🔒 Não podes enviar mensagens
         </div>
     @else
-        <div id="emoji-picker-container" class="absolute bottom-16 left-4 z-50 hidden"></div>
+        {{-- Container real do seletor de emojis (o script vive agora no messages-index.blade.php) --}}
 
-        {{-- ✅ wire:submit (sem .prevent) para garantir funcionamento no Livewire --}}
         <form wire:submit.prevent="sendMessage" class="flex items-end gap-2 relative">
     
             <div class="relative" x-data="{ showPicker: false }">
@@ -134,7 +133,7 @@
                             padding: 9px 14px; max-height: 100px; min-height: 38px;
                             overflow-y: auto; line-height: 1.4;"></textarea>
 
-            <button type="button" wire:click="sendMessage" id="send-btn"
+            <button type="button" id="send-btn"
                     class="flex-shrink-0 flex items-center justify-center rounded-full text-white transition hover:opacity-90 active:scale-95"
                     style="width: 38px; height: 38px; min-width: 38px;
                         background: linear-gradient(135deg, #2563eb, #1d4ed8);
@@ -146,129 +145,4 @@
         </form>
     @endif
 </footer>
-
-<script>
-(function() {
-    // Funções Utilitárias
-    function autoResize(el) {
-        if (!el) return;
-        el.style.height = 'auto';
-        el.style.height = Math.min(el.scrollHeight, 100) + 'px';
-    }
-
-    function scrollToBottom() {
-        const c = document.getElementById('chat-content');
-        if (c) c.scrollTop = c.scrollHeight;
-    }
-
-    // Lógica de Envio de Mensagem
-    function initInput() {
-        const input = document.getElementById('message-input');
-        const sendBtn = document.getElementById('send-btn');
-        if (!input) return;
-
-        // Definimos a função de envio
-        const handleSend = async () => {
-            const val = input.value.trim();
-            if (val === '') return;
-
-            if (typeof @this !== 'undefined') {
-                // Sincroniza com o PHP antes de limpar o campo
-                await @this.set('messageBody', val);
-                @this.sendMessage();
-                
-                // Limpa e reseta
-                input.value = '';
-                autoResize(input);
-                setTimeout(scrollToBottom, 100);
-            } else if (sendBtn) {
-                sendBtn.click();
-            }
-        };
-
-        // Eventos do teclado e input
-        input.addEventListener('input', () => autoResize(input));
-        input.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                handleSend();
-            }
-        });
-
-        // Evento do clique no botão (Apenas se não tiver listener manual)
-        if (sendBtn) {
-            sendBtn.onclick = (e) => {
-                e.preventDefault();
-                handleSend();
-            };
-        }
-    }
-
-    document.addEventListener('click', async (e) => {
-    const btn = e.target.closest('#emoji-btn');
-    const container = document.getElementById('emoji-picker-container');
-    const mount = document.getElementById('picker-mount');
-    const input = document.getElementById('message-input');
-
-    if (btn && container) {
-        // Se o seletor ainda não foi criado, vamos buscar agora
-        if (mount.childElementCount === 0) {
-            try {
-                const { Picker } = await import('https://cdn.jsdelivr.net/npm/emoji-mart@5.6.0/+esm');
-                
-                const picker = new Picker({
-                    data: window.EmojiMartData,
-                    theme: 'dark',
-                    locale: 'pt',
-                    set: 'native', // ✅ ESSENCIAL: Usa os emojis do sistema (Angola/ngrok amigável)
-                    skinTonePosition: 'none', // Simplifica o layout para economizar espaço
-                    onEmojiSelect: (emoji) => { 
-                        recent: { svg: '<svg>...</svg>' } // Opcional: simplifica ícones
-                    },
-                    onEmojiSelect: (emoji) => {
-                        const start = input.selectionStart;
-                        input.value = input.value.slice(0, start) + emoji.native + input.value.slice(input.selectionEnd);
-                        
-                        // Sincroniza com o Livewire
-                        input.dispatchEvent(new Event('input', { bubbles: true }));
-                        
-                        // Fecha o seletor via Alpine
-                        const alpineData = Alpine.$data(document.getElementById('emoji-btn').parentElement);
-                        if(alpineData) alpineData.showPicker = false;
-                        
-                        input.focus();
-                        if (typeof autoResize === 'function') autoResize(input);
-                    }
-                });
-                mount.appendChild(picker);
-            } catch (err) {
-                console.error("Erro crítico ao carregar seletor de emojis:", err);
-            }
-        }
-    }
-});
-
-    function init() {
-        initInput();
-        scrollToBottom();
-    }
-
-    // Ciclo de vida do Livewire 3
-    document.addEventListener('livewire:initialized', init);
-    document.addEventListener('livewire:navigated', init);
-    
-    // Atualização após novas mensagens chegarem
-    document.addEventListener('livewire:updated', () => {
-        initInput(); // Garante que o input continua funcional
-        setTimeout(scrollToBottom, 50);
-    });
-
-    // Evento customizado se disparares 'scroll-down' do PHP
-    window.addEventListener('scroll-down', () => setTimeout(scrollToBottom, 100));
-
-    // Execução inicial
-    init();
-
-})();
-</script>
 </div>

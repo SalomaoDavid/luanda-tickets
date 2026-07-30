@@ -2,21 +2,35 @@
 
 namespace App\Notifications;
 
-use App\Models\User;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Notification;
-use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Notifications\Messages\BroadcastMessage;
 
-class PerfilDenunciadoNotification extends Notification implements ShouldBroadcast
+class PerfilDenunciadoNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
     public function __construct(
-        public User $denunciado,
-        public User $denunciante,
-        public string $motivo
+        public int    $denunciadoId,
+        public string $denunciadoNome,
+        public int    $denuncianteId,
+        public string $denuncianteNome,
+        public ?string $userPhoto,
+        public string $motivo,
     ) {}
+
+    public static function fromUsers(\App\Models\User $denunciado, \App\Models\User $denunciante, string $motivo): self
+    {
+        return new self(
+            denunciadoId:    $denunciado->id,
+            denunciadoNome:  $denunciado->name,
+            denuncianteId:   $denunciante->id,
+            denuncianteNome: $denunciante->name,
+            userPhoto:       $denunciante->avatar_url ?? null,
+            motivo:          $motivo,
+        );
+    }
 
     public function via(object $notifiable): array
     {
@@ -26,12 +40,12 @@ class PerfilDenunciadoNotification extends Notification implements ShouldBroadca
     public function toDatabase(object $notifiable): array
     {
         return [
-            'denunciado_id'   => $this->denunciado->id,
-            'denunciado_nome' => $this->denunciado->name,
-            'user_photo'      => $this->denunciante->avatar_url,
-            'denunciante_id'  => $this->denunciante->id,
-            'denunciante_nome'=> $this->denunciante->name,
-            'motivo'          => $this->motivo,
+            'denunciado_id'    => $this->denunciadoId,
+            'denunciado_nome'  => $this->denunciadoNome,
+            'denunciante_id'   => $this->denuncianteId,
+            'denunciante_nome' => $this->denuncianteNome,
+            'user_photo'       => $this->userPhoto,
+            'motivo'           => $this->motivo,
         ];
     }
 

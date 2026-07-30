@@ -162,7 +162,7 @@ class AdminEventoController extends Controller
         $criador = auth()->user();
         if ($criador->role !== 'admin') {
             User::where('role', 'admin')->each(function ($admin) use ($evento, $criador) {
-                $admin->notify(new NovoEventoCriadoNotification($evento, $criador));
+                $admin->notify(new notify(NovoEventoCriadoNotification::fromEvento($evento, $criador)));
             });
         }
 

@@ -4,37 +4,40 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Support\Str; // Importante para gerar o código aleatório
+use Illuminate\Support\Str;
 
 class Reserva extends Model
 {
     use HasFactory;
 
-    // Adicionados os campos novos no fillable
     protected $fillable = [
         'user_id',
-        'tipo_ingresso_id', 
-        'nome_cliente', 
-        'whatsapp', 
-        'quantidade', 
-        'total', 
-        'status',
+        'tipo_ingresso_id',
+        'nome_cliente',
+        'whatsapp',
+        'quantidade',
+        'total',
+        'codigo_pedido',
+        // Atribuídos directamente no controller (não via fill() em inputs do utilizador)
+        // mas precisam de estar no fillable para create() funcionar internamente
         'comprovativo_path',
-        'codigo_pedido'
     ];
 
-    // Gerar o código do bilhete automaticamente antes de salvar na base de dados
+    // status é controlado pelo sistema — atribuído directamente: $reserva->status = 'pago'
+
+    // Campos geridos directamente (não via fill())
+    // status, comprovativo_path
+
     protected static function booted()
     {
         static::creating(function ($reserva) {
             if (!$reserva->codigo_pedido) {
-                // Gera um código tipo LT-A1B2C3D4E5
                 $reserva->codigo_pedido = 'LT-' . strtoupper(Str::random(10));
             }
         });
     }
 
-    public function tipoIngresso() 
+    public function tipoIngresso()
     {
         return $this->belongsTo(TipoIngresso::class, 'tipo_ingresso_id');
     }
@@ -44,16 +47,15 @@ class Reserva extends Model
         return $this->belongsTo(User::class);
     }
 
-    // Se a tabela reservas não tem evento_id, o relacionamento passa pelo tipoIngresso
     public function evento()
     {
         return $this->hasOneThrough(
             Evento::class,
             TipoIngresso::class,
-            'id', // Chave estrangeira em tipo_ingressos
-            'id', // Chave estrangeira em eventos
-            'tipo_ingresso_id', // Chave local em reservas
-            'evento_id' // Chave local em tipo_ingressos
+            'id',
+            'id',
+            'tipo_ingresso_id',
+            'evento_id'
         );
     }
 }

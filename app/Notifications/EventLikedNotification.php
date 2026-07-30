@@ -2,17 +2,35 @@
 
 namespace App\Notifications;
 
-use App\Models\Curtida;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Notification;
-use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Notifications\Messages\BroadcastMessage;
 
-class EventLikedNotification extends Notification implements ShouldBroadcast
+class EventLikedNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
-    public function __construct(public Curtida $curtida) {}
+    public function __construct(
+        public int    $curtidaId,
+        public int    $userId,
+        public string $userName,
+        public ?string $userPhoto,
+        public int    $eventoId,
+        public string $eventoTitulo,
+    ) {}
+
+    public static function fromCurtida(\App\Models\Curtida $curtida): self
+    {
+        return new self(
+            curtidaId:    $curtida->id,
+            userId:       $curtida->user_id,
+            userName:     $curtida->user->name,
+            userPhoto:    $curtida->user->avatar_url ?? null,
+            eventoId:     $curtida->evento_id,
+            eventoTitulo: $curtida->evento->titulo,
+        );
+    }
 
     public function via(object $notifiable): array
     {
@@ -22,12 +40,12 @@ class EventLikedNotification extends Notification implements ShouldBroadcast
     public function toDatabase(object $notifiable): array
     {
         return [
-            'curtida_id'  => $this->curtida->id,
-            'user_id'     => $this->curtida->user_id,
-            'user_name'   => $this->curtida->user->name,
-            'user_photo'  => $this->curtida->user->avatar_url ?? null,
-            'evento_id'   => $this->curtida->evento_id,
-            'evento_titulo' => $this->curtida->evento->titulo,
+            'curtida_id'    => $this->curtidaId,
+            'user_id'       => $this->userId,
+            'user_name'     => $this->userName,
+            'user_photo'    => $this->userPhoto,
+            'evento_id'     => $this->eventoId,
+            'evento_titulo' => $this->eventoTitulo,
         ];
     }
 

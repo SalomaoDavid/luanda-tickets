@@ -210,9 +210,7 @@ class ProfileController extends Controller
 
         // Notifica admins
         User::where('role','admin')->each(function($admin) use ($alvo, $request) {
-            $admin->notify(new \App\Notifications\PerfilDenunciadoNotification(
-                $alvo, auth()->user(), $request->motivo
-            ));
+            $admin->notify(PerfilDenunciadoNotification::fromUsers($denunciado, $denunciante, $motivo));
         });
 
         return response()->json(['success' => true, 'message' => 'Denúncia enviada. Vamos analisar.']);

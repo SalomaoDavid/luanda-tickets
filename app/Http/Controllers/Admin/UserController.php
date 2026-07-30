@@ -89,50 +89,46 @@ class UserController extends Controller
 
         $nome = $user->name;
 
-        // ── Apaga relações para evitar foreign key constraint ──
+        DB::transaction(function () use ($user) {
+            // Pedidos
+            Pedido::where('user_id', $user->id)->delete();
 
-        // Pedidos
-        Pedido::where('user_id', $user->id)->delete();
+            // Reservas
+            DB::table('reservas')->where('user_id', $user->id)->delete();
 
-        // Reservas
-        DB::table('reservas')->where('user_id', $user->id)->delete();
-
-        // Postagens e comentários das postagens
-        $postagemIds = DB::table('postagens')->where('user_id', $user->id)->pluck('id');
-        if ($postagemIds->isNotEmpty()) {
-            DB::table('postagem_comentarios')->whereIn('postagem_id', $postagemIds)->delete();
-            DB::table('postagem_reacoes')->whereIn('postagem_id', $postagemIds)->delete();
-            DB::table('postagens')->whereIn('id', $postagemIds)->delete();
-        }
-
-        // Comentários do utilizador em eventos
-        DB::table('comentarios')->where('user_id', $user->id)->delete();
-
-        // Curtidas
-        DB::table('curtidas')->where('user_id', $user->id)->delete();
-
-        // Seguidores / seguindo
-        DB::table('seguidores')
-            ->where('seguidor_id', $user->id)
-            ->orWhere('seguido_id', $user->id)
-            ->delete();
-
-        // Notificações
-        DB::table('notifications')
-            ->where('notifiable_id', $user->id)
-            ->where('notifiable_type', User::class)
-            ->delete();
-
-        // Avatar do storage
-        if ($user->avatar) {
-            try {
-                Storage::disk('public')->delete($user->avatar);
-            } catch (\Exception $e) {
-                // Ignora erro de ficheiro — elimina o utilizador mesmo assim
+            // Postagens e comentários
+            $postagemIds = DB::table('postagens')->where('user_id', $user->id)->pluck('id');
+            if ($postagemIds->isNotEmpty()) {
+                DB::table('postagem_comentarios')->whereIn('postagem_id', $postagemIds)->delete();
+                DB::table('postagem_reacoes')->whereIn('postagem_id', $postagemIds)->delete();
+                DB::table('postagens')->whereIn('id', $postagemIds)->delete();
             }
-        }
-        // Elimina o utilizador
-        $user->delete();
+
+            // Comentários e curtidas
+            DB::table('comentarios')->where('user_id', $user->id)->delete();
+            DB::table('curtidas')->where('user_id', $user->id)->delete();
+
+            // Seguidores / seguindo
+            DB::table('seguidores')
+                ->where('seguidor_id', $user->id)
+                ->orWhere('seguido_id', $user->id)
+                ->delete();
+
+            // Notificações
+            DB::table('notifications')
+                ->where('notifiable_id', $user->id)
+                ->where('notifiable_type', User::class)
+                ->delete();
+
+            // Avatar do storage (fora da transacção — ficheiros não fazem rollback)
+            if ($user->avatar) {
+                try {
+                    Storage::disk('public')->delete($user->avatar);
+                } catch (\Exception $e) {}
+            }
+
+            $user->delete();
+        });
 
         return redirect()->back()->with('success', "O utilizador {$nome} foi eliminado permanentemente.");
     }

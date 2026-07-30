@@ -49,6 +49,15 @@ class MessagesIndex extends Component
         }
     }
 
+    // ✅ Botão "Voltar" no mobile faz $set('selectedConversationId', null).
+    // Sem isto o show-chat nunca desligava, porque o CSS depende de $selectedConversation.
+    public function updatedSelectedConversationId($value)
+    {
+        if (!$value) {
+            $this->selectedConversation = null;
+        }
+    }
+
     public function updatedSearchUser($value)
     {
         if (strlen($value) < 2) {
