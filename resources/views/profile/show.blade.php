@@ -458,14 +458,10 @@ $podeMensagem = $isOwner ? false : match($quemMsg) {
                             📄 Baixar PDF
                         </a>
                         @if($bilhete->validado_em)
-                        <form method="POST" action="{{ route('bilhete.eliminar', $bilhete->id) }}"
-                              onsubmit="return confirm('Eliminar este bilhete já utilizado?')">
-                            @csrf @method('DELETE')
-                            <button type="submit"
-                                    style="display:inline-flex;align-items:center;gap:5px;background:rgba(244,63,94,0.2);color:#f43f5e;border:1px solid rgba(244,63,94,0.5);padding:10px 16px;border-radius:12px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:sans-serif;">
-                                🗑 Eliminar
-                            </button>
-                        </form>
+                        <button onclick="eliminarBilhete({{ $bilhete->id }}, {{ $i }})"
+                                style="display:inline-flex;align-items:center;gap:5px;background:rgba(244,63,94,0.2);color:#f43f5e;border:1px solid rgba(244,63,94,0.5);padding:10px 16px;border-radius:12px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:sans-serif;">
+                            🗑 Eliminar
+                        </button>
                         @endif
                     </div>
                 </div>
@@ -478,17 +474,12 @@ $podeMensagem = $isOwner ? false : match($quemMsg) {
                         📄 Baixar PDF
                     </a>
                     @if($bilhete->validado_em)
-                    <form method="POST" action="{{ route('bilhete.eliminar', $bilhete->id) }}"
-                          onsubmit="return confirm('Eliminar?')" style="flex:1;">
-                        @csrf @method('DELETE')
-                        <button type="submit"
-                                style="width:100%;display:inline-flex;align-items:center;justify-content:center;gap:5px;background:rgba(244,63,94,0.15);color:#f43f5e;border:1px solid rgba(244,63,94,0.3);padding:10px;border-radius:12px;font-size:12px;font-weight:700;cursor:pointer;font-family:sans-serif;">
-                            🗑 Eliminar
-                        </button>
-                    </form>
+                    <button onclick="eliminarBilhete({{ $bilhete->id }}, {{ $i }})"
+                            style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:5px;background:rgba(244,63,94,0.15);color:#f43f5e;border:1px solid rgba(244,63,94,0.3);padding:10px;border-radius:12px;font-size:12px;font-weight:700;cursor:pointer;font-family:sans-serif;">
+                        🗑 Eliminar
+                    </button>
                     @endif
                 </div>
- 
             </div>
             @endforeach
         </div>
@@ -1108,5 +1099,28 @@ function fecharModalBilhetes() {
 function abrirLightbox(src){document.getElementById('lightboxImg').src=src;document.getElementById('lightbox').classList.add('open');document.body.style.overflow='hidden';}
 function fecharLightbox(){document.getElementById('lightbox').classList.remove('open');document.body.style.overflow='';}
 document.addEventListener('keydown',function(e){if(e.key==='Escape'){document.querySelectorAll('.drawer-overlay.open').forEach(d=>d.classList.remove('open'));fecharModalBilhetes();fecharLightbox();document.body.style.overflow='';}});
+async function eliminarBilhete(bilheteId, slideIndex) {
+    if (!confirm('Eliminar este bilhete já utilizado?')) return;
+    const token = document.querySelector('meta[name="csrf-token"]')?.content;
+    try {
+        const res = await fetch('/bilhete/' + bilheteId, {
+            method: 'DELETE',
+            headers: { 'X-CSRF-TOKEN': token, 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+        });
+        const data = await res.json();
+        if (!res.ok || !data.success) { alert(data.message || 'Erro ao eliminar.'); return; }
+
+        // Remove slide e dot sem recarregar página
+        document.getElementById('mb-slide-' + slideIndex)?.remove();
+        document.getElementById('mb-dot-'   + slideIndex)?.remove();
+        mbTotal--;
+
+        if (mbTotal === 0) { fecharModalBilhetes(); return; }
+        mbIndex = -1;
+        mbGoTo(Math.min(slideIndex, mbTotal - 1));
+        var counter = document.getElementById('mb-counter');
+        if (counter) counter.textContent = (mbIndex + 1) + ' / ' + mbTotal;
+    } catch(e) { alert('Erro de conexão. Tenta novamente.'); }
+}
 </script>
 @endsection

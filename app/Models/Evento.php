@@ -26,6 +26,7 @@ class Evento extends Model
         'online',
         'link_externo',
         // imagem_capa REMOVIDO — gerido pelo controller após upload
+        'video_preview',   // URL do vídeo (YouTube, Vimeo, etc.)
         'lotacao_maxima',
         'ingressos_por_pessoa',
         'lista_espera',
@@ -39,9 +40,6 @@ class Evento extends Model
         // status REMOVIDO — controlado pelo sistema
         'meta',
     ];
-
-    // Campos geridos directamente pelo controller (não via fill())
-    // user_id, imagem_capa, status
 
     protected $casts = [
         'meta'                   => 'array',
@@ -96,7 +94,6 @@ class Evento extends Model
         return $this->belongsToMany(User::class, 'curtidas')->withTimestamps();
     }
 
-    // Comentários SEM eager loading automático — carrega só o que precisas
     public function comentarios()
     {
         return $this->hasMany(Comentario::class)
@@ -104,7 +101,6 @@ class Evento extends Model
             ->latest();
     }
 
-    // Versão com relações — usa quando precisas das sub-relações explicitamente
     public function comentariosComRelacoes()
     {
         return $this->hasMany(Comentario::class)

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Bilhete;
 use App\Models\Evento;
 use App\Models\Reserva;
 use App\Models\User;
@@ -204,9 +205,22 @@ class SiteController extends Controller
             ->limit(10)
             ->get();
 
+        // ── Bilhetes eliminados pelo utilizador (soft deleted) ────
+        $bilhetesEliminados = Bilhete::onlyTrashed()
+            ->with([
+                'evento:id,titulo',
+                'tipoIngresso:id,nome',
+                'pedido.user:id,name',
+            ])
+            ->select('id','pedido_id','evento_id','tipo_ingressos_id','codigo_unico','validado_em','deleted_at')
+            ->orderBy('deleted_at', 'desc')
+            ->limit(30)
+            ->get();
+
         return view('admin-analises', compact(
             'auditoria','bilhetesBloqueados','lotes',
-            'statsSeguranca','actividadeHoras','topEventos'
+            'statsSeguranca','actividadeHoras','topEventos',
+            'bilhetesEliminados'
         ));
     }
 

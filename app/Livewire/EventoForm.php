@@ -24,7 +24,7 @@ class EventoForm extends Component
     public int $step       = 1;
     public int $totalSteps = 5;
 
-    // ── Categoria seleccionada no topo ────────────────────────
+    // ── Categoria ─────────────────────────────────────────────
     public ?int   $categoria_id    = null;
     public ?int   $subcategoria_id = null;
     public string $catNome         = '';
@@ -35,6 +35,11 @@ class EventoForm extends Component
     public string $descricao    = '';
     public string $link_externo = '';
 
+    // ── Vídeo: link externo OU upload ─────────────────────────
+    public string $video_preview = '';   // URL externa (YouTube, Vimeo, etc.)
+    public string $video_tipo    = 'link'; // 'link' ou 'upload'
+    public $video_file           = null; // ficheiro uploaded (mp4, webm, etc.)
+
     public string $data_evento    = '';
     public string $data_fim       = '';
     public string $hora_inicio    = '';
@@ -42,7 +47,7 @@ class EventoForm extends Component
     public bool   $multiplos_dias = false;
     public bool   $online         = false;
 
-    // ── Localização em cascata ────────────────────────────────
+    // ── Localização ───────────────────────────────────────────
     public string $provincia          = '';
     public string $municipio          = '';
     public string $bairro             = '';
@@ -50,7 +55,7 @@ class EventoForm extends Component
     public bool   $novo_bairro        = false;
     public string $novo_bairro_nome   = '';
 
-    // ── Meta (campos específicos por categoria) ───────────────
+    // ── Meta ──────────────────────────────────────────────────
     public array $meta = [];
 
     // ── Bilhetes ──────────────────────────────────────────────
@@ -74,11 +79,11 @@ class EventoForm extends Component
     public string $status = 'rascunho';
     public bool   $termos = false;
 
-    // ── Upload ────────────────────────────────────────────────
+    // ── Upload imagens ────────────────────────────────────────
     public $imagem_capa = null;
     public array $galeria = [];
 
-    // ── Bilhetes bloqueados (evento publicado) ────────────────
+    // ── Bilhetes bloqueados ───────────────────────────────────
     public array $bilhetesBloquedos = [];
 
     // ── Dados de localização ──────────────────────────────────
@@ -136,12 +141,11 @@ class EventoForm extends Component
             $this->editando = true;
             $this->carregarEvento($eventoId);
         } else {
-            // Selecciona a primeira categoria por defeito
             $cat = Categoria::orderBy('nome')->first();
             if ($cat) {
                 $this->categoria_id = $cat->id;
                 $this->catNome      = strtolower($cat->nome);
-                $this->catEmoji     = $cat->emoji ?? '🎟';
+                $this->catEmoji     = '🎟';
             }
         }
     }
@@ -170,7 +174,7 @@ class EventoForm extends Component
         $this->categoria_id         = $evento->categoria_id;
         $this->subcategoria_id      = $evento->subcategoria_id;
         $this->catNome              = strtolower(optional($evento->categoria)->nome ?? '');
-        $this->catEmoji             = optional($evento->categoria)->emoji ?? '🎟';
+        $this->catEmoji             = '🎟';
         $this->meta                 = is_array($evento->meta) ? $evento->meta : (json_decode($evento->meta ?? '{}', true) ?? []);
         $this->lotacao_maxima       = $evento->lotacao_maxima ?? 100;
         $this->ingressos_por_pessoa = $evento->ingressos_por_pessoa ?? 1;
@@ -183,6 +187,18 @@ class EventoForm extends Component
         $this->notif_lembrete_24h     = (bool) $evento->notif_lembrete_24h;
         $this->notif_resumo_semanal   = (bool) $evento->notif_resumo_semanal;
         $this->status               = $evento->status ?? 'rascunho';
+
+        // Detectar tipo de vídeo actual: URL ou ficheiro local
+        $vp = $evento->video_preview ?? '';
+        if (!empty($vp)) {
+            if (str_starts_with($vp, 'http')) {
+                $this->video_preview = $vp;
+                $this->video_tipo    = 'link';
+            } else {
+                $this->video_preview = $vp; // caminho local
+                $this->video_tipo    = 'upload';
+            }
+        }
 
         if ($evento->status === 'publicado') {
             $this->bilhetesBloquedos = $evento->tiposIngresso->pluck('id')->toArray();
@@ -227,15 +243,15 @@ class EventoForm extends Component
     }
 
     // ─────────────────────────────────────────────────────────
-    // SELECTORES DE CATEGORIA (no topo)
+    // SELECTORES DE CATEGORIA
     // ─────────────────────────────────────────────────────────
-    public function selectCategoria(int $id, string $nome, string $emoji): void
+    public function selectCategoria(int $id, string $nome, string $emoji = '🎟'): void
     {
         $this->categoria_id    = $id;
         $this->catNome         = strtolower($nome);
-        $this->catEmoji        = $emoji;
+        $this->catEmoji        = '🎟';
         $this->subcategoria_id = null;
-        $this->meta            = []; // limpa campos específicos ao mudar categoria
+        $this->meta            = [];
     }
 
     // ─────────────────────────────────────────────────────────
@@ -266,9 +282,9 @@ class EventoForm extends Component
     public function adicionarNovoBairro(): void
     {
         if (empty(trim($this->novo_bairro_nome))) return;
-        $this->bairro          = $this->novo_bairro_nome;
-        $this->localizacao     = "{$this->bairro}, {$this->municipio}, {$this->provincia}";
-        $this->novo_bairro     = false;
+        $this->bairro           = $this->novo_bairro_nome;
+        $this->localizacao      = "{$this->bairro}, {$this->municipio}, {$this->provincia}";
+        $this->novo_bairro      = false;
         $this->novo_bairro_nome = '';
     }
 
@@ -349,13 +365,43 @@ class EventoForm extends Component
             return;
         }
 
+        // Validar vídeo conforme o tipo escolhido
+        if ($this->video_tipo === 'link' && !empty($this->video_preview)) {
+            $this->validate([
+                'video_preview' => 'url|max:500',
+            ], [
+                'video_preview.url' => 'O link do vídeo deve ser um URL válido.',
+            ]);
+        }
+
+        if ($this->video_tipo === 'upload') {
+            $this->validate([
+                'video_file' => 'nullable|file|mimetypes:video/mp4,video/webm,video/ogg,video/quicktime|max:102400',
+            ], [
+                'video_file.mimetypes' => 'O vídeo deve ser MP4, WebM, OGG ou MOV.',
+                'video_file.max'       => 'O vídeo não pode ultrapassar 100 MB.',
+            ]);
+        }
+
+        // Upload imagem de capa
         $caminhoImagem = null;
         if ($this->imagem_capa) {
             $caminhoImagem = $this->imagem_capa->store('capas_eventos', 'public');
         }
 
+        // Determinar o valor final de video_preview
+        $videoFinal = null;
+        if ($this->video_tipo === 'link' && !empty($this->video_preview)) {
+            $videoFinal = $this->video_preview;
+        } elseif ($this->video_tipo === 'upload' && $this->video_file) {
+            // Upload do vídeo para storage
+            $videoFinal = $this->video_file->store('videos_eventos', 'public');
+        } elseif ($this->video_tipo === 'upload' && $this->editando && !empty($this->video_preview)) {
+            // Manter vídeo actual se não fez novo upload
+            $videoFinal = $this->video_preview;
+        }
+
         $dados = [
-            'user_id'                => auth()->id(),
             'titulo'                 => strip_tags($this->titulo),
             'descricao'              => strip_tags($this->descricao, '<b><i><p><strong>'),
             'categoria_id'           => $this->categoria_id,
@@ -370,6 +416,7 @@ class EventoForm extends Component
             'multiplos_dias'         => $this->multiplos_dias,
             'online'                 => $this->online,
             'link_externo'           => $this->link_externo ?: null,
+            'video_preview'          => $videoFinal,
             'lotacao_maxima'         => $this->lotacao_maxima,
             'ingressos_por_pessoa'   => $this->ingressos_por_pessoa,
             'lista_espera'           => $this->lista_espera,
@@ -380,19 +427,35 @@ class EventoForm extends Component
             'notif_nova_inscricao'   => $this->notif_nova_inscricao,
             'notif_lembrete_24h'     => $this->notif_lembrete_24h,
             'notif_resumo_semanal'   => $this->notif_resumo_semanal,
-            'status'                 => $this->status,
             'meta'                   => !empty($this->meta) ? $this->meta : null,
         ];
 
-        if ($caminhoImagem) {
-            $dados['imagem_capa'] = $caminhoImagem;
-        }
-
         if ($this->editando && $this->eventoId) {
             $evento = Evento::findOrFail($this->eventoId);
+
+            if (auth()->user()->role !== 'admin' && $evento->user_id !== auth()->id()) {
+                abort(403);
+            }
+
+            // Apagar vídeo local antigo se foi substituído por novo upload
+            if ($this->video_tipo === 'upload' && $this->video_file && !empty($evento->video_preview) && !str_starts_with($evento->video_preview, 'http')) {
+                Storage::disk('public')->delete($evento->video_preview);
+            }
+
             $evento->update($dados);
+            $evento->status = $this->status;
+            if ($caminhoImagem) {
+                if ($evento->imagem_capa) Storage::disk('public')->delete($evento->imagem_capa);
+                $evento->imagem_capa = $caminhoImagem;
+            }
+            $evento->save();
         } else {
-            $evento = Evento::create($dados);
+            $evento = new Evento();
+            $evento->fill($dados);
+            $evento->user_id     = auth()->id();
+            $evento->status      = $this->status;
+            $evento->imagem_capa = $caminhoImagem;
+            $evento->save();
 
             if (!empty($this->galeria)) {
                 $fotos = [];
@@ -408,7 +471,6 @@ class EventoForm extends Component
             }
         }
 
-        // Novos ingressos apenas
         $novos = array_filter($this->ingressos, fn($i) => empty($i['id']) && !empty($i['nome']));
 
         if (!empty($novos)) {

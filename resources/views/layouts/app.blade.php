@@ -148,7 +148,7 @@
 
 @php
     $isHome   = request()->routeIs('home');
-    $isStatic = request()->routeIs('login','register','password.*','admin.scanner');
+    $isStatic = request()->routeIs('login','register','password.*');
 @endphp
 
 <div class="fixed inset-0 -z-10">
@@ -362,6 +362,7 @@
             <a href="{{ route('admin.eventos.criar') }}" class="nav-item" x-on:click="sidebarOpen = false"><span class="nav-item-left">➕ Criar Evento</span></a>
             <a href="{{ route('admin.reservas') }}" class="nav-item" x-on:click="sidebarOpen = false"><span class="nav-item-left">📦 Reservas</span></a>
             <a href="{{ route('admin.pagos') }}" class="nav-item" x-on:click="sidebarOpen = false"><span class="nav-item-left">💰 Ganhos</span></a>
+            <a href="{{ route('admin.scanner') }}" class="nav-item" x-on:click="sidebarOpen = false"><span class="nav-item-left">📸 Scanner</span></a>
         </div>
         @endif
         @endauth

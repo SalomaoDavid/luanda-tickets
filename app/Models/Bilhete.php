@@ -4,9 +4,12 @@ namespace App\Models;
 
 use App\Services\BilheteService;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Bilhete extends Model
 {
+    use SoftDeletes;
+
     protected $fillable = [
         'pedido_id',
         'evento_id',
@@ -25,6 +28,7 @@ class Bilhete extends Model
 
     protected $casts = [
         'validado_em'          => 'datetime',
+        'deleted_at'           => 'datetime',
         'bloqueado'            => 'boolean',
         'tentativas_invalidas' => 'integer',
     ];

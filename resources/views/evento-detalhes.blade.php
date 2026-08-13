@@ -33,6 +33,23 @@ $tParagens     = isset($meta['paragens'])     ? (is_array($meta['paragens'])    
 $tArtistas     = isset($meta['artistas'])     ? (is_array($meta['artistas'])     ? $meta['artistas']     : (json_decode($meta['artistas'],     true) ?? [])) : [];
 $tPalestrantes = isset($meta['palestrantes']) ? (is_array($meta['palestrantes']) ? $meta['palestrantes'] : (json_decode($meta['palestrantes'],  true) ?? [])) : [];
 $tElenco       = isset($meta['elenco'])       ? (is_array($meta['elenco'])       ? $meta['elenco']       : (json_decode($meta['elenco'],       true) ?? [])) : [];
+$videoPreview  = $evento->video_preview ?? null;
+// Detecta automaticamente: URL externa ou ficheiro local
+$vUrl = $evento->video_preview ?? null;
+$embedUrl = null;
+$videoLocal = null;
+if ($vUrl) {
+    if (str_starts_with($vUrl, 'http')) {
+        if (preg_match('/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/shorts\/)([^&\s?]+)/', $vUrl, $m)) {
+            $embedUrl = "https://www.youtube.com/embed/{$m[1]}?autoplay=1&mute=1&loop=1&playlist={$m[1]}&controls=0&playsinline=1&modestbranding=1&rel=0";
+        } elseif (preg_match('/vimeo\.com\/(\d+)/', $vUrl, $m)) {
+            $embedUrl = "https://player.vimeo.com/video/{$m[1]}?autoplay=1&muted=1&loop=1&controls=0";
+        }
+    } else {
+        // Ficheiro local — tag <video>
+        $videoLocal = asset('storage/'.$vUrl);
+    }
+}
 @endphp
 
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -66,14 +83,14 @@ body{
 }
 
 /* ─── PAGE ─── */
-.page{width:100%;padding:12px 8px 120px;}
-@media only screen and (min-width:768px){.page{max-width:1080px;margin:0 auto;padding:24px 16px 120px;}}
+.page{width:100%;padding:6px 0 80px;}
+@media only screen and (min-width:768px){.page{max-width:1080px;margin:0 auto;padding:10px 0 80px;}}
 /* ─── HERO BANNER ─── */
 .hero{
     position:relative;
     border-radius:24px;
     overflow:hidden;
-    margin-bottom:28px;
+    margin-bottom:8px;
     height:260px;
     background:linear-gradient(135deg,#050d1a,#0a1f3a);
 }
@@ -95,7 +112,7 @@ body{
 }
 .hero-content{
     position:absolute;bottom:0;left:0;right:0;
-    padding:28px 28px 32px;
+    padding:10px 12px 14px;
 }
 .hero-category{
     display:inline-flex;align-items:center;gap:6px;
@@ -141,30 +158,30 @@ body{
 .layout{
     display:grid;
     grid-template-columns:1fr;
-    gap:20px;
+    row-gap:8px;column-gap:0;
 }
-.layout-left{display:flex;flex-direction:column;gap:16px;}
-.layout-right{display:flex;flex-direction:column;gap:16px;}
+.layout-left{display:flex;flex-direction:column;gap:8px;}
+.layout-right{display:flex;flex-direction:column;gap:8px;}
 
 /* ─── CARDS HORIZONTAIS (abaixo do hero) ─── */
 .cards-row{
     display:grid;
     grid-template-columns:1fr;
-    gap:12px;
+    row-gap:6px;column-gap:0;
     margin-bottom:0;
 }
 @media only screen and (min-width:640px){
-    .cards-row{grid-template-columns:1fr 1fr;}
+    .cards-row{grid-template-columns:1fr 1fr;column-gap:6px;}
 }
 @media only screen and (min-width:1024px){
-    .cards-row{grid-template-columns:1fr 1fr 1fr;gap:14px;}
+    .cards-row{grid-template-columns:1fr 1fr 1fr;column-gap:6px;}
 }
 
 /* Cards compactos no desktop */
 @media only screen and (min-width:768px){
-    .card-body{padding:14px 18px;}
-    .card-head{padding:12px 18px 10px;}
-    .info-item{padding:9px 12px;}
+    .card-body{padding:10px 10px;}
+    .card-head{padding:8px 10px 6px;}
+    .info-item{padding:6px 8px;}
     .sobre-text{font-size:13px;}
 }
 
@@ -176,7 +193,7 @@ body{
     overflow:hidden;
 }
 .card-head{
-    padding:14px 20px 12px;
+    padding:8px 10px 6px;
     border-bottom:1px solid var(--border);
     display:flex;align-items:center;justify-content:space-between;
 }
@@ -185,7 +202,7 @@ body{
     font-size:14px;font-weight:800;color:var(--txt);
     display:flex;align-items:center;gap:8px;
 }
-.card-body{padding:16px 20px;}
+.card-body{padding:10px 10px;}
 
 /* ─── SOBRE ─── */
 .sobre-text{
@@ -355,8 +372,8 @@ body{
 
 /* ─── QUICK ACTIONS ─── */
 .quick-actions{
-    display:flex;gap:8px;flex-wrap:wrap;
-    padding:14px 22px;border-top:1px solid var(--border);
+    display:flex;gap:6px;flex-wrap:wrap;
+    padding:8px 10px;border-top:1px solid var(--border);
 }
 .qa-btn{
     flex:1;min-width:100px;
@@ -539,6 +556,160 @@ body{
 .modal-banco-separator{height:1px;background:var(--border);margin:16px 0;}
 .ja-paguei-btn{width:100%;padding:10px 14px;border-radius:14px;background:linear-gradient(135deg,var(--emerald),#00a87a);color:#fff;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .2s;box-shadow:0 4px 20px rgba(0,200,150,.3);}
 .ja-paguei-btn:hover{transform:translateY(-1px);box-shadow:0 6px 28px rgba(0,200,150,.4);}
+
+/* ══════════════════════════════════════════════
+   ANIMAÇÕES ADICIONADAS (não altera lógica)
+   ══════════════════════════════════════════════ */
+@keyframes fadeInUp{
+    0%{opacity:0;transform:translateY(24px);}
+    100%{opacity:1;transform:translateY(0);}
+}
+@keyframes heroZoom{
+    0%{transform:scale(1.12);}
+    100%{transform:scale(1);}
+}
+@keyframes glowPulse{
+    0%,100%{box-shadow:0 4px 24px rgba(0,212,255,.35);}
+    50%{box-shadow:0 4px 34px rgba(0,212,255,.6);}
+}
+@keyframes glowBreatheOpacity{
+    0%,100%{opacity:.18;}
+    50%{opacity:.6;}
+}
+
+@keyframes spinBorder{
+    0%{transform:rotate(0deg);}
+    100%{transform:rotate(360deg);}
+}
+
+.anim-fadeInUp{opacity:0;animation:fadeInUp .7s ease-out forwards;}
+.anim-delay-1{animation-delay:.08s;}
+.anim-delay-2{animation-delay:.18s;}
+.anim-delay-3{animation-delay:.28s;}
+
+.hero img{animation:heroZoom 1.6s ease-out forwards;}
+
+.scroll-reveal{opacity:0;transform:translateY(24px);transition:all .7s cubic-bezier(.16,1,.3,1);}
+.scroll-reveal.is-visible{opacity:1;transform:translateY(0);}
+
+.card{position:relative;border-color:rgba(0,212,255,.08);}
+
+/* Anel giratório em volta dos 3 cards (::before) — independente do glow (::after) */
+.card::before{
+    content:'';position:absolute;inset:-1px;border-radius:20px;padding:1.5px;
+    background:conic-gradient(from 0deg, transparent 0%, var(--cyan) 12%, transparent 26%, transparent 74%, var(--gold) 88%, transparent 100%);
+    animation:spinBorder 5s linear infinite;
+    -webkit-mask:linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite:xor;mask-composite:exclude;
+    pointer-events:none;z-index:0;
+}
+.card > *{position:relative;z-index:1;}
+
+/* Respiração de luz: camada própria (::after), não interfere na opacidade do elemento */
+.hero::after,
+.card::after{
+    content:'';
+    position:absolute;inset:0;
+    border-radius:inherit;
+    pointer-events:none;
+    z-index:-1;
+    background:radial-gradient(circle at 50% 30%, rgba(0,212,255,.16), transparent 65%);
+    animation:glowBreatheOpacity 4.5s ease-in-out infinite;
+}
+
+.buy-btn:not(:disabled){animation:glowPulse 2.4s ease-in-out infinite;}
+
+/* ══════════════════════════════════════════════
+   ANIMAÇÕES DOS MODAIS E DRAWERS
+   ══════════════════════════════════════════════ */
+@keyframes shimmerText{
+    to{background-position:200% center;}
+}
+@keyframes slideFadeIn{
+    0%{opacity:0;transform:translateY(30px);}
+    100%{opacity:1;transform:translateY(0);}
+}
+@keyframes overlayFadeIn{
+    0%{opacity:0;}
+    100%{opacity:1;}
+}
+@keyframes rowPop{
+    0%{opacity:0;transform:translateY(14px) scale(.97);}
+    100%{opacity:1;transform:translateY(0) scale(1);}
+}
+@keyframes priceGlow{
+    0%,100%{text-shadow:0 0 0 rgba(245,166,35,0);}
+    50%{text-shadow:0 0 18px rgba(245,166,35,.55);}
+}
+
+/* Texto shimmer (títulos dos modais/drawers, mesmo estilo do menu lateral) */
+.drawer-title,
+.modal-top-title,
+.modal-banco-title{
+    background:linear-gradient(90deg,#ffffff,var(--cyan),#a78bfa,#ffffff);
+    background-size:300% auto;
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+    background-clip:text;
+    animation:shimmerText 3s linear infinite;
+}
+
+/* Preços com brilho dourado pulsante */
+.modal-selected-price,
+.total-value,
+#banco-tipo-preco{
+    animation:priceGlow 2.2s ease-in-out infinite;
+}
+
+/* Overlays: fade suave ao abrir */
+.drawer-overlay.open,
+#modal-banco-overlay,
+#modal-banco-center{
+    animation:overlayFadeIn .25s ease-out;
+}
+
+/* Drawer: entra a deslizar de baixo para cima */
+.drawer-overlay.open .drawer-box{
+    animation:slideFadeIn .35s cubic-bezier(.16,1,.3,1);
+}
+
+/* Modal bancário: entra a deslizar de baixo para cima */
+.modal-banco-box{
+    animation:slideFadeIn .35s cubic-bezier(.16,1,.3,1);
+}
+
+/* Linhas de tipos de bilhete: aparecem em cascata */
+.ticket-type{animation:rowPop .4s cubic-bezier(.16,1,.3,1) backwards;}
+.ticket-type:nth-child(1){animation-delay:.05s;}
+.ticket-type:nth-child(2){animation-delay:.1s;}
+.ticket-type:nth-child(3){animation-delay:.15s;}
+.ticket-type:nth-child(4){animation-delay:.2s;}
+.ticket-type:nth-child(5){animation-delay:.25s;}
+.ticket-type:hover{transform:translateX(3px);}
+
+/* Cards bancários: aparecem em cascata dentro do modal (delay via style inline no loop) */
+.banco-card{animation:rowPop .4s cubic-bezier(.16,1,.3,1) backwards;}
+
+/* Resumo do evento dentro do modal de inscrição */
+.modal-ev-row{animation:rowPop .4s cubic-bezier(.16,1,.3,1) .05s backwards;}
+.modal-selected-type{animation:rowPop .4s cubic-bezier(.16,1,.3,1) .1s backwards;}
+
+/* Botões de ação com brilho */
+.submit-btn{animation:glowPulse 2.4s ease-in-out infinite;}
+.ja-paguei-btn{animation:glowPulse 2.6s ease-in-out infinite;}
+.copiar-btn{transition:all .2s;}
+.copiar-btn:active{transform:scale(.92);}
+
+@media (prefers-reduced-motion: reduce){
+    .anim-fadeInUp,.scroll-reveal,.hero img,.hero::after,.card::after,.card::before,
+    .buy-btn:not(:disabled),.drawer-title,.modal-top-title,.modal-banco-title,
+    .modal-selected-price,.total-value,#banco-tipo-preco,.drawer-overlay.open,
+    #modal-banco-overlay,#modal-banco-center,.drawer-overlay.open .drawer-box,
+    .modal-banco-box,.ticket-type,.banco-card,.modal-ev-row,.modal-selected-type,
+    .submit-btn,.ja-paguei-btn{
+        animation:none!important;transition:none!important;opacity:1!important;transform:none!important;
+        -webkit-text-fill-color:var(--txt)!important;background:none!important;
+    }
+}
 @endverbatim
 </style>
 <div x-data="{
@@ -564,7 +735,7 @@ body{
     class="page">
 
 {{-- ═══ HERO ═══ --}}
-<div class="hero">
+<div class="hero anim-fadeInUp">
     @if($temCapa)
         <img src="{{ asset('storage/'.$evento->imagem_capa) }}" alt="{{ e($evento->titulo) }}" loading="lazy">
     @elseif($temFotos)
@@ -573,6 +744,14 @@ body{
         <div class="hero-ph">{{ $catEmoji }}</div>
     @endif
     <div class="hero-gradient"></div>
+
+    @if($videoEmbed)
+    <iframe id="heroVideoIframe" src="{{ $videoEmbed }}"
+        style="position:absolute;inset:0;width:300%;height:300%;top:50%;left:50%;transform:translate(-50%,-50%);border:none;pointer-events:none;z-index:1;opacity:.65;"
+        allow="autoplay" loading="lazy"></iframe>
+    <button id="heroPlayBtn" onclick="abrirVideoEvento()" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:64px;height:64px;border-radius:50%;z-index:10;background:rgba(0,0,0,.55);backdrop-filter:blur(8px);border:2px solid rgba(255,255,255,.7);color:#fff;font-size:26px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;">▶</button>
+    <button id="heroSomBtn" onclick="toggleHeroSom()" style="position:absolute;bottom:18px;right:18px;z-index:10;width:32px;height:32px;border-radius:50%;background:rgba(0,0,0,.6);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.3);color:#fff;font-size:14px;cursor:pointer;">🔇</button>
+    @endif
 
     {{-- Badge --}}
     @if($totalDisp <= 0)
@@ -592,10 +771,10 @@ body{
 
     <div class="hero-content">
         @if($evento->categoria)
-            <div class="hero-category">{{ $catEmoji }} {{ $evento->categoria->nome }}</div>
+            <div class="hero-category anim-fadeInUp anim-delay-1">{{ $catEmoji }} {{ $evento->categoria->nome }}</div>
         @endif
-        <h1 class="hero-title">{{ e($evento->titulo) }}</h1>
-        <div class="hero-pills">
+        <h1 class="hero-title anim-fadeInUp anim-delay-2">{{ e($evento->titulo) }}</h1>
+        <div class="hero-pills anim-fadeInUp anim-delay-3">
             <span class="hero-pill">
                 📅 {{ \Carbon\Carbon::parse($evento->data_evento)->translatedFormat('d M Y') }}
                 @if($evento->hora_inicio) · {{ substr($evento->hora_inicio,0,5) }}@endif
@@ -616,7 +795,7 @@ body{
         <div class="cards-row">
 
             {{-- CARD SOBRE --}}
-            <div class="card">
+            <div class="card scroll-reveal">
                 <div class="card-head">
                     <div class="card-title">📋 Sobre o Evento</div>
                 </div>
@@ -677,12 +856,12 @@ body{
             </div>
 
             {{-- CARD BILHETES (compacto) --}}
-            <div class="card">
+            <div class="card scroll-reveal">
                 <div class="card-head">
                     <div class="card-title">🎟 Bilhetes</div>
                     @if($totalDisp > 0)
                     <span style="font-size:10px;font-weight:700;color:var(--emerald);background:rgba(0,200,150,.1);border:1px solid rgba(0,200,150,.2);padding:2px 8px;border-radius:20px;">
-                        {{ $totalDisp }} disponíveis
+                        <span id="contadorDisponiveis" data-target="{{ $totalDisp }}">0</span> disponíveis
                     </span>
                     @else
                     <span style="font-size:10px;font-weight:700;color:var(--rose);">Esgotado</span>
@@ -720,7 +899,7 @@ body{
             </div>
 
             {{-- CARD ORGANIZADOR --}}
-            <div class="card">
+            <div class="card scroll-reveal">
                 <div class="card-head">
                     <div class="card-title">👤 Organizador</div>
                 </div>
@@ -769,7 +948,7 @@ body{
         </div>{{-- /cards-row --}}
 {{-- META ESPECÍFICO DA CATEGORIA --}}
 @if($temMeta && !empty($meta))
-<div class="card">
+<div class="card scroll-reveal">
     <div class="card-head">
         <div class="card-title">
             @if(str_contains($catNome,'viagem') || !empty($meta['partida'])) ✈️ Detalhes da Viagem
@@ -1071,7 +1250,7 @@ body{
             </div>
             <div class="modal-banco-sub">📋 Copie os dados bancários, efectue o pagamento e clique em "Já paguei".</div>
             @forelse($contasBancarias as $conta)
-            <div class="banco-card">
+            <div class="banco-card" style="animation-delay:{{ $loop->index * 0.08 }}s;">
                 <div class="banco-header">
                     @if($conta->logo)
                         <img src="{{ asset('images/bancos/'.$conta->logo) }}" class="banco-logo" alt="{{ $conta->nome_banco }}">
@@ -1251,12 +1430,60 @@ body{
     </div>
 </div>
 
+@if(!empty($videoEmbedSom))
+<div id="modal-video-evento" style="display:none;position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.95);align-items:center;justify-content:center;flex-direction:column;">
+    <button onclick="fecharVideoEvento()" style="position:absolute;top:16px;right:16px;width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.15);border:none;color:#fff;font-size:20px;cursor:pointer;">✕</button>
+    <div style="font-size:13px;font-weight:700;color:#fff;margin-bottom:10px;">{{ e($evento->titulo) }}</div>
+    <iframe id="modal-video-iframe" data-src="{{ $videoEmbedSom }}" src=""
+        style="width:90vw;max-width:800px;height:50vw;max-height:450px;border-radius:16px;border:none;"
+        allow="autoplay; fullscreen" allowfullscreen></iframe>
+</div>
+@endif
+
 <script>
-// ── Funções globais ──────────────────────────────────────────
-function abrirDrawer(id){const el=document.getElementById(id);if(el){el.classList.add('open');document.body.style.overflow='hidden';}}
-function fecharDrawer(id){const el=document.getElementById(id);if(el){el.classList.remove('open');document.body.style.overflow='';}}
-function toggleSobre(){var p=document.getElementById('sobreText');var btn=document.getElementById('sobreBtn');var aberto=btn.textContent.includes('menos');p.style.webkitLineClamp=aberto?'4':'unset';p.style.overflow=aberto?'hidden':'visible';btn.textContent=aberto?'Ver mais ↓':'Ver menos ↑';}
-function handleUpload(input){var file=input.files[0];var prev=document.getElementById('upload-preview');var name=document.getElementById('upload-preview-name');if(file){name.textContent=file.name;prev.style.display='flex';}else{prev.style.display='none';}}
+var _heroSomActivo = false;
+
+// Fix 1: usar postMessage em vez de mudar src — não reinicia o vídeo
+function toggleHeroSom() {
+    var iframe = document.getElementById('heroVideoIframe');
+    var btn    = document.getElementById('heroSomBtn');
+    if (!iframe || !btn) return;
+    _heroSomActivo = !_heroSomActivo;
+    var cmd = _heroSomActivo ? 'unMute' : 'mute';
+    iframe.contentWindow.postMessage(
+        JSON.stringify({event:'command', func:cmd, args:[]}), '*'
+    );
+    btn.textContent = _heroSomActivo ? '🔊' : '🔇';
+}
+
+function abrirVideoEvento() {
+    var modal  = document.getElementById('modal-video-evento');
+    var iframe = document.getElementById('modal-video-iframe');
+    if (!modal || !iframe) return;
+    if (iframe.dataset.src && !iframe.src) iframe.src = iframe.dataset.src;
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+    // Fix 2: esconder botão ▶ quando modal abre
+    var playBtn = document.getElementById('heroPlayBtn');
+    if (playBtn) playBtn.style.display = 'none';
+}
+
+function fecharVideoEvento() {
+    var modal  = document.getElementById('modal-video-evento');
+    var iframe = document.getElementById('modal-video-iframe');
+    if (modal)  modal.style.display = 'none';
+    if (iframe) iframe.src = '';
+    document.body.style.overflow = '';
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') fecharVideoEvento();
+});
+
+
+// ── abrirDrawer, fecharDrawer, toggleSobre e handleUpload já existem
+//    globalmente em app.blade.php (window.*) — não redeclarar aqui.
+// ── Funções exclusivas desta página (fluxo de pagamento bancário) ──
 function copiarTexto(elementId, btn) {
     const texto = document.getElementById(elementId)?.textContent?.trim();
     if (!texto) return;
@@ -1299,6 +1526,42 @@ document.addEventListener('keydown', function(e) {
         document.querySelectorAll('.drawer-overlay.open').forEach(function(d){d.classList.remove('open');});
         document.body.style.overflow = '';
     }
+});
+
+// ── Scroll-reveal dos cards (animação, sem alterar lógica) ──
+document.addEventListener('DOMContentLoaded', function () {
+    var els = document.querySelectorAll('.scroll-reveal');
+    if (!('IntersectionObserver' in window)) {
+        els.forEach(function (el) { el.classList.add('is-visible'); });
+        return;
+    }
+    var obs = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('is-visible');
+                obs.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.15 });
+    els.forEach(function (el) { obs.observe(el); });
+});
+
+// ── Contador de bilhetes disponíveis: conta de 1 até ao valor real ──
+document.addEventListener('DOMContentLoaded', function () {
+    var contador = document.getElementById('contadorDisponiveis');
+    if (!contador) return;
+    var alvo = parseInt(contador.dataset.target, 10) || 0;
+    if (alvo <= 0) { contador.textContent = '0'; return; }
+    var duracao = 1000;
+    var inicio = null;
+    function passo(ts) {
+        if (!inicio) inicio = ts;
+        var progresso = Math.min((ts - inicio) / duracao, 1);
+        contador.textContent = Math.max(1, Math.floor(progresso * alvo));
+        if (progresso < 1) requestAnimationFrame(passo);
+        else contador.textContent = alvo;
+    }
+    requestAnimationFrame(passo);
 });
 </script>
 @endsection

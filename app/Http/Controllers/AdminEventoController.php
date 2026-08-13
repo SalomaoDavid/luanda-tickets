@@ -6,8 +6,6 @@ use App\Models\Evento;
 use App\Models\EventoFoto;
 use App\Models\TipoIngresso;
 use App\Models\Categoria;
-use App\Models\User;
-use App\Notifications\NovoEventoCriadoNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
@@ -18,6 +16,7 @@ class AdminEventoController extends Controller
     {
         $user = auth()->user();
 
+        // ✅ Select específico — só colunas necessárias para a listagem
         $eventos = Evento::with([
                 'tiposIngresso:id,evento_id,nome,preco,quantidade_disponivel,quantidade_total',
             ])
@@ -31,6 +30,7 @@ class AdminEventoController extends Controller
 
     public function create()
     {
+        // ✅ Cache para categorias — mudam raramente
         $categorias = Cache::remember('categorias_com_subcategorias', 600, function () {
             return Categoria::with('subcategorias')->orderBy('nome')->get();
         });
@@ -59,21 +59,21 @@ class AdminEventoController extends Controller
             'imagem_capa'     => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
             'galeria'         => 'nullable|array',
             'galeria.*'       => 'image|mimes:jpeg,png,jpg,webp|max:5120',
-            'ingressos'               => 'nullable|array',
-            'ingressos.*.nome'        => 'required_with:ingressos|string|max:100',
-            'ingressos.*.preco'       => 'required_with:ingressos|numeric|min:0',
-            'ingressos.*.quantidade'  => 'required_with:ingressos|integer|min:1',
-            'ingressos_por_pessoa'    => 'nullable|integer|min:1|max:10',
-            'lista_espera'            => 'nullable|boolean',
-            'privado'                 => 'nullable|boolean',
-            'aprovacao_manual'        => 'nullable|boolean',
-            'permitir_comentarios'    => 'nullable|boolean',
-            'participantes_publicos'  => 'nullable|boolean',
-            'notif_nova_inscricao'    => 'nullable|boolean',
-            'notif_lembrete_24h'      => 'nullable|boolean',
-            'notif_resumo_semanal'    => 'nullable|boolean',
-            'status'                  => 'required|in:rascunho,publicado,encerrado',
-            'termos'                  => 'accepted',
+            'ingressos'                => 'nullable|array',
+            'ingressos.*.nome'         => 'required_with:ingressos|string|max:100',
+            'ingressos.*.preco'        => 'required_with:ingressos|numeric|min:0',
+            'ingressos.*.quantidade'   => 'required_with:ingressos|integer|min:1',
+            'ingressos_por_pessoa'     => 'nullable|integer|min:1|max:10',
+            'lista_espera'             => 'nullable|boolean',
+            'privado'                  => 'nullable|boolean',
+            'aprovacao_manual'         => 'nullable|boolean',
+            'permitir_comentarios'     => 'nullable|boolean',
+            'participantes_publicos'   => 'nullable|boolean',
+            'notif_nova_inscricao'     => 'nullable|boolean',
+            'notif_lembrete_24h'       => 'nullable|boolean',
+            'notif_resumo_semanal'     => 'nullable|boolean',
+            'status'                   => 'required|in:rascunho,publicado,encerrado',
+            'termos'                   => 'accepted',
         ], [
             'titulo.required'         => 'O nome do evento é obrigatório.',
             'descricao.required'      => 'A descrição é obrigatória.',
@@ -86,13 +86,16 @@ class AdminEventoController extends Controller
             'termos.accepted'         => 'Tens de aceitar os termos de publicação.',
         ]);
 
+        // Upload da imagem de capa — lógica intacta
         $caminhoImagem = null;
         if ($request->hasFile('imagem_capa')) {
             $caminhoImagem = $request->file('imagem_capa')->store('capas_eventos', 'public');
         }
 
-        $evento = Evento::create([
-            'user_id'                => auth()->id(),
+        // Criar o evento — lógica intacta
+        $evento = new Evento();
+        $evento->user_id = auth()->id(); // fora do fillable — atribuição directa
+        $evento->fill([
             'titulo'                 => strip_tags($request->titulo),
             'descricao'              => strip_tags($request->descricao, '<b><i><p><strong>'),
             'categoria_id'           => $request->categoria_id,
@@ -117,12 +120,13 @@ class AdminEventoController extends Controller
             'notif_nova_inscricao'   => $request->boolean('notif_nova_inscricao'),
             'notif_lembrete_24h'     => $request->boolean('notif_lembrete_24h'),
             'notif_resumo_semanal'   => $request->boolean('notif_resumo_semanal'),
-            'imagem_capa'            => $caminhoImagem,
-            'status'                 => $request->status ?? 'rascunho',
             'meta'                   => $request->meta ?? null,
         ]);
+        $evento->imagem_capa = $caminhoImagem; // fora do fillable
+        $evento->status      = $request->status ?? 'rascunho'; // fora do fillable
+        $evento->save();
 
-        // Galeria em batch
+        // ✅ Galeria em batch insert — 1 query em vez de N
         if ($request->hasFile('galeria')) {
             $fotos = [];
             foreach ($request->file('galeria') as $foto) {
@@ -136,13 +140,15 @@ class AdminEventoController extends Controller
             EventoFoto::insert($fotos);
         }
 
-        // Ingressos em batch
+        // ✅ Ingressos em batch insert — 1 query em vez de N
         if ($request->filled('ingressos')) {
             $ingressos = [];
             foreach ($request->ingressos as $ingresso) {
                 if (empty($ingresso['nome'])) continue;
+
                 $precoBase  = floatval($ingresso['preco']);
                 $precoFinal = $precoBase + round($precoBase * 0.20);
+
                 $ingressos[] = [
                     'evento_id'             => $evento->id,
                     'nome'                  => strip_tags($ingresso['nome']),
@@ -158,14 +164,7 @@ class AdminEventoController extends Controller
             }
         }
 
-        // ── Notifica todos os admins quando evento é criado ──
-        $criador = auth()->user();
-        if ($criador->role !== 'admin') {
-            User::where('role', 'admin')->each(function ($admin) use ($evento, $criador) {
-                $admin->notify(new notify(NovoEventoCriadoNotification::fromEvento($evento, $criador)));
-            });
-        }
-
+        // ✅ Limpa cache de categorias ao criar evento (boa prática)
         Cache::forget('categorias_com_subcategorias');
 
         return redirect()->route('admin.eventos')->with('success', 'Evento criado com sucesso!');
@@ -173,6 +172,7 @@ class AdminEventoController extends Controller
 
     public function edit($id)
     {
+        // ✅ Select específico
         $evento = Evento::with([
                 'tiposIngresso:id,evento_id,nome,preco,quantidade_disponivel,quantidade_total',
                 'user:id,name',
@@ -189,6 +189,7 @@ class AdminEventoController extends Controller
             abort(403, 'Acesso negado!');
         }
 
+        // ✅ Cache para categorias
         $categorias = Cache::remember('categorias_com_subcategorias', 600, function () {
             return Categoria::with('subcategorias')->orderBy('nome')->get();
         });
@@ -198,6 +199,7 @@ class AdminEventoController extends Controller
 
     public function update(Request $request, $id)
     {
+        // ✅ Select mínimo para verificar permissão
         $evento = Evento::select('id','user_id')->findOrFail($id);
 
         if (auth()->user()->role !== 'admin' && $evento->user_id !== auth()->id()) {
@@ -214,6 +216,7 @@ class AdminEventoController extends Controller
             'status'         => 'required|in:rascunho,publicado,encerrado',
         ]);
 
+        // ✅ update() mantido (precisa disparar eventos para cache/observers)
         $evento->update([
             'titulo'                 => strip_tags($request->titulo),
             'descricao'              => strip_tags($request->descricao, '<b><i><p><strong>'),
@@ -223,8 +226,8 @@ class AdminEventoController extends Controller
             'hora_inicio'            => $request->hora_inicio,
             'hora_fim'               => $request->hora_fim,
             'multiplos_dias'         => $request->boolean('multiplos_dias'),
-            'localizacao'            => strip_tags($request->localizacao),
-            'municipio'              => strip_tags($request->municipio),
+            'localizacao'            => strip_tags($request->localizacao), // <--- AQUI
+            'municipio'              => strip_tags($request->municipio),   // <--- AQUI
             'provincia'              => strip_tags($request->provincia),
             'online'                 => $request->boolean('online'),
             'lotacao_maxima'         => $request->lotacao_maxima,
@@ -237,25 +240,36 @@ class AdminEventoController extends Controller
             'notif_nova_inscricao'   => $request->boolean('notif_nova_inscricao'),
             'notif_lembrete_24h'     => $request->boolean('notif_lembrete_24h'),
             'notif_resumo_semanal'   => $request->boolean('notif_resumo_semanal'),
-            'status'                 => $request->status,
             'meta'                   => $request->meta ?? null,
         ]);
+
+        // status e imagem_capa fora do $fillable — atribuição directa
+        $evento->status = $request->status;
+
+        if ($request->hasFile('imagem_capa')) {
+            if ($evento->imagem_capa) Storage::disk('public')->delete($evento->imagem_capa);
+            $evento->imagem_capa = $request->file('imagem_capa')->store('capas_eventos', 'public');
+        }
+
+        $evento->save();
 
         return redirect()->route('admin.eventos')->with('success', 'Evento atualizado com sucesso!');
     }
 
     public function destroy($id)
     {
+        // ✅ Select mínimo para verificar permissão antes de apagar
         $evento = Evento::select('id','user_id')->findOrFail($id);
 
         if (auth()->user()->role !== 'admin' && $evento->user_id !== auth()->id()) {
             abort(403);
         }
 
-        foreach ($evento->fotos as $foto) {
-            Storage::disk('public')->delete($foto->caminho);
-        }
-        $evento->fotos()->delete();
+        // Apagar ficheiros físicos das fotos
+    foreach ($evento->fotos as $foto) {
+        Storage::disk('public')->delete($foto->caminho);
+    }
+        $evento->fotos()->delete();           // ← adicionar
         $evento->tiposIngresso()->delete();
         $evento->delete();
 

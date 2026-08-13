@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Pedido;
 use App\Models\Bilhete;
+use App\Services\BilheteService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use Illuminate\Support\Facades\Storage;
@@ -12,7 +13,6 @@ class TicketController extends Controller
 {
     public function download($pedidoId)
     {
-        // ✅ Select específico nas relações — só colunas necessárias para o PDF
         $pedido = Pedido::with([
             'bilhetes:id,pedido_id,evento_id,tipo_ingressos_id,codigo_unico',
             'bilhetes.evento:id,titulo,localizacao,data_evento,imagem_capa',
@@ -24,7 +24,6 @@ class TicketController extends Controller
             ->where('user_id', auth()->id())
             ->firstOrFail();
 
-        // Geração de QR Codes — lógica intacta
         foreach ($pedido->bilhetes as $bilhete) {
             $bilhete->qr_code = base64_encode(
                 QrCode::format('svg')->size(150)->errorCorrection('H')->generate($bilhete->codigo_unico)
@@ -32,29 +31,24 @@ class TicketController extends Controller
         }
 
         $pdf = Pdf::loadView('pdf.meus-bilhetes', compact('pedido'));
-
         return $pdf->download("Bilhetes_LuandaTickets_{$pedido->id}.pdf");
     }
 
     public function downloadIndividual($id)
     {
-        // ✅ Select específico nas relações
         $bilhete = Bilhete::with([
             'evento:id,titulo,localizacao,data_evento,hora_inicio,hora_fim,imagem_capa,user_id,descricao',
             'evento.user:id,name',
             'tipoIngresso:id,nome,preco',
             'pedido:id,user_id',
-            
         ])
             ->select('id', 'pedido_id', 'evento_id', 'tipo_ingressos_id', 'codigo_unico', 'validado_em')
             ->findOrFail($id);
 
-        // Segurança — lógica intacta
         if (!$bilhete->pedido || $bilhete->pedido->user_id !== auth()->id()) {
             abort(403, 'Este bilhete não pertence à sua conta.');
         }
 
-        // Processar imagem de capa — lógica intacta
         $capaBase64 = null;
         $tipoMime   = null;
 
@@ -73,7 +67,6 @@ class TicketController extends Controller
             }
         }
 
-        // Geração de QR Code — lógica intacta
         $bilhete->qr_code = base64_encode(
             QrCode::format('svg')->size(200)->margin(1)->errorCorrection('H')->generate($bilhete->codigo_unico)
         );
@@ -83,10 +76,48 @@ class TicketController extends Controller
 
         return $pdf->download("bilhete-{$bilhete->codigo_unico}.pdf");
     }
-    public function eliminar($id) {
-    $bilhete = Bilhete::findOrFail($id);
-    if ($bilhete->pedido->user_id !== auth()->id()) abort(403);
-    $bilhete->delete();
-    return back()->with('success', 'Bilhete eliminado.');
-}
+
+    public function eliminar($id)
+    {
+        // Eager load — evita N+1, só colunas necessárias
+        $bilhete = Bilhete::with('pedido:id,user_id')
+            ->select('id', 'pedido_id', 'codigo_unico', 'validado_em')
+            ->findOrFail($id);
+
+        // Verificação de autorização
+        if (!$bilhete->pedido || $bilhete->pedido->user_id !== auth()->id()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Não tens permissão para eliminar este bilhete.',
+            ], 403);
+        }
+
+        // Só permite eliminar bilhetes já utilizados
+        if (!$bilhete->validado_em) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Só podes eliminar bilhetes que já foram utilizados.',
+            ], 422);
+        }
+
+        // Registar na auditoria antes de eliminar
+        BilheteService::registarAuditoria(
+            $bilhete->id,
+            'eliminado_pelo_utilizador',
+            $bilhete->codigo_unico,
+            [
+                'motivo'      => 'Utilizador eliminou o bilhete após utilização',
+                'user_id'     => auth()->id(),
+                'validado_em' => $bilhete->validado_em,
+            ]
+        );
+
+        // Soft delete — registo mantido na BD para auditoria do admin
+        $bilhete->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Bilhete eliminado com sucesso.',
+        ]);
+    }
 }

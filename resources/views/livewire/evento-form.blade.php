@@ -717,7 +717,7 @@
 
         </div>
 
-        {{-- ════════════════════════════════
+            {{-- ════════════════════════════════
              PASSO 3 — CAPA E GALERIA
         ════════════════════════════════ --}}
         <div class="sp {{ $step === 3 ? 'active' : '' }}">
@@ -742,6 +742,108 @@
                     @endif
                 </label>
                 <div wire:loading wire:target="imagem_capa" style="font-size:12px;color:var(--acc2);margin-top:8px;">⏳ A carregar imagem...</div>
+            </div>
+
+            {{-- VÍDEO DE PRÉ-VISUALIZAÇÃO --}}
+            <div class="ev-card">
+                <div class="ev-card-head">
+                    <div class="ev-card-icon">🎬</div>
+                    <div>
+                        <div class="ev-card-title">Vídeo de pré-visualização</div>
+                        <div class="ev-card-sub">Máx. 60 segundos · Link externo ou ficheiro local</div>
+                    </div>
+                </div>
+
+                {{-- Toggle link / upload — usa @if em vez de ternária no style --}}
+                <div style="display:flex;gap:8px;margin-bottom:16px;">
+                    @if($video_tipo === 'link')
+                    <button type="button"
+                        style="flex:1;padding:9px;border-radius:10px;font-size:12px;font-weight:700;border:1.5px solid var(--acc2);background:var(--acc-bg);color:var(--acc2);cursor:pointer;"
+                        wire:click="$set('video_tipo','link')">
+                        🔗 Link externo
+                    </button>
+                    <button type="button"
+                        style="flex:1;padding:9px;border-radius:10px;font-size:12px;font-weight:700;border:1.5px solid var(--b2);background:var(--s2);color:var(--t3);cursor:pointer;"
+                        wire:click="$set('video_tipo','upload')">
+                        📁 Upload de ficheiro
+                    </button>
+                    @else
+                    <button type="button"
+                        style="flex:1;padding:9px;border-radius:10px;font-size:12px;font-weight:700;border:1.5px solid var(--b2);background:var(--s2);color:var(--t3);cursor:pointer;"
+                        wire:click="$set('video_tipo','link')">
+                        🔗 Link externo
+                    </button>
+                    <button type="button"
+                        style="flex:1;padding:9px;border-radius:10px;font-size:12px;font-weight:700;border:1.5px solid var(--acc2);background:var(--acc-bg);color:var(--acc2);cursor:pointer;"
+                        wire:click="$set('video_tipo','upload')">
+                        📁 Upload de ficheiro
+                    </button>
+                    @endif
+                </div>
+
+                {{-- OPÇÃO: Link externo --}}
+                @if($video_tipo === 'link')
+                <div class="fld">
+                    <label>Link do vídeo (YouTube, Vimeo, TikTok...)</label>
+                    <input type="url" wire:model="video_preview" placeholder="https://youtube.com/watch?v=...">
+                    @error('video_preview')<div class="fld-err">{{ $message }}</div>@enderror
+                </div>
+                <div style="font-size:11px;color:var(--t3);padding:10px 13px;background:var(--s2);border-radius:8px;border:1px solid var(--b1);line-height:1.7;">
+                    💡 Cole o link do YouTube, Vimeo, TikTok ou qualquer plataforma de vídeo.<br>
+                    <span style="color:var(--amber);">⚠️ Recomendado: máximo 60 segundos.</span>
+                </div>
+                @if(!empty($video_preview) && str_starts_with($video_preview, 'http'))
+                @php
+                    $prevEmbed = null;
+                    if (preg_match('/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/shorts\/)([^&\s?]+)/', $video_preview, $ym)) {
+                        $prevEmbed = "https://www.youtube.com/embed/{$ym[1]}?controls=1";
+                    } elseif (preg_match('/vimeo\.com\/(\d+)/', $video_preview, $vm)) {
+                        $prevEmbed = "https://player.vimeo.com/video/{$vm[1]}";
+                    }
+                @endphp
+                @if($prevEmbed)
+                <div style="margin-top:14px;border-radius:12px;overflow:hidden;aspect-ratio:16/9;">
+                    <iframe src="{{ $prevEmbed }}" style="width:100%;height:100%;border:none;" allow="fullscreen" allowfullscreen></iframe>
+                </div>
+                @else
+                <div style="margin-top:10px;padding:10px 13px;background:rgba(52,211,153,.08);border:1px solid rgba(52,211,153,.2);border-radius:8px;font-size:12px;color:var(--green);">
+                    ✅ Link guardado: {{ Str::limit($video_preview, 50) }}
+                </div>
+                @endif
+                @endif
+                @endif
+
+                {{-- OPÇÃO: Upload de ficheiro --}}
+                @if($video_tipo === 'upload')
+                <div class="fld">
+                    <label>Ficheiro de vídeo</label>
+                    <label class="upload-zone">
+                        <input type="file" wire:model="video_file" accept="video/mp4,video/webm,video/ogg,video/quicktime" style="display:none;">
+                        @if($video_file)
+                            <p style="color:var(--green);">✅ {{ $video_file->getClientOriginalName() }}</p>
+                            <small>{{ round($video_file->getSize() / 1024 / 1024, 1) }} MB</small>
+                        @elseif($editando && !empty($video_preview) && !str_starts_with($video_preview, 'http'))
+                            <p>🔄 Clica para substituir o vídeo actual</p>
+                            <small>MP4, WebM, OGG, MOV · máx. 100 MB</small>
+                        @else
+                            <p>🎬 Arrasta ou clica para seleccionar</p>
+                            <small>MP4, WebM, OGG, MOV · máx. 100 MB</small>
+                        @endif
+                    </label>
+                    <div wire:loading wire:target="video_file" style="font-size:12px;color:var(--acc2);margin-top:8px;">⏳ A carregar vídeo...</div>
+                    @error('video_file')<div class="fld-err">{{ $message }}</div>@enderror
+                </div>
+                @if($editando && !empty($video_preview) && !str_starts_with($video_preview, 'http') && !$video_file)
+                <div style="margin-top:10px;border-radius:12px;overflow:hidden;background:#000;">
+                    <video src="{{ asset('storage/'.$video_preview) }}" controls style="width:100%;max-height:200px;display:block;"></video>
+                </div>
+                @endif
+                <div style="font-size:11px;color:var(--t3);margin-top:10px;padding:10px 13px;background:var(--s2);border-radius:8px;border:1px solid var(--b1);line-height:1.7;">
+                    💡 O vídeo é guardado no servidor — funciona sem dependências externas.<br>
+                    🎬 Nos círculos usa <code>&lt;video&gt;</code> tag nativa — mais rápido que iframe.<br>
+                    <span style="color:var(--amber);">⚠️ Recomendado: máximo 60 segundos · formato MP4.</span>
+                </div>
+                @endif
             </div>
 
             @if(!$editando)

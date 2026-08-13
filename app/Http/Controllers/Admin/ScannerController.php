@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Bilhete;
+use App\Models\Evento;
 use App\Services\BilheteService;
 use Illuminate\Http\Request;
 
@@ -42,9 +43,28 @@ class ScannerController extends Controller
             ], 404);
         }
 
-        // ── 3. Verifica HMAC (integridade) ──
+        // ── 3. Criador só pode validar bilhetes dos seus eventos ──
+        if (auth()->user()->role === 'creator') {
+            $evento = Evento::select('id', 'user_id')->find($bilhete->evento_id);
+
+            if (!$evento || $evento->user_id !== auth()->id()) {
+                // Regista tentativa não autorizada na auditoria
+                BilheteService::registarAuditoria(
+                    $bilhete->id,
+                    'acesso_negado',
+                    $codigo,
+                    ['motivo' => 'Criador tentou validar bilhete de evento alheio', 'criador_id' => auth()->id()]
+                );
+
+                return response()->json([
+                    'status'  => 'error',
+                    'message' => 'Não tens permissão para validar bilhetes deste evento.',
+                ], 403);
+            }
+        }
+
+        // ── 4. Verifica HMAC (integridade) ──
         if (!BilheteService::verificarHmac($bilhete)) {
-            // Regista tentativa inválida
             $bilhete->registarTentativaInvalida();
 
             BilheteService::registarAuditoria(
@@ -60,33 +80,67 @@ class ScannerController extends Controller
             ], 400);
         }
 
-        // ── 4. Verifica se está apto para entrada ──
+        // ── 5. Bilhete já bloqueado ──
+        // Se já estava bloqueado antes desta tentativa → inválido sem mais detalhes
+        if ($bilhete->bloqueado) {
+            BilheteService::registarAuditoria(
+                $bilhete->id,
+                'tentativa_apos_bloqueio',
+                $codigo,
+                ['motivo' => 'Tentativa de uso após bloqueio']
+            );
+
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Bilhete inválido.',
+            ], 200);
+        }
+
+        // ── 6. Bilhete já utilizado — bloquear e registar ──
+        if ($bilhete->validado_em) {
+            // Bloqueia imediatamente ao tentar reutilizar
+            $bilhete->updateQuietly([
+                'bloqueado' => true,
+            ]);
+
+            $motivo = 'Bilhete já utilizado em '
+                . \Carbon\Carbon::parse($bilhete->validado_em)->format('d/m/Y H:i')
+                . '. Bloqueado por tentativa de reutilização.';
+
+            BilheteService::registarAuditoria(
+                $bilhete->id,
+                'bloqueado_reuso',
+                $codigo,
+                [
+                    'motivo'       => $motivo,
+                    'validado_em'  => $bilhete->validado_em,
+                    'bloqueado_em' => now(),
+                ]
+            );
+
+            return response()->json([
+                'status'  => 'warning',
+                'message' => $motivo,
+            ], 200);
+        }
+
+        // ── 7. Verifica outras condições (HMAC já verificado, pagamento, etc.) ──
         $apto = $bilhete->aptoParaEntrada();
 
         if (!$apto['apto']) {
-            // Regista tentativa se bilhete já foi usado
-            if ($bilhete->validado_em) {
-                BilheteService::registarAuditoria(
-                    $bilhete->id,
-                    'tentativa_reuso',
-                    $codigo,
-                    ['validado_em' => $bilhete->validado_em]
-                );
-            }
-
             return response()->json([
-                'status'  => $bilhete->validado_em ? 'warning' : 'error',
+                'status'  => 'error',
                 'message' => $apto['motivo'],
             ], 200);
         }
 
-        // ── 5. Valida o bilhete (updateQuietly — trigger MySQL protege campos críticos) ──
+        // ── 8. Valida o bilhete ──
         $bilhete->updateQuietly(['validado_em' => now()]);
 
-        // ── 6. Regista na auditoria ──
+        // ── 9. Regista na auditoria ──
         $bilhete->loadMissing([
             'pedido.user:id,name',
-            'evento:id,titulo,localizacao,data_evento,hora_inicio,hora_fim',
+            'evento:id,titulo,localizacao,data_evento,hora_inicio,hora_fim,user_id',
             'tipoIngresso:id,nome,preco',
         ]);
 
@@ -95,10 +149,10 @@ class ScannerController extends Controller
             'validado',
             $codigo,
             [
-                'cliente'  => $bilhete->pedido->user->name ?? 'Convidado',
-                'evento'   => $bilhete->evento->titulo ?? '',
-                'tipo'     => $bilhete->tipoIngresso->nome ?? '',
-                'lote_id'  => $bilhete->lote_id,
+                'cliente' => $bilhete->pedido->user->name ?? 'Convidado',
+                'evento'  => $bilhete->evento->titulo ?? '',
+                'tipo'    => $bilhete->tipoIngresso->nome ?? '',
+                'lote_id' => $bilhete->lote_id,
             ],
             auth()->id()
         );
