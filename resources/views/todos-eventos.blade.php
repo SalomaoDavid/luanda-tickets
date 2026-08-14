@@ -489,8 +489,8 @@
     <button class="ev-video-modal-close" onclick="fecharVideoModal('vmodal-{{ $evento->id }}')">✕</button>
     <div style="font-size:13px;font-weight:700;color:#fff;margin-bottom:10px;text-align:center;">{{ e($evento->titulo) }}</div>
     @if(!empty($cardVideoLocal))
-        <video src="{{ $cardVideoLocal }}" autoplay controls loop playsinline
-               style="width:90vw;max-width:800px;border-radius:16px;max-height:450px;"></video>
+        <video data-local="{{ $cardVideoLocal }}" controls loop playsinline
+               style="width:90vw;max-width:800px;border-radius:16px;max-height:450px;display:none;"></video>
     @else
         <iframe data-src="{{ $cardEmbedSom }}" src="" allow="autoplay; fullscreen" allowfullscreen></iframe>
     @endif
@@ -615,16 +615,33 @@ document.addEventListener('click', function(e) {
 function abrirVideoModal(id) {
     const modal = document.getElementById(id);
     if (!modal) return;
+    // iframe URL externa
     const iframe = modal.querySelector('iframe');
     if (iframe && iframe.dataset.src && !iframe.src) iframe.src = iframe.dataset.src;
+    // video local — só define src ao abrir (evita autoplay escondido)
+    const video = modal.querySelector('video[data-local]');
+    if (video && video.dataset.local) {
+        video.src = video.dataset.local;
+        video.style.display = 'block';
+        video.muted = false;
+        video.play().catch(function(){});
+    }
     modal.classList.add('open');
     document.body.style.overflow = 'hidden';
 }
 function fecharVideoModal(id) {
     const modal = document.getElementById(id);
     if (!modal) return;
+    // Parar iframe
     const iframe = modal.querySelector('iframe');
     if (iframe) iframe.src = '';
+    // Parar e limpar video local
+    const video = modal.querySelector('video[data-local]');
+    if (video) {
+        video.pause();
+        video.src = '';
+        video.style.display = 'none';
+    }
     modal.classList.remove('open');
     document.body.style.overflow = '';
 }
@@ -645,9 +662,9 @@ function activarVideo(cardImg) {
 
     if (localSrc) {
         const v = document.createElement('video');
-        v.setAttribute('muted', '');
-        v.setAttribute('loop', '');
-        v.setAttribute('playsinline', '');
+        // NÃO usar setAttribute('muted') — impede unmute posterior
+        v.loop   = true;
+        v.playsInline = true;
         v.muted  = true;
         v.volume = 0;
         v.style.cssText = 'width:100%;height:100%;object-fit:cover;pointer-events:none;border:none;';
@@ -700,8 +717,16 @@ function toggleSom(btn) {
     // Vídeo local
     const video = wrap.querySelector('video');
     if (video) {
-        video.muted = !video.muted;
-        btn.textContent = video.muted ? '🔇' : '🔊';
+        if (video.muted) {
+            video.removeAttribute('muted');
+            video.muted  = false;
+            video.volume = 1;
+            btn.textContent = '🔊';
+        } else {
+            video.muted  = true;
+            video.volume = 0;
+            btn.textContent = '🔇';
+        }
         return;
     }
 

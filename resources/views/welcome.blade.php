@@ -201,9 +201,15 @@
                      style="position:relative;overflow:hidden;">
                     {{-- Vídeo local: tag <video> nativa --}}
                     @if(!empty($videoLocal))
-                        <video src="{{ $videoLocal }}" autoplay muted loop playsinline
-                               onloadedmetadata="this.muted=true;this.volume=0;"
-                               style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1;pointer-events:none;"></video>
+                        {{-- Story local: slot vazio, JS inicia vídeo mudo após carousel --}}
+                        <div class="story-local-slot"
+                             data-src="{{ $videoLocal }}"
+                             style="position:absolute;inset:0;z-index:1;overflow:hidden;border-radius:50%;">
+                            @if($evento->imagem_capa)
+                                <img src="{{ asset('storage/'.$evento->imagem_capa) }}"
+                                     style="width:100%;height:100%;object-fit:cover;">
+                            @endif
+                        </div>
                     @else
                     {{-- Thumbnail: mostrada enquanto iframe não carrega --}}
                     @if($storyThumb)
@@ -275,8 +281,8 @@
     <button class="ev-video-modal-close" onclick="fecharVideoModal('modal-video-{{ $evento->id }}')">✕</button>
     <div style="font-size:13px;font-weight:700;color:#fff;margin-bottom:10px;text-align:center;">{{ e($evento->titulo) }}</div>
     @if($videoLocalModal)
-        <video src="{{ $videoLocalModal }}" autoplay controls loop playsinline
-               style="width:90vw;max-width:800px;border-radius:16px;max-height:450px;"></video>
+        <video data-local="{{ $videoLocalModal }}" controls loop playsinline
+               style="width:90vw;max-width:800px;border-radius:16px;max-height:450px;display:none;"></video>
     @else
         <iframe data-src="{{ $embedUrlModal }}" src="" allow="autoplay; fullscreen" allowfullscreen></iframe>
     @endif
@@ -541,22 +547,58 @@ document.addEventListener('DOMContentLoaded', function () {
         requestAnimationFrame(animate);
     }
     requestAnimationFrame(animate);
+
+    // Vídeos locais nas stories originais — sempre mudos, não afectam áudio da aba
+    setTimeout(function() {
+        var originalItems = Array.from(document.querySelectorAll('#stories-track > .story-item'));
+        originalItems.forEach(function(item) {
+            var slot = item.querySelector('.story-local-slot');
+            if (!slot || !slot.dataset.src) return;
+            var v = document.createElement('video');
+            v.setAttribute('muted', '');
+            v.muted  = true;
+            v.volume = 0;
+            v.loop   = true;
+            v.playsInline = true;
+            v.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;pointer-events:none;';
+            v.src = slot.dataset.src;
+            slot.appendChild(v);
+            v.play().catch(function(){});
+        });
+    }, 1000);
 });
 
 // ── MODAL VÍDEO ──────────────────────────────────────────
 function abrirVideoModal(id) {
     const modal = document.getElementById(id);
     if (!modal) return;
+    // iframe URL externa
     const iframe = modal.querySelector('iframe');
     if (iframe && iframe.dataset.src && !iframe.src) iframe.src = iframe.dataset.src;
+    // video local — só define src ao abrir (evita autoplay escondido)
+    const video = modal.querySelector('video[data-local]');
+    if (video && video.dataset.local) {
+        video.src = video.dataset.local;
+        video.style.display = 'block';
+        video.muted = false;
+        video.play().catch(function(){});
+    }
     modal.classList.add('open');
     document.body.style.overflow = 'hidden';
 }
 function fecharVideoModal(id) {
     const modal = document.getElementById(id);
     if (!modal) return;
+    // Parar iframe
     const iframe = modal.querySelector('iframe');
     if (iframe) iframe.src = '';
+    // Parar e limpar video local
+    const video = modal.querySelector('video[data-local]');
+    if (video) {
+        video.pause();
+        video.src = '';
+        video.style.display = 'none';
+    }
     modal.classList.remove('open');
     document.body.style.overflow = '';
 }
@@ -578,17 +620,16 @@ function activarVideoCard(cardImg) {
         var mudo     = wrap.dataset.mudo;
 
         if (localSrc) {
-            // Vídeo local: criar elemento com muted ANTES de qualquer play
             var v = document.createElement('video');
-            v.setAttribute('muted', '');   // atributo HTML (mais fiável)
-            v.setAttribute('loop', '');
-            v.setAttribute('playsinline', '');
-            v.muted  = true;               // propriedade IDL
+            // SEM setAttribute('muted') para permitir unmute posterior
+            v.loop   = true;
+            v.playsInline = true;
+            v.muted  = true;
             v.volume = 0;
             v.style.cssText = 'width:100%;height:100%;object-fit:cover;pointer-events:none;border:none;';
-            v.src = localSrc;             // src só depois de muted
+            v.src = localSrc;
             wrap.appendChild(v);
-            v.muted  = true;              // re-garantir após append
+            v.muted  = true;
             v.volume = 0;
             v.play().catch(function(){});
         } else if (mudo) {
@@ -648,9 +689,16 @@ function toggleSomCard(btn) {
     // ── Vídeo local (dentro do wrap) ──
     const video = wrap.querySelector('video');
     if (video) {
-        video.muted  = !video.muted;
-        video.volume = video.muted ? 0 : 1;
-        btn.textContent = video.muted ? '🔇' : '🔊';
+        if (video.muted) {
+            video.removeAttribute('muted');
+            video.muted  = false;
+            video.volume = 1;
+            btn.textContent = '🔊';
+        } else {
+            video.muted  = true;
+            video.volume = 0;
+            btn.textContent = '🔇';
+        }
         return;
     }
 
