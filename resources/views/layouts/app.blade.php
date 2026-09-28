@@ -4,8 +4,11 @@
     <meta charset="UTF-8">
     <title>Luanda Tickets</title>
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" type="image/png" href="{{ asset('logos.png') }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content">
+    <link rel="icon" type="image/png" href="{{ asset('logo-glossy-maskable-512.png') }}">
+    <link rel="manifest" href="{{ asset('manifest.json') }}">
+    <meta name="theme-color" content="#2563eb">
+    <link rel="apple-touch-icon" href="{{ asset('logos.png') }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>
         [x-cloak]{display:none!important;}
@@ -117,7 +120,6 @@
         .sidebar-section-title::after{
             content:'';display:block;height:2px;border-radius:999px;margin-top:6px;
         }
-        /* Geral — branco e azul */
         .sidebar-section-title.geral{
             background:linear-gradient(90deg,#ffffff,#60a5fa,#38bdf8,#ffffff);
             -webkit-background-clip:text;-webkit-text-fill-color:transparent;
@@ -128,7 +130,6 @@
             background:linear-gradient(90deg,#ffffff,#60a5fa,#38bdf8,#ffffff);
             background-size:300% auto;animation:shimmer 3s linear infinite;
         }
-        /* Admin / Criador — roxo e ciano */
         .sidebar-section-title.admin{
             background:linear-gradient(90deg,#a78bfa,#38bdf8,#a78bfa,#38bdf8);
             -webkit-background-clip:text;-webkit-text-fill-color:transparent;
@@ -140,7 +141,31 @@
             background-size:300% auto;animation:shimmer 3s linear infinite;
         }
     </style>
+    <style>
+        @media (min-width: 1024px) {
+            * {
+                scrollbar-width: thin;
+                scrollbar-color: rgba(56,189,248,.3) transparent;
+            }
+            *::-webkit-scrollbar {
+                width: 8px;
+                height: 8px;
+            }
+            *::-webkit-scrollbar-track {
+                background: transparent;
+            }
+            *::-webkit-scrollbar-thumb {
+                background: rgba(56,189,248,.3);
+                border-radius: 10px;
+            }
+            *::-webkit-scrollbar-thumb:hover {
+                background: rgba(56,189,248,.5);
+            }
+        }
+    </style>
     <script src="{{ asset('js/emoji-mart.js') }}" async></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    @stack('styles')
     @livewireStyles
 </head>
 
@@ -157,7 +182,7 @@
 </div>
 
 {{-- ═══════════ HEADER ═══════════ --}}
-<header class="glass fixed top-0 left-0 right-0 h-16 flex items-center justify-between px-4 md:px-10 z-50">
+<header id="site-header" class="glass fixed top-0 left-0 right-0 h-16 flex items-center justify-between px-4 md:px-10 z-50">
 
     <div class="flex items-center gap-3">
         <button x-on:click="sidebarOpen = !sidebarOpen" class="md:hidden text-gray-300 hover:text-white focus:outline-none">
@@ -174,22 +199,20 @@
     <div class="hidden md:flex space-x-6 text-gray-300 items-center">
         <a href="{{ route('home') }}" class="{{ request()->routeIs('home') ? 'active-link' : 'hover-blue' }}">Início</a>
         <a href="{{ route('eventos.todos') }}" class="{{ request()->routeIs('eventos.*') ? 'active-link' : 'hover-blue' }}">Explorar</a>
-        <a href="{{ route('noticias.index') }}" class="{{ request()->routeIs('noticias.*') ? 'active-link' : 'hover-blue' }}">Notícias</a>
         @auth
-        {{-- Mensagens com badge no header desktop --}}
-        @php
-            $msgNaoLidas = auth()->user()->unreadNotifications
-                ->where('type', 'App\\Notifications\\NovaMensagem')->count();
-        @endphp
-        <a href="{{ route('mensagens.index') }}"
-           class="{{ request()->routeIs('mensagens.*') ? 'active-link' : 'hover-blue' }} relative inline-flex items-center gap-1">
-            💬 Mensagens
-            @if($msgNaoLidas > 0)
-            <span class="nav-badge" style="font-size:9px;min-width:16px;height:16px;">
-                {{ $msgNaoLidas > 99 ? '99+' : $msgNaoLidas }}
-            </span>
-            @endif
-        </a>
+            @php
+                $msgNaoLidas = auth()->user()->unreadNotifications
+                    ->where('type', 'App\\Notifications\\NovaMensagem')->count();
+            @endphp
+            <a href="{{ route('mensagens.index') }}"
+            class="{{ request()->routeIs('mensagens.*') ? 'active-link' : 'hover-blue' }} relative inline-flex items-center gap-1">
+                💬 Mensagens
+                @if($msgNaoLidas > 0)
+                <span class="nav-badge" style="font-size:9px;min-width:16px;height:16px;">
+                    {{ $msgNaoLidas > 99 ? '99+' : $msgNaoLidas }}
+                </span>
+                @endif
+            </a>
         @endauth
         <form action="{{ route('eventos.todos') }}" method="GET">
             <input type="text" name="search" placeholder="Buscar..." class="px-3 py-1 rounded-lg text-black text-sm focus:outline-none">
@@ -256,10 +279,12 @@
                     <p class="font-semibold">{{ explode(' ', $user->name)[0] }}</p>
                     <p class="text-sm text-gray-500">{{ ucfirst($user->role) }}</p>
                 </div>
-                <a href="{{ route('profile.show', ['id' => auth()->user()->id]) }}" class="block px-4 py-3 hover:bg-blue-50">Perfil</a>
+                <a href="{{ route('profile.show', ['id' => auth()->user()->id]) }}" 
+                    x-on:click="open = false"
+                    class="block px-4 py-3 hover:bg-blue-50">Perfil</a>
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
-                    <button class="w-full text-left px-4 py-3 hover:bg-red-100 text-red-600">Sair</button>
+                    <button x-on:click="open = false" class="w-full text-left px-4 py-3 hover:bg-red-100 text-red-600">Sair</button>
                 </form>
             </div>
         </div>
@@ -309,7 +334,6 @@
             </a>
 
             @auth
-            {{-- Notificações com badge --}}
             <a href="{{ route('notificacoes.index') }}"
                class="nav-item {{ request()->routeIs('notificacoes.*') ? 'active' : '' }}"
                x-on:click="sidebarOpen = false">
@@ -327,7 +351,6 @@
             </a>
 
             @auth
-            {{-- Mensagens com badge --}}
             <a href="{{ route('mensagens.index') }}"
                class="nav-item {{ request()->routeIs('mensagens.*') ? 'active' : '' }}"
                x-on:click="sidebarOpen = false">
@@ -342,11 +365,23 @@
                x-on:click="sidebarOpen = false">
                 <span class="nav-item-left">👤 Perfil</span>
             </a>
+
+            @if(Route::has('definicoes'))
+            <a href="{{ route('definicoes') }}"
+               class="nav-item {{ request()->routeIs('definicoes') ? 'active' : '' }}"
+               x-on:click="sidebarOpen = false">
+                <span class="nav-item-left">⚙️ Definições</span>
+            </a>
+            @endif
             @endauth
         </div>
 
         @auth
         @if($user->role === 'admin')
+        @php
+            $mostrarSugestoes = Route::has('admin.sugestoes') && \Illuminate\Support\Facades\Schema::hasTable('sugestoes');
+            $sugestoesNovas   = $mostrarSugestoes ? \App\Models\Sugestao::where('estado', 'novo')->count() : 0;
+        @endphp
         <div class="sidebar-section-title admin">Administração</div>
         <div class="flex flex-col gap-1 mb-2">
             <a href="{{ route('admin.dashboard') }}" class="nav-item" x-on:click="sidebarOpen = false"><span class="nav-item-left">📊 Dashboard</span></a>
@@ -355,6 +390,14 @@
             <a href="{{ route('admin.reservas') }}" class="nav-item" x-on:click="sidebarOpen = false"><span class="nav-item-left">📦 Reservas</span></a>
             <a href="{{ route('admin.pagos') }}" class="nav-item" x-on:click="sidebarOpen = false"><span class="nav-item-left">💰 Pagamentos</span></a>
             <a href="{{ route('admin.scanner') }}" class="nav-item" x-on:click="sidebarOpen = false"><span class="nav-item-left">📸 Scanner</span></a>
+            @if($mostrarSugestoes)
+            <a href="{{ route('admin.sugestoes') }}" class="nav-item" x-on:click="sidebarOpen = false">
+                <span class="nav-item-left">💬 Sugestões</span>
+                @if($sugestoesNovas > 0)
+                <span class="nav-badge">{{ $sugestoesNovas > 99 ? '99+' : $sugestoesNovas }}</span>
+                @endif
+            </a>
+            @endif
         </div>
         @elseif($user->role === 'creator')
         <div class="sidebar-section-title admin">Painel Criador</div>
@@ -370,8 +413,8 @@
     </aside>
 
     {{-- ═══════════ CONTEÚDO CENTRAL ═══════════ --}}
-    <main class="flex-1 md:ml-72 {{ $isHome ? 'md:mr-72' : 'md:mr-0' }}
-                 {{ $isStatic ? 'flex items-center justify-center pt-20' : 'overflow-y-auto no-scrollbar' }}
+    <main tabindex="-1" class="flex-1 md:ml-72 {{ $isHome ? 'md:mr-72' : 'md:mr-0' }}
+                 {{ $isStatic ? 'flex items-center justify-center pt-20' : 'overflow-y-auto' }}
                  md:p-10 page-transition">
         @yield('content')
         {{ $slot ?? '' }}
@@ -382,7 +425,6 @@
     <aside x-bind:class="rightSidebarOpen ? 'translate-x-0 !block' : 'translate-x-full md:translate-x-0'"
            class="w-72 glass-sidebar-right fixed right-0 top-16 bottom-0 p-5 overflow-y-auto no-scrollbar z-40 hidden md:block transition-transform duration-300">
 
-        {{-- POPULARES com efeito atrativo --}}
         @php
             $populares = \App\Models\Evento::withCount('curtidas')
                 ->where('status','publicado')
@@ -462,12 +504,58 @@
     @endif
 </a>
 <style>
-@@keyframes float-bounce{
+@keyframes float-bounce{
     0%,100%{transform:translateY(0);}
     50%{transform:translateY(-9px);}
 }
 </style>
-@endauth
+    @endauth
+
+    {{-- Web Push: pede permissão e subscreve notificações neste dispositivo (uma vez) --}}
+    @auth
+    <script>
+    (function () {
+        const VAPID_PUBLIC_KEY = '{{ config('services.webpush.public_key') }}';
+
+        function urlBase64ToUint8Array(base64String) {
+            const padding = '='.repeat((4 - base64String.length % 4) % 4);
+            const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+            const rawData = window.atob(base64);
+            return Uint8Array.from([...rawData].map((c) => c.charCodeAt(0)));
+        }
+
+        async function subscreverPush() {
+            if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+
+            const registration = await navigator.serviceWorker.ready;
+            let subscription = await registration.pushManager.getSubscription();
+
+            if (!subscription) {
+                const permissao = await Notification.requestPermission();
+                if (permissao !== 'granted') return;
+
+                subscription = await registration.pushManager.subscribe({
+                    userVisibleOnly: true,
+                    applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+                });
+            }
+
+            await fetch('{{ route('push.subscribe') }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                },
+                body: JSON.stringify(subscription),
+            });
+        }
+
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.ready.then(subscreverPush).catch(function () {});
+        }
+    })();
+    </script>
+    @endauth
 
 <script>
     window.abrirDrawer = function(id){const el=document.getElementById(id);if(el){el.classList.add('open');document.body.style.overflow='hidden';}};
@@ -479,7 +567,142 @@
     window.toggleNotifDropdown = function(){const d=document.getElementById('notif-dropdown');if(d)d.classList.toggle('hidden');};
     document.addEventListener('keydown',function(e){if(e.key==='Escape'){document.querySelectorAll('.drawer-overlay.open').forEach(function(d){d.classList.remove('open');});document.body.style.overflow='';}});
     document.addEventListener('click',function(e){const d=document.getElementById('notif-dropdown');const btn=e.target.closest('button[wire\\:click="toggleOpen"]');if(d&&!btn&&!d.contains(e.target))d.classList.add('hidden');});
+
+    document.addEventListener('DOMContentLoaded', function () {
+        if (document.activeElement === document.body) {
+            var main = document.querySelector('main');
+            if (main) main.focus({ preventScroll: true });
+        }
+    });
 </script>
+{{-- ═══════════ ALERTAS PERSONALIZADOS ═══════════ --}}
+<script>
+    const swalToast = Swal.mixin({
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 4000,
+        timerProgressBar: true,
+        background: '#0f172a',
+        color: '#f0f6ff',
+        didOpen: (toast) => {
+            toast.addEventListener('mouseenter', Swal.stopTimer);
+            toast.addEventListener('mouseleave', Swal.resumeTimer);
+        }
+    });
+
+    @if(session('success'))
+        swalToast.fire({ icon: 'success', title: @json(session('success')) });
+    @endif
+
+    @if(session('error'))
+        swalToast.fire({ icon: 'error', title: @json(session('error')) });
+    @endif
+
+    @if($errors->any())
+        swalToast.fire({ icon: 'error', title: @json($errors->first()) });
+    @endif
+
+    window.confirmarAcao = function (titulo, texto, aoConfirmar) {
+        Swal.fire({
+            title: titulo,
+            text: texto,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Sim, confirmar',
+            cancelButtonText: 'Cancelar',
+            background: '#0f172a',
+            color: '#f0f6ff',
+            confirmButtonColor: '#2563eb',
+            cancelButtonColor: '#475569',
+        }).then((result) => {
+            if (result.isConfirmed && typeof aoConfirmar === 'function') {
+                aoConfirmar();
+            }
+        });
+    };
+</script>
+
+{{-- ═══════════ BANNER DE INSTALAR APP (PWA) ═══════════ --}}
+<style>
+@media (display-mode: standalone), (display-mode: window-controls-overlay), (display-mode: fullscreen), (display-mode: minimal-ui) {
+    #pwa-install-banner { display: none !important; }
+}
+</style>
+
+<div id="pwa-install-banner" style="display:none;position:fixed;left:12px;right:12px;bottom:16px;z-index:9998;
+    background:rgba(15,23,42,0.97);backdrop-filter:blur(16px);border:1px solid rgba(59,130,246,0.3);
+    border-radius:18px;padding:14px 16px;box-shadow:0 10px 40px rgba(0,0,0,0.5);
+    display:flex;align-items:center;gap:12px;max-width:420px;margin:0 auto;">
+    <img src="{{ asset('logos.png') }}" alt="" style="width:42px;height:42px;border-radius:12px;object-fit:cover;flex-shrink:0;">
+    <div style="flex:1;min-width:0;">
+        <div style="font-size:13px;font-weight:800;color:#fff;">Instalar Luanda Tickets</div>
+        <div id="pwa-install-text" style="font-size:11px;color:#94a3b8;margin-top:2px;line-height:1.4;">Acesso mais rápido, direto do teu ecrã inicial.</div>
+    </div>
+    <button id="pwa-install-btn" style="flex-shrink:0;padding:8px 14px;border-radius:10px;background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#fff;font-size:12px;font-weight:700;border:none;cursor:pointer;">Instalar</button>
+    <button id="pwa-install-close" style="flex-shrink:0;background:none;border:none;color:#64748b;font-size:18px;cursor:pointer;padding:0 2px;">✕</button>
+</div>
+
+<script>
+(function () {
+    var STORAGE_KEY = 'pwa_install_dismissed';
+    var banner   = document.getElementById('pwa-install-banner');
+    var textEl   = document.getElementById('pwa-install-text');
+    var btnInstall = document.getElementById('pwa-install-btn');
+    var btnClose   = document.getElementById('pwa-install-close');
+    var deferredPrompt = null;
+
+    function fechadoNestaSessao() {
+        try { return sessionStorage.getItem(STORAGE_KEY) === '1'; } catch (e) { return false; }
+    }
+    function marcarFechadoNestaSessao() {
+        try { sessionStorage.setItem(STORAGE_KEY, '1'); } catch (e) {}
+    }
+    function esconderBanner() {
+        banner.style.display = 'none';
+        marcarFechadoNestaSessao();
+    }
+
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('{{ asset('sw.js') }}').catch(function () {});
+    }
+
+    if (fechadoNestaSessao()) return;
+
+    var isIOS = /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
+    var jaInstalado = window.matchMedia('(display-mode: standalone)').matches
+        || window.matchMedia('(display-mode: window-controls-overlay)').matches
+        || window.navigator.standalone === true;
+    if (jaInstalado) return;
+
+    if (isIOS) {
+        textEl.textContent = 'Toca em Partilhar 📤 e depois em "Adicionar ao Ecrã Principal".';
+        btnInstall.style.display = 'none';
+        banner.style.display = 'flex';
+    } else {
+        window.addEventListener('beforeinstallprompt', function (e) {
+            e.preventDefault();
+            deferredPrompt = e;
+            banner.style.display = 'flex';
+        });
+    }
+
+    document.addEventListener('click', function (e) {
+        if (e.target.closest('#pwa-install-close')) {
+            esconderBanner();
+        }
+        if (e.target.closest('#pwa-install-btn')) {
+            if (!deferredPrompt) return;
+            deferredPrompt.prompt();
+            deferredPrompt.userChoice.finally(function () {
+                deferredPrompt = null;
+                banner.style.display = 'none';
+            });
+        }
+    });
+})();
+</script>
+
 @livewireScripts
 @stack('scripts')
 </body>

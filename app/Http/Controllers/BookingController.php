@@ -29,17 +29,28 @@ class BookingController extends Controller
                 'tipoIngresso.evento:id,user_id,titulo',
                 'tipoIngresso.evento.user:id,name',
                 'user:id,name,email',
-            ])->findOrFail($id);
+            ])->lockForUpdate()->findOrFail($id);
 
-            $evento       = $reserva->tipoIngresso->evento;
-            $tipoIngresso = $reserva->tipoIngresso;
+            // Já foi confirmada antes (duplo clique, duas abas, etc.) — não reprocessa.
+            if ($reserva->status === 'pago') {
+                return;
+            }
+
+            $evento = $reserva->tipoIngresso->evento;
+
+            // Bloqueia a linha do tipo de ingresso até esta transação terminar —
+            // impede que duas confirmações em simultâneo leiam o mesmo stock
+            // "disponível" antes de qualquer uma delas o subtrair (overselling).
+            $tipoIngresso = TipoIngresso::where('id', $reserva->tipo_ingresso_id)
+                ->lockForUpdate()
+                ->first();
 
             // ── Verificação de permissão ──
             if (auth()->user()->role !== 'admin' && $evento->user_id !== auth()->id()) {
                 abort(403, 'Ação não autorizada.');
             }
 
-            // ── Verificação de stock ──
+            // ── Verificação de stock (valor bloqueado acima, não o valor em cache do eager load) ──
             if ($tipoIngresso->quantidade_disponivel < $reserva->quantidade) {
                 throw new \Exception("Não há bilhetes suficientes. Disponíveis: {$tipoIngresso->quantidade_disponivel}, pedido: {$reserva->quantidade}.");
             }
@@ -173,6 +184,10 @@ class BookingController extends Controller
         $evento = $reserva->tipoIngresso?->evento;
         if (auth()->user()->role !== 'admin' && $evento?->user_id !== auth()->id()) {
             abort(403, 'Ação não autorizada.');
+        }
+
+        if ($reserva->status === 'pago'){
+            return redirect()->back()->with('error', 'Não podes eliminar uma reserva já paga.');
         }
 
         $reserva->delete();

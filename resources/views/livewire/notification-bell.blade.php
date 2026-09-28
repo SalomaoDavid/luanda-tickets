@@ -65,10 +65,26 @@
                         => isset($data['evento_id']) ? route('evento.detalhes', $data['evento_id']) : '#',
                     'App\Notifications\TicketPurchasedNotification'
                         => isset($data['evento_id']) ? route('evento.detalhes', $data['evento_id']) : '#',
+                    'App\Notifications\NovoPedidoNotification'
+                        => route('admin.reservas'),
+                    'App\Notifications\PedidoAprovadoNotification'
+                        => isset($data['evento_id']) ? route('evento.detalhes', $data['evento_id']) : '#',
+                    'App\Notifications\NewFollowerNotification'
+                        => isset($data['seguidor_id']) ? route('profile.show', $data['seguidor_id']) : '#',
+                    'App\Notifications\PostagemLikedNotification'
+                        => isset($data['postagem_id'])
+                            ? \App\Support\NotificationLinks::postagem($data['postagem_id'])
+                            : route('home'),
+                    'App\Notifications\PostagemComentarioNotification'
+                        => isset($data['postagem_id'])
+                            ? \App\Support\NotificationLinks::postagem($data['postagem_id'])
+                            : route('home'),
+                    'App\Notifications\NovoEventoCriadoNotification'
+                        => isset($data['evento_id']) ? route('evento.detalhes', $data['evento_id']) : '#',
                     default => '#',
                 };
 
-                $foto = $data['user_photo'] ?? $data['sender_photo'] ?? $data['comprador_foto'] ?? null;
+                $foto = $data['user_photo'] ?? $data['sender_photo'] ?? $data['comprador_foto'] ?? $data['seguidor_foto'] ?? null;
                 $fotoUrl = $foto
                     ? (str_starts_with($foto, 'http') ? $foto : asset('storage/'.$foto))
                     : 'https://ui-avatars.com/api/?name=?&color=7F9CF5&background=EBF4FF';
@@ -79,6 +95,10 @@
                     'App\Notifications\EventCommentNotification'        => '💬',
                     'App\Notifications\FollowedUserLikedEventNotification' => '❤️',
                     'App\Notifications\TicketPurchasedNotification'    => '🎟',
+                    'App\Notifications\NovoPedidoNotification'         => '🛒',
+                    'App\Notifications\PedidoAprovadoNotification'     => '✅',
+                    'App\Notifications\NewFollowerNotification'        => '➕',
+                    'App\\Notifications\\NovoEventoCriadoNotification' => '🎉',
                     default => '🔔',
                 };
             @endphp
@@ -149,6 +169,19 @@
                                 <span class="font-bold text-white">{{ $data['criador_nome'] ?? '' }}</span>
                                 criou um novo evento
                                 <span class="block text-purple-400 truncate mt-0.5 text-[11px]">{{ $data['evento_titulo'] ?? '' }}</span>
+                                @break
+                            @case('App\\Notifications\\NovoPedidoNotification')
+                                <span class="font-bold text-white">{{ $data['comprador_nome'] ?? '' }}</span>
+                                fez um pedido de compra de bilhetes
+                                <span class="block text-purple-400 truncate mt-0.5 text-[11px]">{{ Str::limit($data['evento_titulo'] ?? '', 30) }}</span>
+                                @break
+                            @case('App\\Notifications\\PedidoAprovadoNotification')
+                                O teu pedido foi aprovado, o bilhete já está no teu perfil
+                                <span class="block text-purple-400 truncate mt-0.5 text-[11px]">{{ Str::limit($data['evento_titulo'] ?? '', 30) }}</span>
+                                @break
+                            @case('App\\Notifications\\NewFollowerNotification')
+                                <span class="font-bold text-white">{{ $data['seguidor_nome'] ?? '' }}</span>
+                                começou a seguir-te
                                 @break
                             @default
                                 <span class="text-gray-400">Nova notificação</span>

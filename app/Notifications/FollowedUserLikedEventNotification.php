@@ -34,7 +34,7 @@ class FollowedUserLikedEventNotification extends Notification implements ShouldQ
 
     public function via(object $notifiable): array
     {
-        return ['database', 'broadcast'];
+        return ['database', 'broadcast', \App\Channels\WebPushChannel::class];
     }
 
     public function toDatabase(object $notifiable): array
@@ -52,5 +52,15 @@ class FollowedUserLikedEventNotification extends Notification implements ShouldQ
     public function toBroadcast(object $notifiable): BroadcastMessage
     {
         return new BroadcastMessage($this->toDatabase($notifiable));
+    }
+
+    public function toWebPush(object $notifiable): array
+    {
+        return [
+            'title' => 'Alguém que segues curtiu um evento',
+            'body'  => "{$this->userName} curtiu \"{$this->eventoTitulo}\".",
+            'url'   => \App\Support\NotificationLinks::evento($this->eventoId),
+            'icon'  => $this->userPhoto ? asset('storage/'.$this->userPhoto) : asset('logos.png'),
+        ];
     }
 }

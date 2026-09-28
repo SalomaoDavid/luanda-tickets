@@ -32,6 +32,8 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\UpdateUserLastSeen::class,
         ]);
 
+        $middleware->append(\App\Http\Middleware\SecurityHeaders::class);
+
     })
     ->withExceptions(function (Exceptions $exceptions): void {
 

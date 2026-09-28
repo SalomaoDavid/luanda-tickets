@@ -6,6 +6,8 @@ use App\Models\Categoria;
 use App\Models\Evento;
 use App\Models\EventoFoto;
 use App\Models\TipoIngresso;
+use App\Models\User;
+use App\Notifications\NovoEventoCriadoNotification;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Component;
@@ -54,6 +56,24 @@ class EventoForm extends Component
     public string $localizacao        = '';
     public bool   $novo_bairro        = false;
     public string $novo_bairro_nome   = '';
+
+    // ── Viagem: rota dupla (Partida / Destino) — NOVO ───────────
+    public string $partida_provincia = '';
+    public string $partida_municipio = '';
+    public string $partida_bairro    = '';
+    public string $destino_provincia = '';
+    public string $destino_municipio = '';
+    public string $destino_bairro    = '';
+
+    // ── Pessoas com foto (Artistas/Palestrantes/Elenco, conforme
+    //     a categoria) — NOVO. Cada item: ['nome' => '', 'foto' => null]
+    public array $pessoas = [];
+
+    // ── Fotos únicas por categoria — NOVO ────────────────────────
+    public $foto_instrutor   = null; // Workshop
+    public $foto_chef        = null; // Gastronomia
+    public $escudo_casa      = null; // Desporto
+    public $escudo_visitante = null; // Desporto
 
     // ── Meta ──────────────────────────────────────────────────
     public array $meta = [];
@@ -141,7 +161,10 @@ class EventoForm extends Component
             $this->editando = true;
             $this->carregarEvento($eventoId);
         } else {
-            $cat = Categoria::orderBy('nome')->first();
+            // ✅ Categoria por defeito só entre as ativas de Evento — uma
+            // categoria desativada no painel de gestão nunca deve ficar
+            // pré-selecionada num evento novo.
+            $cat = Categoria::where('tipo', 'evento')->where('ativo', true)->orderBy('nome')->first();
             if ($cat) {
                 $this->categoria_id = $cat->id;
                 $this->catNome      = strtolower($cat->nome);
@@ -176,6 +199,17 @@ class EventoForm extends Component
         $this->catNome              = strtolower(optional($evento->categoria)->nome ?? '');
         $this->catEmoji             = '🎟';
         $this->meta                 = is_array($evento->meta) ? $evento->meta : (json_decode($evento->meta ?? '{}', true) ?? []);
+
+        // NOVO — restaura a rota dupla (Viagem) e as pessoas com foto
+        // (Artistas/Palestrantes/Elenco), guardadas dentro do próprio meta.
+        $this->partida_provincia = $this->meta['partida_provincia'] ?? '';
+        $this->partida_municipio = $this->meta['partida_municipio'] ?? '';
+        $this->partida_bairro    = $this->meta['partida_bairro'] ?? '';
+        $this->destino_provincia = $this->meta['destino_provincia'] ?? '';
+        $this->destino_municipio = $this->meta['destino_municipio'] ?? '';
+        $this->destino_bairro    = $this->meta['destino_bairro'] ?? '';
+        $this->pessoas           = $this->meta['artistas'] ?? $this->meta['palestrantes'] ?? $this->meta['elenco'] ?? [];
+
         $this->lotacao_maxima       = $evento->lotacao_maxima ?? 100;
         $this->ingressos_por_pessoa = $evento->ingressos_por_pessoa ?? 1;
         $this->lista_espera         = (bool) $evento->lista_espera;
@@ -220,8 +254,11 @@ class EventoForm extends Component
     // ─────────────────────────────────────────────────────────
     public function getCategoriasProperty()
     {
+        // ✅ Só categorias de Evento e ATIVAS entram na lista de escolha —
+        // uma categoria desativada no painel de gestão deixa de aparecer
+        // aqui, mas eventos já criados com ela continuam a funcionar.
         return Cache::remember('categorias_lista_lw', 600, fn() =>
-            Categoria::orderBy('nome')->get()
+            Categoria::where('tipo', 'evento')->where('ativo', true)->orderBy('nome')->get()
         );
     }
 
@@ -235,10 +272,34 @@ class EventoForm extends Component
         return $this->bairrosPorMunicipio[$this->municipio] ?? [];
     }
 
+    // NOVO — mesma lógica, duplicada para a rota de Viagem (Partida/Destino)
+    public function getPartidaMunicipiosProperty(): array
+    {
+        return $this->localizacoes[$this->partida_provincia] ?? [];
+    }
+
+    public function getPartidaBairrosProperty(): array
+    {
+        return $this->bairrosPorMunicipio[$this->partida_municipio] ?? [];
+    }
+
+    public function getDestinoMunicipiosProperty(): array
+    {
+        return $this->localizacoes[$this->destino_provincia] ?? [];
+    }
+
+    public function getDestinoBairrosProperty(): array
+    {
+        return $this->bairrosPorMunicipio[$this->destino_municipio] ?? [];
+    }
+
     public function getSubcategoriasProperty(): array
     {
         if (!$this->categoria_id) return [];
-        $cat = Categoria::with('subcategorias')->find($this->categoria_id);
+        // ✅ Só subcategorias ATIVAS aparecem para escolher num evento novo/editado.
+        $cat = Categoria::with(['subcategorias' => function ($q) {
+            $q->where('ativo', true);
+        }])->find($this->categoria_id);
         return $cat ? $cat->subcategorias->toArray() : [];
     }
 
@@ -252,6 +313,13 @@ class EventoForm extends Component
         $this->catEmoji        = '🎟';
         $this->subcategoria_id = null;
         $this->meta            = [];
+
+        // NOVO — limpa também os campos específicos de categoria, para não
+        // ficar lixo de uma categoria anterior escondido dentro do formulário.
+        $this->partida_provincia = $this->partida_municipio = $this->partida_bairro = '';
+        $this->destino_provincia = $this->destino_municipio = $this->destino_bairro = '';
+        $this->pessoas = [];
+        $this->foto_instrutor = $this->foto_chef = $this->escudo_casa = $this->escudo_visitante = null;
     }
 
     // ─────────────────────────────────────────────────────────
@@ -286,6 +354,54 @@ class EventoForm extends Component
         $this->localizacao      = "{$this->bairro}, {$this->municipio}, {$this->provincia}";
         $this->novo_bairro      = false;
         $this->novo_bairro_nome = '';
+    }
+
+    // NOVO — mesma lógica em cascata, duplicada para Partida e Destino (Viagem)
+    public function updatedPartidaProvincia(): void
+    {
+        $this->partida_municipio = '';
+        $this->partida_bairro    = '';
+    }
+
+    public function updatedPartidaMunicipio(): void
+    {
+        $this->partida_bairro = '';
+    }
+
+    public function updatedDestinoProvincia(): void
+    {
+        $this->destino_municipio = '';
+        $this->destino_bairro    = '';
+    }
+
+    public function updatedDestinoMunicipio(): void
+    {
+        $this->destino_bairro = '';
+    }
+
+    // ─────────────────────────────────────────────────────────
+    // PESSOAS COM FOTO (Artistas / Palestrantes / Elenco) — NOVO
+    // ─────────────────────────────────────────────────────────
+    public function adicionarPessoa(): void
+    {
+        $this->pessoas[] = ['nome' => '', 'foto' => null];
+    }
+
+    public function removerPessoa(int $index): void
+    {
+        unset($this->pessoas[$index]);
+        $this->pessoas = array_values($this->pessoas);
+    }
+
+    // NOVO — alterna um valor dentro/fora de uma lista guardada num campo do
+    // meta (ex: comodidades do Festival, restrições alimentares da
+    // Gastronomia), sem precisar de montar JSON no lado do Blade.
+    public function toggleMetaLista(string $campo, string $valor): void
+    {
+        $atuais = $this->meta[$campo] ?? [];
+        $this->meta[$campo] = in_array($valor, $atuais)
+            ? array_values(array_diff($atuais, [$valor]))
+            : array_merge($atuais, [$valor]);
     }
 
     // ─────────────────────────────────────────────────────────
@@ -360,8 +476,67 @@ class EventoForm extends Component
     // ─────────────────────────────────────────────────────────
     public function salvar(): void
     {
+
+            // Segurança: repete a validação de todos os passos no servidor
+        foreach ([1, 2, 3] as $passo) {
+            $this->validateStep($passo);
+        }
+
+        // Segurança: valida ingressos e imagem de capa
+        $this->validate([
+            'ingressos'              => 'required|array|min:1|max:10',
+            'ingressos.*.nome'       => 'nullable|string|max:100',
+            'ingressos.*.preco'      => 'nullable|numeric|min:0|max:100000',
+            'ingressos.*.quantidade' => 'nullable|integer|min:1|max:100000',
+            'imagem_capa'            => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120',
+            'status'                 => 'required|in:rascunho,publicado,encerrado',
+        ], [
+            'ingressos.*.preco.min'      => 'O preço não pode ser negativo.',
+            'ingressos.*.quantidade.min' => 'A quantidade tem de ser pelo menos 1.',
+            'imagem_capa.image'          => 'A capa tem de ser uma imagem.',
+            'imagem_capa.mimes'          => 'A capa tem de ser JPG, PNG ou WebP.',
+            'imagem_capa.max'            => 'A capa não pode ultrapassar 5 MB.',
+        ]);
+                // Segurança: valida os restantes uploads (fotos, escudos, galeria, pessoas)
+        $regrasUploads = [
+            'foto_instrutor'   => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120',
+            'foto_chef'        => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120',
+            'escudo_casa'      => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120',
+            'escudo_visitante' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120',
+            'galeria'          => 'nullable|array|max:20',
+            'galeria.*'        => 'image|mimes:jpg,jpeg,png,webp|max:5120',
+        ];
+
+        // Fotos das pessoas: só valida os uploads novos (as já guardadas são texto)
+        foreach ($this->pessoas ?? [] as $i => $p) {
+            if (!empty($p['foto']) && is_object($p['foto'])) {
+                $regrasUploads["pessoas.$i.foto"] = 'image|mimes:jpg,jpeg,png,webp|max:5120';
+            }
+        }
+
+        $this->validate($regrasUploads, [
+            'image'       => 'O ficheiro tem de ser uma imagem.',
+            'mimes'       => 'Só são aceites imagens JPG, PNG ou WebP.',
+            'max'         => 'A imagem não pode ultrapassar 5 MB.',
+            'galeria.max' => 'A galeria pode ter no máximo 20 fotos.',
+        ]);
+
+
         if (!$this->termos) {
             $this->addError('termos', 'Tens de aceitar os termos de publicação.');
+            return;
+        }
+
+        // NOVO — impede guardar um evento sem nenhum bilhete válido. Antes,
+        // um bilhete sem "nome" preenchido era ignorado em silêncio, e o
+        // evento acabava por não ter nenhum tipo de bilhete — o que fazia a
+        // página mostrar "Grátis", mesmo que um preço tivesse sido escrito.
+        $temBilheteValido = collect($this->ingressos)->contains(
+            fn($i) => !empty($i['bloqueado']) || (!empty($i['nome']) && $i['preco'] !== '' && $i['preco'] !== null)
+        );
+        if (!$temBilheteValido) {
+            $this->addError('ingressos', 'Preenche pelo menos um tipo de bilhete com nome e preço antes de guardar.');
+            $this->step = 4;
             return;
         }
 
@@ -399,6 +574,59 @@ class EventoForm extends Component
         } elseif ($this->video_tipo === 'upload' && $this->editando && !empty($this->video_preview)) {
             // Manter vídeo actual se não fez novo upload
             $videoFinal = $this->video_preview;
+        }
+
+        // ─────────────────────────────────────────────────────
+        // NOVO — junta ao $meta tudo o que vem dos campos específicos
+        // de categoria (rota dupla da Viagem, fotos únicas, pessoas com
+        // foto). Não mexe em nenhuma chave que já lá estivesse (dresscode,
+        // lineup, camping, etc.) — só acrescenta.
+        // ─────────────────────────────────────────────────────
+        if ($this->partida_provincia || $this->destino_provincia) {
+            $this->meta['partida_provincia'] = $this->partida_provincia;
+            $this->meta['partida_municipio'] = $this->partida_municipio;
+            $this->meta['partida_bairro']    = $this->partida_bairro;
+            $this->meta['destino_provincia'] = $this->destino_provincia;
+            $this->meta['destino_municipio'] = $this->destino_municipio;
+            $this->meta['destino_bairro']    = $this->destino_bairro;
+        }
+
+        if ($this->foto_instrutor) {
+            $this->meta['foto_instrutor'] = $this->foto_instrutor->store('meta_eventos', 'public');
+        }
+        if ($this->foto_chef) {
+            $this->meta['foto_chef'] = $this->foto_chef->store('meta_eventos', 'public');
+        }
+        if ($this->escudo_casa) {
+            $this->meta['escudo_casa'] = $this->escudo_casa->store('meta_eventos', 'public');
+        }
+        if ($this->escudo_visitante) {
+            $this->meta['escudo_visitante'] = $this->escudo_visitante->store('meta_eventos', 'public');
+        }
+
+        // Pessoas com foto — a chave usada dentro do meta depende da categoria
+        // (Artistas para Show/Festival, Palestrantes para Conferência, Elenco
+        // para Cultura), para não misturar conceitos diferentes no mesmo sítio.
+        if (!empty($this->pessoas)) {
+            $chavePessoas = match(true) {
+                str_contains($this->catNome, 'confer') => 'palestrantes',
+                str_contains($this->catNome, 'cultura') => 'elenco',
+                default => 'artistas',
+            };
+            $pessoasFinal = [];
+            foreach ($this->pessoas as $p) {
+                if (empty($p['nome'])) continue;
+                $fotoPath = null;
+                if (!empty($p['foto']) && is_object($p['foto'])) {
+                    // Upload novo, feito agora
+                    $fotoPath = $p['foto']->store('meta_eventos', 'public');
+                } elseif (!empty($p['foto']) && is_string($p['foto'])) {
+                    // Já guardada antes (edição, sem novo upload para esta pessoa)
+                    $fotoPath = $p['foto'];
+                }
+                $pessoasFinal[] = ['nome' => strip_tags($p['nome']), 'foto' => $fotoPath];
+            }
+            $this->meta[$chavePessoas] = $pessoasFinal;
         }
 
         $dados = [
@@ -443,7 +671,9 @@ class EventoForm extends Component
             }
 
             $evento->update($dados);
-            $evento->status = $this->status;
+            if ($evento->podeMudarEstadoPara($this->status, auth()->user())) {
+                $evento->status = $this->status;
+            }
             if ($caminhoImagem) {
                 if ($evento->imagem_capa) Storage::disk('public')->delete($evento->imagem_capa);
                 $evento->imagem_capa = $caminhoImagem;
@@ -453,7 +683,7 @@ class EventoForm extends Component
             $evento = new Evento();
             $evento->fill($dados);
             $evento->user_id     = auth()->id();
-            $evento->status      = $this->status;
+            $evento->status      = $evento->podeMudarEstadoPara($this->status, auth()->user()) ? $this->status : 'rascunho';
             $evento->imagem_capa = $caminhoImagem;
             $evento->save();
 
@@ -469,6 +699,12 @@ class EventoForm extends Component
                 }
                 EventoFoto::insert($fotos);
             }
+
+            // Notifica os admins de que um novo evento foi criado
+            $notificacaoEvento = NovoEventoCriadoNotification::fromEvento($evento, auth()->user());
+            User::where('role', 'admin')->get()->each(
+                fn ($admin) => $admin->notify($notificacaoEvento)
+            );
         }
 
         $novos = array_filter($this->ingressos, fn($i) => empty($i['id']) && !empty($i['nome']));
@@ -488,6 +724,11 @@ class EventoForm extends Component
                     'preco'                 => $final,
                     'quantidade_disponivel' => intval($ingresso['quantidade']),
                     'quantidade_total'      => intval($ingresso['quantidade']),
+                    // NOVO — "Passe Completo" (Festival): guarda quantos dias este
+                    // bilhete cobre, para o BilheteService emitir um QR por dia.
+                    'dias_validos'          => !empty($ingresso['passe_completo'])
+                                                    ? (int) ($this->meta['dias_festival'] ?? 0) ?: null
+                                                    : null,
                     'created_at'            => now(),
                     'updated_at'            => now(),
                 ];
@@ -497,6 +738,13 @@ class EventoForm extends Component
 
         Cache::forget('categorias_lista_lw');
         Cache::forget('categorias_com_subcategorias');
+
+        session()->flash(
+            'success',
+            $this->editando
+                ? 'O teu evento foi atualizado com sucesso!'
+                : 'O teu evento foi criado com sucesso!'
+        );
 
         $this->redirect(route('admin.eventos'), navigate: true);
     }

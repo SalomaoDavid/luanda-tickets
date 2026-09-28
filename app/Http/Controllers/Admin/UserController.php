@@ -31,14 +31,14 @@ class UserController extends Controller
         }
 
         $request->validate(['role' => 'required|in:user,creator,admin']);
-        $user->updateQuietly(['role' => $request->role]);
+        $user->forceFill(['role' => $request->role])->saveQuietly();
 
         return redirect()->back()->with('success', "O cargo de {$user->name} foi atualizado para {$request->role}!");
     }
 
     public function toggleVerify(User $user)
     {
-        $user->updateQuietly(['is_verified' => !$user->is_verified]);
+        $user->forceFill(['is_verified' => !$user->is_verified])->saveQuietly();
         $estado = $user->is_verified ? 'verificado' : 'verificação removida';
 
         return redirect()->back()->with('success', "{$user->name} foi {$estado}.");
@@ -54,12 +54,14 @@ class UserController extends Controller
 
         // Já suspenso — remove suspensão
         if ($user->suspended_at && $user->suspended_at > now()) {
-            $user->updateQuietly(['suspended_at' => null]);
+            $user->forceFill(['suspended_at' => null])->saveQuietly();
+            \Illuminate\Support\Facades\Cache::forget("user_status_check_{$user->id}");
+
             return redirect()->back()->with('success', "{$user->name} foi reativado com sucesso.");
         }
 
         $dias = intval($request->input('dias', 30));
-        $user->updateQuietly(['suspended_at' => now()->addDays($dias)]);
+        $user->forceFill(['suspended_at' => now()->addDays($dias)])->saveQuietly();
 
         return redirect()->back()->with('success', "{$user->name} foi suspenso por {$dias} dias.");
     }
@@ -73,7 +75,8 @@ class UserController extends Controller
         }
 
         $novoEstado = !$user->is_blocked;
-        $user->updateQuietly(['is_blocked' => $novoEstado]);
+        $user->forceFill(['is_blocked' => $novoEstado])->saveQuietly();
+        \Illuminate\Support\Facades\Cache::forget("user_status_check_{$user->id}");
         $estado = $novoEstado ? 'bloqueado' : 'desbloqueado';
 
         return redirect()->back()->with('success', "{$user->name} foi {$estado} com sucesso.");

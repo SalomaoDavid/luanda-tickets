@@ -9,7 +9,8 @@ class Categoria extends Model
 {
     //
     use HasFactory;
-    protected $fillable = ['nome', 'slug', 'tipo'];
+    protected $fillable = ['nome', 'slug', 'tipo', 'ativo'];
+    protected $casts = ['ativo' => 'boolean'];
 
     public function eventos()
     {

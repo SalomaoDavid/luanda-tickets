@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Reserva;
 use App\Models\TipoIngresso;
+use App\Models\User;
+use App\Notifications\NovoPedidoNotification;
 use Illuminate\Http\Request;
 
 class ReservaController extends Controller
@@ -34,7 +36,7 @@ class ReservaController extends Controller
             $path = $request->file('comprovativo')->store('comprovativos', 'public');
 
             // Criar a reserva — lógica intacta
-            Reserva::create([
+            $reserva = Reserva::create([
                 'user_id'           => auth()->id(),
                 'tipo_ingresso_id'  => $request->tipo_ingresso_id,
                 'nome_cliente'      => $request->nome_cliente,
@@ -45,7 +47,17 @@ class ReservaController extends Controller
                 'comprovativo_path' => $path,
             ]);
 
-            return redirect()->back()->with('success', 'Reserva enviada com sucesso! Aguarde a validação.');
+            // Notifica todos os admins de que há um novo pedido a aguardar aprovação
+            $reserva->load(['tipoIngresso.evento', 'user:id,name']);
+            $notificacaoAdmin = NovoPedidoNotification::fromReserva($reserva);
+            User::where('role', 'admin')->get()->each(
+                fn ($admin) => $admin->notify($notificacaoAdmin)
+            );
+
+            return redirect()->back()->with(
+                'success',
+                'O seu pedido foi enviado para o admin, receberá uma notificação quando for aprovado pelo admin e verás no seu perfil o seu bilhete.'
+            );
 
         } catch (\Exception $e) {
             return redirect()->back()->withErrors(['msg' => 'Erro ao salvar: ' . $e->getMessage()]);

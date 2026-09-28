@@ -35,6 +35,52 @@ $podeMensagem = $isOwner ? false : match($quemMsg) {
 *, *::before, *::after { box-sizing: border-box; }
 @keyframes fadeUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
 
+/* ══════════════════════════════════════════════
+   ANIMAÇÕES DE ABERTURA (drawers, modal bilhetes, lightbox)
+   ══════════════════════════════════════════════ */
+@keyframes overlayFade { from{opacity:0} to{opacity:1} }
+@keyframes drawerSlideUp { from{opacity:0; transform:translateY(40px)} to{opacity:1; transform:translateY(0)} }
+@keyframes itemPop { from{opacity:0;transform:translateY(14px);} to{opacity:1;transform:translateY(0);} }
+@keyframes tagPop { from{opacity:0;transform:translateY(10px) scale(.92);} to{opacity:1;transform:translateY(0) scale(1);} }
+@keyframes lightboxZoom { from{opacity:0;transform:scale(.85);} to{opacity:1;transform:scale(1);} }
+@keyframes mbSlideIn { from{opacity:0;transform:translateX(14px) scale(.98);} to{opacity:1;transform:translateX(0) scale(1);} }
+
+/* Entrada em scroll dos cards de eventos e posts */
+.scroll-reveal{opacity:0;transform:translateY(24px);transition:opacity .6s cubic-bezier(.16,1,.3,1),transform .6s cubic-bezier(.16,1,.3,1);}
+.scroll-reveal.is-visible{opacity:1;transform:translateY(0);}
+
+/* Todos os drawers (seguidores, seguindo, galeria, agenda, interesses, conhecer, mais, denunciar) */
+.drawer-overlay.open { animation: overlayFade .25s ease-out; }
+.drawer-overlay.open .drawer-box { animation: drawerSlideUp .35s cubic-bezier(.16,1,.3,1); }
+
+/* Modal "Meus Bilhetes" (estilos inline, mas a animação entra por classe) */
+.mb-anim-overlay { animation: overlayFade .25s ease-out; }
+.mb-anim-box { animation: drawerSlideUp .35s cubic-bezier(.16,1,.3,1); }
+.mb-slide-anim { animation: mbSlideIn .32s cubic-bezier(.16,1,.3,1); }
+
+/* Lightbox de fotos */
+.lightbox.open { animation: overlayFade .2s ease-out; }
+.lightbox.open .lightbox-img { animation: lightboxZoom .32s cubic-bezier(.16,1,.3,1); }
+
+/* Itens em cascata dentro dos drawers */
+.going-item, .mutual-item, .loaded-item-anim { opacity:0; transform:translateY(14px); animation: itemPop .4s cubic-bezier(.16,1,.3,1) forwards; }
+.interest-tag, .gallery-item { opacity:0; transform:translateY(10px) scale(.92); animation: tagPop .35s cubic-bezier(.16,1,.3,1) forwards; }
+
+.going-item:nth-child(1){animation-delay:.03s} .going-item:nth-child(2){animation-delay:.07s} .going-item:nth-child(3){animation-delay:.11s} .going-item:nth-child(4){animation-delay:.15s} .going-item:nth-child(5){animation-delay:.19s} .going-item:nth-child(6){animation-delay:.23s} .going-item:nth-child(7){animation-delay:.27s} .going-item:nth-child(8){animation-delay:.31s}
+.interest-tag:nth-child(1){animation-delay:.03s} .interest-tag:nth-child(2){animation-delay:.06s} .interest-tag:nth-child(3){animation-delay:.09s} .interest-tag:nth-child(4){animation-delay:.12s} .interest-tag:nth-child(5){animation-delay:.15s} .interest-tag:nth-child(6){animation-delay:.18s} .interest-tag:nth-child(7){animation-delay:.21s} .interest-tag:nth-child(8){animation-delay:.24s}
+.mutual-item:nth-child(1){animation-delay:.04s} .mutual-item:nth-child(2){animation-delay:.09s} .mutual-item:nth-child(3){animation-delay:.14s} .mutual-item:nth-child(4){animation-delay:.19s} .mutual-item:nth-child(5){animation-delay:.24s} .mutual-item:nth-child(6){animation-delay:.29s}
+.gallery-item:nth-child(1){animation-delay:.03s} .gallery-item:nth-child(2){animation-delay:.06s} .gallery-item:nth-child(3){animation-delay:.09s} .gallery-item:nth-child(4){animation-delay:.12s} .gallery-item:nth-child(5){animation-delay:.15s} .gallery-item:nth-child(6){animation-delay:.18s}
+
+@media (prefers-reduced-motion: reduce){
+    .drawer-overlay.open, .drawer-overlay.open .drawer-box, .mb-anim-overlay, .mb-anim-box,
+    .mb-slide-anim, .lightbox.open, .lightbox.open .lightbox-img,
+    .going-item, .mutual-item, .loaded-item-anim, .interest-tag, .gallery-item,
+    .scroll-reveal, .ev-post::after, .post-card::after, .p-dot-on, .p-empty-icon,
+    .btn-follow.pulse, .ev-like-btn.pulse{
+        animation:none!important; opacity:1!important; transform:none!important;
+    }
+}
+
 .p-cover-wrap {
     position:relative;
     height:140px;
@@ -44,10 +90,32 @@ $podeMensagem = $isOwner ? false : match($quemMsg) {
 @media(min-width:768px){
     .p-cover-wrap { height:220px; margin:-40px -40px 0; overflow:hidden; }
 }
-.p-cover-bg { width:100%; height:100%; position:relative; background:linear-gradient(135deg,#050d1a 0%,#091828 30%,#0c1f3a 60%,#071220 100%); }
-.p-cover-bg img { width:100%; height:100%; object-fit:cover; position:absolute; inset:0; }
-.p-cover-glow { position:absolute; inset:0; z-index:1; pointer-events:none; background:radial-gradient(ellipse at 60% 40%,rgba(6,182,212,.22) 0%,transparent 55%),radial-gradient(ellipse at 20% 80%,rgba(245,158,11,.08) 0%,transparent 40%); }
+.p-cover-bg {
+    width:100%; height:100%; position:relative;
+    background:
+        radial-gradient(circle at 12% 25%, rgba(6,182,212,.5) 0%, transparent 45%),
+        radial-gradient(circle at 88% 10%, rgba(167,139,250,.4) 0%, transparent 48%),
+        radial-gradient(circle at 55% 90%, rgba(245,158,11,.28) 0%, transparent 45%),
+        linear-gradient(135deg,#050d1a 0%,#091828 30%,#0c1f3a 60%,#071220 100%);
+}
+.p-cover-bg::after{
+    content:'';position:absolute;inset:0;opacity:.45;pointer-events:none;
+    background-image:radial-gradient(rgba(255,255,255,.1) 1.1px, transparent 1.1px);
+    background-size:13px 13px;
+}
+.p-cover-bg img { width:100%; height:100%; object-fit:cover; position:absolute; inset:0; z-index:1; }
+.p-cover-glow { position:absolute; inset:0; z-index:1; pointer-events:none; background:radial-gradient(ellipse at 60% 40%,rgba(6,182,212,.15) 0%,transparent 55%); }
 .p-cover-fade { position:absolute; bottom:0; left:0; right:0; height:100px; z-index:2; background:linear-gradient(to top,#06090f 0%,transparent 100%); }
+.p-cover-edit{
+    position:absolute; top:12px; right:12px; z-index:5;
+    width:34px;height:34px;border-radius:50%;
+    background:rgba(6,9,15,.6); backdrop-filter:blur(6px);
+    border:1px solid rgba(255,255,255,.15);
+    display:flex;align-items:center;justify-content:center;
+    font-size:14px; color:#e2e8f0; text-decoration:none;
+    transition: background .2s, transform .2s;
+}
+.p-cover-edit:hover{ background:rgba(6,182,212,.35); transform:scale(1.06); }
 .p-header { position:relative; z-index:3; }
 .p-top {
     display:flex;
@@ -61,12 +129,31 @@ $podeMensagem = $isOwner ? false : match($quemMsg) {
 @media(min-width:768px){
     .p-top { margin-top:-55px; gap:20px; padding-bottom:20px; align-items:flex-end; }
 }
-.p-ava { width:78px; height:78px; border-radius:50%; background:linear-gradient(135deg,#0c3a4a,#1e6a7a); border:3px solid #06090f; display:flex; align-items:center; justify-content:center; font-size:26px; font-weight:800; color:#06b6d4; overflow:hidden; box-shadow:0 8px 28px rgba(6,182,212,.3); position:relative; flex-shrink:0; }
-@media(min-width:768px){ .p-ava { width:110px; height:110px; font-size:40px; } }
+.p-ava-ring{
+    width:84px; height:84px; border-radius:50%; flex-shrink:0; padding:3px;
+    background:linear-gradient(135deg,#334155,#1e293b);
+    box-shadow:0 8px 28px rgba(0,0,0,.35);
+    display:block; position:relative; text-decoration:none;
+}
+.p-ava-ring.ring-creator{
+    background:linear-gradient(135deg,#06b6d4,#0ea5e9,#22d3ee);
+    box-shadow:0 0 0 3px rgba(6,182,212,.15), 0 8px 30px rgba(6,182,212,.5);
+}
+@media(min-width:768px){ .p-ava-ring { width:118px; height:118px; padding:4px; } }
+.p-ava { width:100%; height:100%; border-radius:50%; background:linear-gradient(135deg,#0c3a4a,#1e6a7a); border:3px solid #06090f; display:flex; align-items:center; justify-content:center; font-size:26px; font-weight:800; color:#06b6d4; overflow:hidden; position:relative; }
+@media(min-width:768px){ .p-ava { font-size:40px; } }
 .p-ava img { width:100%; height:100%; object-fit:cover; }
-.p-dot-on  { position:absolute; bottom:4px; right:4px; width:13px; height:13px; background:#10b981; border-radius:50%; border:2px solid #06090f; }
-.p-dot-off { position:absolute; bottom:4px; right:4px; width:13px; height:13px; background:#475569; border-radius:50%; border:2px solid #06090f; }
-.p-verified { position:absolute; top:2px; right:2px; width:17px; height:17px; background:#06b6d4; border-radius:50%; border:2px solid #06090f; display:flex; align-items:center; justify-content:center; font-size:8px; }
+.p-ava-cam{
+    position:absolute; top:0; left:0; right:0; bottom:0; border-radius:50%;
+    background:rgba(6,9,15,.55); color:#fff; font-size:16px;
+    display:flex; align-items:center; justify-content:center;
+    opacity:0; transition:opacity .2s;
+}
+.p-ava-ring:hover .p-ava-cam{ opacity:1; }
+.p-dot-on  { position:absolute; bottom:4px; right:4px; width:13px; height:13px; background:#10b981; border-radius:50%; border:2px solid #06090f; z-index:2; animation: dotPulse 2s ease-in-out infinite; }
+.p-dot-off { position:absolute; bottom:4px; right:4px; width:13px; height:13px; background:#475569; border-radius:50%; border:2px solid #06090f; z-index:2; }
+.p-verified { position:absolute; top:2px; right:2px; width:17px; height:17px; background:#06b6d4; border-radius:50%; border:2px solid #06090f; display:flex; align-items:center; justify-content:center; font-size:8px; z-index:2; }
+@keyframes dotPulse{ 0%,100%{box-shadow:0 0 0 0 rgba(16,185,129,.55);} 50%{box-shadow:0 0 0 4px rgba(16,185,129,0);} }
 
 .p-info {
     flex:1;
@@ -79,18 +166,21 @@ $podeMensagem = $isOwner ? false : match($quemMsg) {
 @media(min-width:768px){ .p-name { font-size:24px; } }
 .p-handle { font-size:11px; color:#94a3b8; }
 .p-badge { font-size:9px; font-weight:700; letter-spacing:.8px; text-transform:uppercase; padding:2px 7px; border-radius:20px; }
-.badge-admin   { background:rgba(244,63,94,.2); border:1px solid rgba(244,63,94,.4); color:#f87171; }
 .badge-creator { background:rgba(6,182,212,.2); border:1px solid rgba(6,182,212,.4); color:#22d3ee; }
 .badge-user    { background:rgba(148,163,184,.15); border:1px solid rgba(148,163,184,.3); color:#94a3b8; }
 
 /* ✅ BIO — sem quebra vertical */
 .p-bio {
     font-size: 12px;
-    color: #94a3b8;
+    color: #dbe6f3;
     line-height: 1.6;
-    margin-bottom: 6px;
+    margin: 4px 0 10px;
     max-width: 520px;
     display: block;
+    padding: 6px 10px;
+    border-left: 3px solid #06b6d4;
+    background: rgba(6,182,212,.06);
+    border-radius: 0 8px 8px 0;
     word-break: normal !important;
     overflow-wrap: normal !important;
     white-space: normal !important;
@@ -98,7 +188,7 @@ $podeMensagem = $isOwner ? false : match($quemMsg) {
     letter-spacing: normal !important;
 }
 .p-meta { display:flex; gap:10px; flex-wrap:wrap; }
-.p-meta-item { display:flex; align-items:center; gap:4px; font-size:11px; color:#64748b; }
+.p-meta-item { display:flex; align-items:center; gap:4px; font-size:10.5px; font-weight:600; color:#cbd5e1; background:rgba(6,182,212,.1); border:1px solid rgba(6,182,212,.25); padding:4px 10px 4px 8px; border-radius:20px; }
 
 .p-actions {
     display:flex;
@@ -112,36 +202,59 @@ $podeMensagem = $isOwner ? false : match($quemMsg) {
     .p-info  { width:auto; }
     .p-actions { width:auto; }
 }
-.btn-follow { padding:8px 16px; border-radius:11px; font-size:12px; font-weight:700; background:linear-gradient(135deg,#06b6d4,#0ea5e9); color:#fff; border:none; cursor:pointer; }
+.btn-follow { padding:8px 16px; border-radius:11px; font-size:12px; font-weight:700; background:linear-gradient(135deg,#06b6d4,#0ea5e9); color:#fff; border:none; cursor:pointer; transition:transform .18s ease; }
+.btn-follow.pulse { animation: followPulse .4s ease; }
+@keyframes followPulse{ 0%{transform:scale(1);} 40%{transform:scale(1.12);} 100%{transform:scale(1);} }
 .btn-msg, .btn-edit { padding:8px 14px; border-radius:11px; font-size:12px; font-weight:600; background:#1e293b; border:1px solid #334155; color:#e2e8f0; cursor:pointer; text-decoration:none; display:inline-flex; align-items:center; gap:5px; }
 .btn-edit { background:#0c2a3a; border-color:rgba(6,182,212,.4); color:#22d3ee; }
 .btn-more { width:34px; height:34px; border-radius:11px; background:#1e293b; border:1px solid #334155; display:flex; align-items:center; justify-content:center; cursor:pointer; color:#94a3b8; font-size:15px; }
 
-.p-stats { display:flex; border-bottom:1px solid rgba(6,182,212,.12); overflow-x:auto; scrollbar-width:none; }
+.p-stats { display:flex; border-bottom:1px solid rgba(6,182,212,.12); overflow-x:auto; scrollbar-width:none; background:linear-gradient(180deg, rgba(6,182,212,.05), transparent); }
 .p-stats::-webkit-scrollbar { display:none; }
 .p-stat { flex:1; min-width:55px; text-align:center; padding:10px 6px; border-right:1px solid rgba(6,182,212,.1); cursor:pointer; transition:background .2s; }
 .p-stat:last-child { border-right:none; }
 .p-stat:hover { background:rgba(6,182,212,.05); }
-.p-stat-num { font-size:17px; font-weight:800; color:#fff; line-height:1; }
+.p-stat-num { font-size:18px; font-weight:800; line-height:1; background:linear-gradient(135deg,#ffffff,#67e8f9); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
 .p-stat-lbl { font-size:9px; color:#64748b; margin-top:3px; text-transform:uppercase; letter-spacing:.8px; }
 
-.p-quick-actions { display:flex; gap:8px; padding:14px 0; overflow-x:auto; scrollbar-width:none; border-bottom:1px solid rgba(6,182,212,.12); }
+.p-quick-actions { display:flex; gap:8px; padding:14px 0; overflow-x:auto; scrollbar-width:none; border-bottom:1px solid rgba(6,182,212,.12);
+    -webkit-mask-image: linear-gradient(to right, transparent 0, #000 14px, #000 calc(100% - 14px), transparent 100%);
+    mask-image: linear-gradient(to right, transparent 0, #000 14px, #000 calc(100% - 14px), transparent 100%);
+}
 .p-quick-actions::-webkit-scrollbar { display:none; }
-.p-qa-btn { flex-shrink:0; display:flex; flex-direction:column; align-items:center; gap:4px; padding:10px 16px; border-radius:12px; cursor:pointer; background:#111c2d; border:1px solid rgba(6,182,212,.15); transition:all .2s; min-width:70px; }
+/* Em ecrãs grandes já cabem todas as abas — centraliza a fila em vez de a deixar encostada à esquerda */
+@media(min-width:1024px){ .p-quick-actions{ justify-content:center; } }
+.p-qa-btn { flex-shrink:0; display:flex; flex-direction:column; align-items:center; gap:4px; padding:14px 22px 11px; border-radius:12px; cursor:pointer; background:#111c2d; border:1px solid rgba(6,182,212,.15); transition:all .2s; min-width:104px; position:relative; }
 .p-qa-btn:hover { border-color:rgba(6,182,212,.4); background:#162032; }
-.p-qa-btn.active { border-color:rgba(6,182,212,.5); background:rgba(6,182,212,.1); }
-.p-qa-icon { font-size:20px; }
-.p-qa-label { font-size:10px; font-weight:700; color:#64748b; text-align:center; white-space:nowrap; }
+.p-qa-btn.active { border-color:rgba(6,182,212,.65); background:rgba(6,182,212,.18); box-shadow:0 4px 16px rgba(6,182,212,.25); }
+.p-qa-btn.active::after{
+    content:'';position:absolute;left:50%;bottom:-1px;transform:translateX(-50%);
+    width:24px;height:3px;border-radius:2px;
+    background:linear-gradient(to right,#06b6d4,#22d3ee);
+    box-shadow:0 0 10px rgba(34,211,238,.8);
+}
+.p-qa-icon { font-size:24px; }
+.p-qa-label { font-size:11px; font-weight:700; color:#64748b; text-align:center; white-space:nowrap; }
 .p-qa-btn.active .p-qa-label { color:#06b6d4; }
 .p-qa-badge { font-size:9px; font-weight:700; background:rgba(6,182,212,.2); color:#06b6d4; border-radius:10px; padding:1px 5px; }
 
 .p-panel { display:none; flex-direction:column; gap:14px; padding-top:16px; animation:fadeUp .3s ease; }
 .p-panel.active { display:flex; }
 
-.ev-post { background:#111c2d; border:1px solid rgba(6,182,212,.18); border-radius:16px; overflow:hidden; transition:border-color .2s; }
+.ev-post { background:#111c2d; border:1px solid rgba(6,182,212,.18); border-radius:16px; overflow:hidden; transition:border-color .2s; position:relative; }
 .ev-post:hover { border-color:rgba(6,182,212,.45); }
+.ev-post::after{
+    content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:0;
+    background:radial-gradient(circle at 50% 15%, rgba(6,182,212,.14), transparent 65%);
+    animation: glowBreathe 4s ease-in-out infinite;
+}
+.ev-post > *{ position:relative; z-index:1; }
 .ev-post-img { height:150px; display:flex; align-items:center; justify-content:center; font-size:50px; position:relative; overflow:hidden; background:linear-gradient(135deg,#050d1a,#091828); }
 .ev-post-img img { width:100%; height:100%; object-fit:cover; position:absolute; inset:0; }
+
+/* Banners maiores só em ecrãs grandes (PC/TV) — mobile e tablet ficam iguais */
+@media(min-width:1280px){ .ev-post-img{height:270px;} }
+@media(min-width:1920px){ .ev-post-img{height:480px;} }
 .ev-post-img-overlay { position:absolute; inset:0; background:linear-gradient(to bottom,transparent 50%,rgba(6,9,15,.7) 100%); }
 .ev-badge { position:absolute; top:10px; left:10px; z-index:2; font-size:9px; font-weight:700; letter-spacing:.8px; text-transform:uppercase; padding:3px 8px; border-radius:20px; }
 .ev-date-pill { position:absolute; bottom:10px; left:10px; z-index:2; background:rgba(6,9,15,.88); backdrop-filter:blur(8px); border:1px solid rgba(6,182,212,.25); border-radius:7px; font-size:10px; font-weight:600; padding:3px 8px; color:#e2e8f0; }
@@ -163,11 +276,18 @@ $podeMensagem = $isOwner ? false : match($quemMsg) {
 .ev-price small { font-size:10px; color:#64748b; font-weight:400; }
 .ev-price.free { color:#10b981; font-size:13px; font-weight:700; }
 .ev-actions { display:flex; gap:6px; align-items:center; }
-.ev-like-btn { display:flex; align-items:center; gap:4px; padding:5px 9px; border-radius:9px; background:#1e293b; border:1px solid #334155; font-size:11px; font-weight:600; cursor:pointer; color:#94a3b8; }
+.ev-like-btn { display:flex; align-items:center; gap:4px; padding:5px 9px; border-radius:9px; background:#1e293b; border:1px solid #334155; font-size:11px; font-weight:600; cursor:pointer; color:#94a3b8; transition:transform .18s ease; }
 .ev-like-btn.liked { color:#f43f5e; border-color:rgba(244,63,94,.4); background:rgba(244,63,94,.12); }
+.ev-like-btn.pulse { animation: followPulse .4s ease; }
 .ev-buy-btn { padding:6px 12px; border-radius:9px; background:linear-gradient(135deg,#06b6d4,#0ea5e9); color:#fff; font-size:11px; font-weight:700; border:none; cursor:pointer; text-decoration:none; display:inline-flex; align-items:center; gap:4px; }
 
-.post-card { background:#111c2d; border:1px solid rgba(6,182,212,.14); border-radius:14px; padding:14px; animation:fadeUp .4s ease both; }
+.post-card { background:#111c2d; border:1px solid rgba(6,182,212,.14); border-radius:14px; padding:14px; position:relative; }
+.post-card::after{
+    content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:0;
+    background:radial-gradient(circle at 50% 10%, rgba(6,182,212,.1), transparent 65%);
+    animation: glowBreathe 4.5s ease-in-out infinite;
+}
+.post-card > *{ position:relative; z-index:1; }
 .post-author { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
 .post-ava { width:34px; height:34px; border-radius:50%; flex-shrink:0; overflow:hidden; background:linear-gradient(135deg,#0c3a4a,#1e6a7a); border:2px solid rgba(6,182,212,.3); display:flex; align-items:center; justify-content:center; font-weight:800; font-size:13px; color:#06b6d4; }
 .post-ava img { width:100%; height:100%; object-fit:cover; }
@@ -189,8 +309,10 @@ $podeMensagem = $isOwner ? false : match($quemMsg) {
 .compose-submit { padding:7px 18px; border-radius:9px; background:linear-gradient(135deg,#06b6d4,#0ea5e9); color:#fff; font-size:13px; font-weight:700; border:none; cursor:pointer; }
 
 .p-empty { text-align:center; padding:36px 20px; background:#111c2d; border:1px solid rgba(6,182,212,.1); border-radius:14px; }
-.p-empty-icon { font-size:32px; margin-bottom:8px; }
+.p-empty-icon { font-size:32px; margin-bottom:8px; display:inline-block; animation: emptyFloat 2.6s ease-in-out infinite; }
 .p-empty-txt { font-size:10px; color:#64748b; text-transform:uppercase; font-weight:700; letter-spacing:1px; }
+@keyframes emptyFloat{ 0%,100%{transform:translateY(0);} 50%{transform:translateY(-6px);} }
+@keyframes glowBreathe{ 0%,100%{opacity:.18;} 50%{opacity:.55;} }
 
 /* ✅ DRAWERS — corrigido height */
 .drawer-overlay {
@@ -378,10 +500,11 @@ $podeMensagem = $isOwner ? false : match($quemMsg) {
 {{-- ✅ MODAL BILHETES — estilos inline para evitar conflitos com o layout --}}
 @if($isOwner)
 <div id="modalBilhetes"
+     class="mb-anim-overlay"
      onclick="if(event.target===this) fecharModalBilhetes()"
      style="display:none;position:fixed;inset:0;z-index:999999;background:rgba(0,0,0,0.88);backdrop-filter:blur(10px);align-items:center;justify-content:center;padding:20px;">
  
-    <div style="background:#0d1526;border:1px solid rgba(6,182,212,0.3);border-radius:20px;width:100%;max-width:640px;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,0.6);">
+    <div class="mb-anim-box" style="background:#0d1526;border:1px solid rgba(6,182,212,0.3);border-radius:20px;width:100%;max-width:640px;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,0.6);">
  
         {{-- Header --}}
         <div style="padding:14px 18px;border-bottom:1px solid rgba(6,182,212,0.15);display:flex;justify-content:space-between;align-items:center;flex-shrink:0;">
@@ -403,6 +526,7 @@ $podeMensagem = $isOwner ? false : match($quemMsg) {
  
             @foreach($bilhetes as $i => $bilhete)
             <div id="mb-slide-{{ $i }}"
+                 class="mb-slide-anim"
                  style="display:{{ $i===0?'block':'none' }};">
  
                 {{-- Bilhete horizontal --}}
@@ -526,30 +650,44 @@ $podeMensagem = $isOwner ? false : match($quemMsg) {
             @endif
             <div class="p-cover-glow"></div>
         </div>
+        @if($isOwner)
+        <a href="{{ route('profile.edit') }}" class="p-cover-edit" title="Editar capa">📷</a>
+        @endif
         <div class="p-cover-fade"></div>
     </div>
 
 {{-- HEADER --}}
 <div class="p-header">
     <div class="p-top">
-        <div class="p-ava" style="position:relative;">
-            @if($user->avatar)
-                <img src="{{ asset('storage/'.$user->avatar) }}" alt="{{ $user->name }}">
-            @else {{ strtoupper(substr($user->name,0,2)) }} @endif
-            @if(method_exists($user,'isOnline') && $user->isOnline())
-                <div class="p-dot-on"></div>
-            @else
-                <div class="p-dot-off"></div>
-            @endif
-            @if($user->is_verified)<div class="p-verified">✓</div>@endif
+        @if($isOwner)
+        <a href="{{ route('profile.edit') }}" class="p-ava-ring {{ $user->role==='creator' ? 'ring-creator' : '' }}">
+        @else
+        <div class="p-ava-ring {{ $user->role==='creator' ? 'ring-creator' : '' }}">
+        @endif
+            <div class="p-ava">
+                @if($user->avatar)
+                    <img src="{{ asset('storage/'.$user->avatar) }}" alt="{{ $user->name }}">
+                @else {{ strtoupper(substr($user->name,0,2)) }} @endif
+                @if($isOwner)<div class="p-ava-cam">📷</div>@endif
+                @if(method_exists($user,'isOnline') && $user->isOnline())
+                    <div class="p-dot-on"></div>
+                @else
+                    <div class="p-dot-off"></div>
+                @endif
+                @if($user->is_verified)<div class="p-verified">✓</div>@endif
+            </div>
+        @if($isOwner)
+        </a>
+        @else
         </div>
+        @endif
 
         <div class="p-info">
             <div class="p-name-row">
                 <div class="p-name">{{ $user->name }}</div>
                 <div class="p-handle">&#64;{{ $handle }}</div>
-                @if($user->role==='admin') <span class="p-badge badge-admin">🛡 Admin</span>
-                @elseif($user->role==='creator') <span class="p-badge badge-creator">🎟 Criador</span>
+                {{-- Admin nunca é mostrado publicamente (evita identificar contas privilegiadas) --}}
+                @if($user->role==='creator') <span class="p-badge badge-creator">🎟 Criador</span>
                 @else <span class="p-badge badge-user">👤 Membro</span> @endif
             </div>
                 @if(!empty($user->bio))
@@ -579,8 +717,10 @@ $podeMensagem = $isOwner ? false : match($quemMsg) {
                     {{ $euSigo ? '✓ A seguir' : '+ Seguir' }}
                 </button>
                 @endif
-                @if($podeMensagem)
+                @if($euSigo)
                 <a href="{{ route('mensagens.index', ['user_id' => $user->id]) }}" class="btn-msg">💬</a>
+                @else
+                <span style="font-size:10px;color:#64748b;line-height:1.35;max-width:150px;">Segue esta pessoa para poderes conversar com ela</span>
                 @endif
                 @if($podeVerTudo)
                 <div class="btn-more" onclick="abrirDrawer('drawer-mais')">⋯</div>
@@ -673,7 +813,7 @@ $podeMensagem = $isOwner ? false : match($quemMsg) {
         $catEmoji=match(strtolower($catNome)){'música','musica'=>'🎵','arte','arte & cultura'=>'🎨','festa','festas'=>'🎉','desporto'=>'⚽','gastronomia'=>'🍽','negócios','negocios'=>'💼',default=>'🎟'};
         $catColor=match(strtolower($catNome)){'música','musica'=>'#06b6d4','arte','arte & cultura'=>'#a78bfa','festa','festas'=>'#f59e0b','desporto'=>'#10b981','gastronomia'=>'#f97316','negócios','negocios'=>'#0ea5e9',default=>'#06b6d4'};
     @endphp
-    <div class="ev-post">
+    <div class="ev-post scroll-reveal">
         <div class="ev-post-img">
             @if($evento->imagem_capa)<img src="{{ asset('storage/'.$evento->imagem_capa) }}" alt="">@else {{ $catEmoji }} @endif
             <div class="ev-post-img-overlay"></div>
@@ -701,10 +841,10 @@ $podeMensagem = $isOwner ? false : match($quemMsg) {
                 </div>
                 <div class="ev-actions">
                     @auth
-                    <form method="POST" action="{{ route('evento.curtir',$evento->id) }}" style="display:inline">
+                    <form method="POST" action="{{ route('evento.curtir',$evento->id) }}" class="like-form" style="display:inline">
                         @csrf
                         <button type="submit" class="ev-like-btn {{ $evento->usuariosQueCurtiram->contains(auth()->id())?'liked':'' }}">
-                            {{ $evento->usuariosQueCurtiram->contains(auth()->id())?'❤️':'🤍' }} {{ $evento->curtidas->count() }}
+                            <span class="ev-like-emoji">{{ $evento->usuariosQueCurtiram->contains(auth()->id())?'❤️':'🤍' }}</span> <span class="ev-like-count">{{ $evento->curtidas->count() }}</span>
                         </button>
                     </form>
                     @endauth
@@ -736,7 +876,7 @@ $podeMensagem = $isOwner ? false : match($quemMsg) {
     </div>
     @endif
     @forelse($postagens as $post)
-    <div class="post-card">
+    <div class="post-card scroll-reveal">
         <div class="post-author">
             <div class="post-ava">
                 @if($user->avatar)<img src="{{ asset('storage/'.$user->avatar) }}" alt="">
@@ -873,7 +1013,7 @@ $podeMensagem = $isOwner ? false : match($quemMsg) {
                     {{ strtoupper(substr($u->name,0,2)) }}
                 @endif
                 </div>
-                <div class="mutual-info"><div class="mutual-name">{{ $u->name }}</div><div class="mutual-sub">{{ ucfirst($u->role) }}</div></div>
+                <div class="mutual-info"><div class="mutual-name">{{ $u->name }}</div><div class="mutual-sub">{{ $u->role==='admin' ? 'Membro' : ucfirst($u->role) }}</div></div>
                 <a href="{{ route('profile.show',$u->id) }}" class="mutual-btn">Ver</a>
             </div>
             @endforeach
@@ -993,6 +1133,82 @@ if (mbTrack) {
 
 
 function switchPanel(n){document.querySelectorAll('.p-qa-btn').forEach(b=>b.classList.remove('active'));document.querySelectorAll('.p-panel').forEach(p=>p.classList.remove('active'));document.getElementById('qa-'+n)?.classList.add('active');document.getElementById('panel-'+n)?.classList.add('active');}
+
+// ── Curtir evento via AJAX (sem recarregar a página) ──
+// Se o servidor não devolver JSON por qualquer razão, cai automaticamente
+// para o envio normal do formulário — comportamento igual ao de antes, sem quebrar nada.
+document.addEventListener('submit', async function (e) {
+    const form = e.target.closest('.like-form');
+    if (!form) return;
+    e.preventDefault();
+
+    const btn = form.querySelector('.ev-like-btn');
+    const emojiEl = btn.querySelector('.ev-like-emoji');
+    const countEl = btn.querySelector('.ev-like-count');
+    const token = form.querySelector('input[name="_token"]')?.value
+                || document.querySelector('meta[name="csrf-token"]')?.content;
+
+    if (btn.disabled) return;
+    btn.disabled = true;
+
+    try {
+        const res = await fetch(form.action, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': token,
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            }
+        });
+
+        const contentType = res.headers.get('content-type') || '';
+        if (!res.ok || !contentType.includes('application/json')) {
+            // Backend não respondeu em JSON: segue o comportamento original (recarrega a página)
+            form.submit();
+            return;
+        }
+
+        const data = await res.json();
+        const jaCurtido = btn.classList.contains('liked');
+        const curtido = (typeof data.liked === 'boolean') ? data.liked
+                       : (typeof data.curtido === 'boolean') ? data.curtido
+                       : !jaCurtido;
+
+        btn.classList.toggle('liked', curtido);
+        if (emojiEl) emojiEl.textContent = curtido ? '❤️' : '🤍';
+
+        if (typeof data.total === 'number') countEl.textContent = data.total;
+        else if (typeof data.curtidas_count === 'number') countEl.textContent = data.curtidas_count;
+        else {
+            const atual = parseInt(countEl.textContent, 10) || 0;
+            countEl.textContent = Math.max(0, atual + (curtido && !jaCurtido ? 1 : (!curtido && jaCurtido ? -1 : 0)));
+        }
+
+        btn.classList.remove('pulse'); void btn.offsetWidth; btn.classList.add('pulse');
+    } catch (err) {
+        form.submit(); // rede falhou / resposta inválida: fallback seguro
+    } finally {
+        btn.disabled = false;
+    }
+});
+
+// ── Scroll-reveal dos cards de eventos e posts ──
+document.addEventListener('DOMContentLoaded', function () {
+    var els = document.querySelectorAll('.scroll-reveal');
+    if (!('IntersectionObserver' in window)) {
+        els.forEach(function (el) { el.classList.add('is-visible'); });
+        return;
+    }
+    var obs = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('is-visible');
+                obs.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.12 });
+    els.forEach(function (el) { obs.observe(el); });
+});
 async function toggleSeguir(userId) {
     const btn = document.getElementById('followBtn');
     const token = document.querySelector('meta[name="csrf-token"]')?.content;
@@ -1005,6 +1221,7 @@ async function toggleSeguir(userId) {
         const data = await res.json();
         btn.textContent = data.seguindo ? '✓ A seguir' : '+ Seguir';
         btn.style.cssText = data.seguindo ? 'background:#1e293b;border:1px solid #334155;color:#e2e8f0;padding:8px 16px;border-radius:11px;font-size:12px;font-weight:700;cursor:pointer;' : '';
+        btn.classList.remove('pulse'); void btn.offsetWidth; btn.classList.add('pulse');
         const el = document.getElementById('total-seguidores');
         if (el) el.textContent = data.total_seguidores;
     } catch(e) { console.error(e); }
@@ -1060,14 +1277,14 @@ async function carregarLista(url, containerId, drawerId) {
             container.innerHTML = '<div style="text-align:center;padding:30px;color:#64748b;font-size:13px;">Sem resultados</div>';
             return;
         }
-        container.innerHTML = users.map(u => `
-            <a href="/u/${u.id}" style="display:flex;align-items:center;gap:12px;padding:10px;border-radius:12px;background:#111c2d;border:1px solid rgba(6,182,212,.1);text-decoration:none;transition:border-color .2s;">
+        container.innerHTML = users.map((u, i) => `
+            <a href="/u/${u.id}" class="loaded-item-anim" style="display:flex;align-items:center;gap:12px;padding:10px;border-radius:12px;background:#111c2d;border:1px solid rgba(6,182,212,.1);text-decoration:none;transition:border-color .2s;animation-delay:${Math.min(i*0.05,0.3)}s;">
                 <div style="width:42px;height:42px;border-radius:50%;overflow:hidden;flex-shrink:0;background:linear-gradient(135deg,#0c3a4a,#1e6a7a);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;color:#06b6d4;border:2px solid rgba(6,182,212,.3);">
                     ${u.avatar ? `<img src="/storage/${u.avatar}" style="width:100%;height:100%;object-fit:cover;" alt="">` : u.name.substring(0,2).toUpperCase()}
                 </div>
                 <div style="flex:1;min-width:0;">
                     <div style="font-size:13px;font-weight:700;color:#fff;">${u.name}</div>
-                    <div style="font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:.5px;">${u.role}</div>
+                    <div style="font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:.5px;">${u.role === 'admin' ? 'membro' : u.role}</div>
                 </div>
                 <span style="font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;background:rgba(6,182,212,.1);border:1px solid rgba(6,182,212,.2);color:#06b6d4;">Ver</span>
             </a>

@@ -38,7 +38,7 @@ class NovoEventoCriadoNotification extends Notification implements ShouldQueue
 
     public function via(object $notifiable): array
     {
-        return ['database', 'broadcast'];
+        return ['database', 'broadcast', \App\Channels\WebPushChannel::class];
     }
 
     public function toDatabase(object $notifiable): array
@@ -58,5 +58,15 @@ class NovoEventoCriadoNotification extends Notification implements ShouldQueue
     public function toBroadcast(object $notifiable): BroadcastMessage
     {
         return new BroadcastMessage($this->toDatabase($notifiable));
+    }
+
+    public function toWebPush(object $notifiable): array
+    {
+        return [
+            'title' => 'Novo evento',
+            'body'  => "{$this->criadorNome} criou o evento \"{$this->eventoTitulo}\".",
+            'url'   => \App\Support\NotificationLinks::evento($this->eventoId),
+            'icon'  => $this->userPhoto ? asset('storage/'.$this->userPhoto) : asset('logos.png'),
+        ];
     }
 }

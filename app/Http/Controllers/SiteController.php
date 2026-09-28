@@ -16,9 +16,23 @@ class SiteController extends Controller
         $user    = auth()->user();
         $isAdmin = $user->role === 'admin';
 
+        // Filtro de período (novo) — afeta só métricas de vendas, não os contadores de segurança/estado
+        $periodo    = request('periodo', 'tudo');
+        $dataInicio = match ($periodo) {
+            'hoje'   => now()->startOfDay(),
+            '7dias'  => now()->subDays(7)->startOfDay(),
+            '30dias' => now()->subDays(30)->startOfDay(),
+            'mes'    => now()->startOfMonth(),
+            default  => null, // 'tudo'
+        };
+
         $queryReservas  = Reserva::where('status', 'pago');
         $queryPendentes = Reserva::where('status', 'pendente');
         $queryEventos   = Evento::query();
+
+        if ($dataInicio) {
+            $queryReservas->where('updated_at', '>=', $dataInicio);
+        }
 
         if (!$isAdmin) {
             $queryReservas->whereHas('tipoIngresso.evento',  fn($q) => $q->where('user_id', $user->id));
@@ -63,7 +77,12 @@ class SiteController extends Controller
         $eventosPerformance = (clone $queryEventos)
             ->with([
                 'tiposIngresso:id,evento_id,nome,quantidade_total',
-                'tiposIngresso.reservas' => fn($q) => $q->where('status','pago')->select('id','tipo_ingresso_id','quantidade','total'),
+                'tiposIngresso.reservas' => function ($q) use ($dataInicio) {
+                    $q->where('status', 'pago')->select('id', 'tipo_ingresso_id', 'quantidade', 'total');
+                    if ($dataInicio) {
+                        $q->where('updated_at', '>=', $dataInicio);
+                    }
+                },
             ])
             ->select('id','titulo','lotacao_maxima')
             ->get()
@@ -132,7 +151,7 @@ class SiteController extends Controller
             'totalBilhetes','bilhetesComHmac','bilhetesBloqueados',
             'tentativasInvalidas','bilhetesValidados','lotesEmitidos',
             'totalUtilizadores','novosUtilizadores','eventosPorStatus',
-            'isAdmin'
+            'isAdmin','periodo'
         ));
     }
 
@@ -196,6 +215,7 @@ class SiteController extends Controller
         $topEventos = DB::table('bilhetes as b')
             ->join('eventos as e', 'b.evento_id', '=', 'e.id')
             ->select(
+                'e.id',
                 'e.titulo',
                 DB::raw('count(b.id) as total_bilhetes'),
                 DB::raw('count(CASE WHEN b.validado_em IS NOT NULL THEN 1 END) as validados')

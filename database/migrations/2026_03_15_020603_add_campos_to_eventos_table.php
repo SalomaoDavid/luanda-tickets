@@ -9,9 +9,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('eventos', function (Blueprint $table) {
-            $table->string('provincia')->nullable()->default('Luanda')->after('municipio');
             $table->string('municipio')->nullable()->after('localizacao');
-            $table->string('distrito')->nullable()->after('municipio');
+            $table->string('provincia')->nullable()->default('Luanda')->after('municipio');
+            $table->string('distrito')->nullable()->after('provincia');
             $table->time('hora_inicio')->nullable()->after('data_evento');
             $table->time('hora_fim')->nullable()->after('hora_inicio');
             $table->date('data_fim')->nullable()->after('hora_fim');

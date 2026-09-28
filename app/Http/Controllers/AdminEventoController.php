@@ -31,8 +31,17 @@ class AdminEventoController extends Controller
     public function create()
     {
         // ✅ Cache para categorias — mudam raramente
+        // Só entram categorias/subcategorias de eventos e ATIVAS: uma categoria
+        // desativada no painel de gestão deixa de aparecer aqui, mas eventos
+        // já criados com ela continuam a funcionar normalmente.
         $categorias = Cache::remember('categorias_com_subcategorias', 600, function () {
-            return Categoria::with('subcategorias')->orderBy('nome')->get();
+            return Categoria::where('tipo', 'evento')
+                ->where('ativo', true)
+                ->with(['subcategorias' => function ($q) {
+                    $q->where('ativo', true);
+                }])
+                ->orderBy('nome')
+                ->get();
         });
 
         return view('admin-eventos-criar', compact('categorias'));

@@ -1,0 +1,529 @@
+Note: Using configuration file C:\laragon\www\luanda-tickets\phpstan.neon.
+  0/81 [>---------------------------]   0%[1G[2K 81/81 [============================] 100%
+
+ ------ ----------------------------------------------------------- 
+  Line   Events\MessageSent.php                                     
+ ------ ----------------------------------------------------------- 
+  :26    Relation 'user' is not found in App\Models\Message model.  
+         🪪  larastan.relationExistence                             
+ ------ ----------------------------------------------------------- 
+
+ ------ --------------------------------------------------------------------------------------------------------- 
+  Line   Http\Controllers\AdminEventoController.php                                                               
+ ------ --------------------------------------------------------------------------------------------------------- 
+  :20    Relation 'tiposIngresso' is not found in App\Models\Evento model.                                        
+         🪪  larastan.relationExistence                                                                           
+  :35    Relation 'subcategorias' is not found in App\Models\Categoria model.                                     
+         🪪  larastan.relationExistence                                                                           
+  :177   Relation 'tiposIngresso' is not found in App\Models\Evento model.                                        
+         🪪  larastan.relationExistence                                                                           
+  :177   Relation 'user' is not found in App\Models\Evento model.                                                 
+         🪪  larastan.relationExistence                                                                           
+  :195   Relation 'subcategorias' is not found in App\Models\Categoria model.                                     
+         🪪  larastan.relationExistence                                                                           
+  :289   Relation 'tipoIngresso' is not found in App\Models\Reserva model.                                        
+         🪪  larastan.relationExistence                                                                           
+  :319   Access to an undefined property App\Models\Evento|Illuminate\Database\Eloquent\Collection<(int|string),  
+         App\Models\Evento>::$fotos.                                                                              
+         🪪  property.notFound                                                                                    
+         💡  Learn more: https://phpstan.org/blog/solving-phpstan-access-to-undefined-property                    
+ ------ --------------------------------------------------------------------------------------------------------- 
+
+ ------ --------------------------------------------------------------------------------------- 
+  Line   Http\Controllers\Admin\ScannerController.php                                           
+ ------ --------------------------------------------------------------------------------------- 
+  :141   Relation 'evento' is not found in App\Models\Bilhete model.                            
+         🪪  larastan.relationExistence                                                         
+  :141   Relation 'pedido' is not found in App\Models\Bilhete model.                            
+         🪪  larastan.relationExistence                                                         
+  :141   Relation 'tipoIngresso' is not found in App\Models\Bilhete model.                      
+         🪪  larastan.relationExistence                                                         
+  :166   Access to an undefined property App\Models\Bilhete::$evento.                           
+         🪪  property.notFound                                                                  
+         💡  Learn more: https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :167   Access to an undefined property App\Models\Bilhete::$evento.                           
+         🪪  property.notFound                                                                  
+         💡  Learn more: https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :169   Access to an undefined property App\Models\Bilhete::$evento.                           
+         🪪  property.notFound                                                                  
+         💡  Learn more: https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :170   Access to an undefined property App\Models\Bilhete::$evento.                           
+         🪪  property.notFound                                                                  
+         💡  Learn more: https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :171   Access to an undefined property App\Models\Bilhete::$evento.                           
+         🪪  property.notFound                                                                  
+         💡  Learn more: https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :171   Access to an undefined property App\Models\Bilhete::$evento.                           
+         🪪  property.notFound                                                                  
+         💡  Learn more: https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :174   Access to an undefined property App\Models\Bilhete::$tipoIngresso.                     
+         🪪  property.notFound                                                                  
+         💡  Learn more: https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+ ------ --------------------------------------------------------------------------------------- 
+
+ ------ ---------------------------------------------------------- 
+  Line   Http\Controllers\Auth\AuthenticatedSessionController.php  
+ ------ ---------------------------------------------------------- 
+  :33    Cannot call method isFuture() on string.                  
+         🪪  method.nonObject                                      
+  :36    Cannot call method format() on string.                    
+         🪪  method.nonObject                                      
+ ------ ---------------------------------------------------------- 
+
+ ------ ---------------------------------------------------------------------------------------------------------- 
+  Line   Http\Controllers\BookingController.php                                                                    
+ ------ ---------------------------------------------------------------------------------------------------------- 
+  :27    Relation 'tipoIngresso' is not found in App\Models\Reserva model.                                         
+         🪪  larastan.relationExistence                                                                            
+  :27    Relation 'user' is not found in App\Models\Reserva model.                                                 
+         🪪  larastan.relationExistence                                                                            
+  :39    Access to an undefined property App\Models\Reserva|Illuminate\Database\Eloquent\Collection<(int|string),  
+         App\Models\Reserva>::$tipoIngresso.                                                                       
+         🪪  property.notFound                                                                                     
+         💡  Learn more: https://phpstan.org/blog/solving-phpstan-access-to-undefined-property                     
+  :115   Access to an undefined property App\Models\Reserva|Illuminate\Database\Eloquent\Collection<(int|string),  
+         App\Models\Reserva>::$tipoIngresso.                                                                       
+         🪪  property.notFound                                                                                     
+         💡  Learn more: https://phpstan.org/blog/solving-phpstan-access-to-undefined-property                     
+  :116   Access to an undefined property App\Models\Reserva|Illuminate\Database\Eloquent\Collection<(int|string),  
+         App\Models\Reserva>::$tipoIngresso.                                                                       
+         🪪  property.notFound                                                                                     
+         💡  Learn more: https://phpstan.org/blog/solving-phpstan-access-to-undefined-property                     
+  :135   Relation 'tipoIngresso' is not found in App\Models\Reserva model.                                         
+         🪪  larastan.relationExistence                                                                            
+  :140   Relation 'tipoIngresso' is not found in App\Models\Reserva model.                                         
+         🪪  larastan.relationExistence                                                                            
+  :140   Relation 'user' is not found in App\Models\Reserva model.                                                 
+         🪪  larastan.relationExistence                                                                            
+  :161   Relation 'tipoIngresso' is not found in App\Models\Reserva model.                                         
+         🪪  larastan.relationExistence                                                                            
+  :166   Relation 'tipoIngresso' is not found in App\Models\Reserva model.                                         
+         🪪  larastan.relationExistence                                                                            
+  :166   Relation 'user' is not found in App\Models\Reserva model.                                                 
+         🪪  larastan.relationExistence                                                                            
+  :184   Access to an undefined property App\Models\Reserva|Illuminate\Database\Eloquent\Collection<(int|string),  
+         App\Models\Reserva>::$tipoIngresso.                                                                       
+         🪪  property.notFound                                                                                     
+         💡  Learn more: https://phpstan.org/blog/solving-phpstan-access-to-undefined-property                     
+ ------ ---------------------------------------------------------------------------------------------------------- 
+
+ ------ --------------------------------------------------------------------------------------------------------- 
+  Line   Http\Controllers\EventController.php                                                                     
+ ------ --------------------------------------------------------------------------------------------------------- 
+  :15    Relation 'categoria' is not found in App\Models\Evento model.                                            
+         🪪  larastan.relationExistence                                                                           
+  :15    Relation 'curtidas' is not found in App\Models\Evento model.                                             
+         🪪  larastan.relationExistence                                                                           
+  :15    Relation 'fotos' is not found in App\Models\Evento model.                                                
+         🪪  larastan.relationExistence                                                                           
+  :15    Relation 'tiposIngresso' is not found in App\Models\Evento model.                                        
+         🪪  larastan.relationExistence                                                                           
+  :15    Relation 'usuariosQueCurtiram' is not found in App\Models\Evento model.                                  
+         🪪  larastan.relationExistence                                                                           
+  :34    Relation 'comentarios' is not found in App\Models\Postagem model.                                        
+         🪪  larastan.relationExistence                                                                           
+  :34    Relation 'reacoes' is not found in App\Models\Postagem model.                                            
+         🪪  larastan.relationExistence                                                                           
+  :34    Relation 'user' is not found in App\Models\Postagem model.                                               
+         🪪  larastan.relationExistence                                                                           
+  :58    Relation 'categoria' is not found in App\Models\Evento model.                                            
+         🪪  larastan.relationExistence                                                                           
+  :58    Relation 'fotos' is not found in App\Models\Evento model.                                                
+         🪪  larastan.relationExistence                                                                           
+  :58    Relation 'subcategoria' is not found in App\Models\Evento model.                                         
+         🪪  larastan.relationExistence                                                                           
+  :58    Relation 'tiposIngresso' is not found in App\Models\Evento model.                                        
+         🪪  larastan.relationExistence                                                                           
+  :58    Relation 'user' is not found in App\Models\Evento model.                                                 
+         🪪  larastan.relationExistence                                                                           
+  :82    Access to an undefined property App\Models\Evento|Illuminate\Database\Eloquent\Collection<(int|string),  
+         App\Models\Evento>::$tiposIngresso.                                                                      
+         🪪  property.notFound                                                                                    
+         💡  Learn more: https://phpstan.org/blog/solving-phpstan-access-to-undefined-property                    
+  :83    Access to an undefined property App\Models\Evento|Illuminate\Database\Eloquent\Collection<(int|string),  
+         App\Models\Evento>::$tiposIngresso.                                                                      
+         🪪  property.notFound                                                                                    
+         💡  Learn more: https://phpstan.org/blog/solving-phpstan-access-to-undefined-property                    
+  :93    Relation 'categoria' is not found in App\Models\Evento model.                                            
+         🪪  larastan.relationExistence                                                                           
+  :93    Relation 'comentarios' is not found in App\Models\Evento model.                                          
+         🪪  larastan.relationExistence                                                                           
+  :93    Relation 'curtidas' is not found in App\Models\Evento model.                                             
+         🪪  larastan.relationExistence                                                                           
+  :93    Relation 'subcategoria' is not found in App\Models\Evento model.                                         
+         🪪  larastan.relationExistence                                                                           
+  :93    Relation 'tiposIngresso' is not found in App\Models\Evento model.                                        
+         🪪  larastan.relationExistence                                                                           
+  :93    Relation 'usuariosQueComentaram' is not found in App\Models\Evento model.                                
+         🪪  larastan.relationExistence                                                                           
+  :93    Relation 'usuariosQueCurtiram' is not found in App\Models\Evento model.                                  
+         🪪  larastan.relationExistence                                                                           
+  :133   Relation 'curtidas' is not found in App\Models\Evento model.                                             
+         🪪  larastan.relationExistence                                                                           
+  :141   Relation 'subcategorias' is not found in App\Models\Categoria model.                                     
+         🪪  larastan.relationExistence                                                                           
+ ------ --------------------------------------------------------------------------------------------------------- 
+
+ ------ ----------------------------------------------------------------------------------------------------------- 
+  Line   Http\Controllers\PostagemController.php                                                                    
+ ------ ----------------------------------------------------------------------------------------------------------- 
+  :43    Relation 'user' is not found in App\Models\PostagemReacao model.                                           
+         🪪  larastan.relationExistence                                                                             
+  :44    Access to an undefined property App\Models\Postagem|Illuminate\Database\Eloquent\Collection<(int|string),  
+         App\Models\Postagem>::$user.                                                                               
+         🪪  property.notFound                                                                                      
+         💡  Learn more: https://phpstan.org/blog/solving-phpstan-access-to-undefined-property                      
+  :59    Relation 'user' is not found in App\Models\PostagemReacao model.                                           
+         🪪  larastan.relationExistence                                                                             
+  :62    Access to an undefined property App\Models\Postagem|Illuminate\Database\Eloquent\Collection<(int|string),  
+         App\Models\Postagem>::$user.                                                                               
+         🪪  property.notFound                                                                                      
+         💡  Learn more: https://phpstan.org/blog/solving-phpstan-access-to-undefined-property                      
+  :93    Relation 'user' is not found in App\Models\PostagemComentario model.                                       
+         🪪  larastan.relationExistence                                                                             
+  :96    Access to an undefined property App\Models\Postagem|Illuminate\Database\Eloquent\Collection<(int|string),  
+         App\Models\Postagem>::$user.                                                                               
+         🪪  property.notFound                                                                                      
+         💡  Learn more: https://phpstan.org/blog/solving-phpstan-access-to-undefined-property                      
+ ------ ----------------------------------------------------------------------------------------------------------- 
+
+ ------ ------------------------------------------------------------------- 
+  Line   Http\Controllers\ProfileController.php                             
+ ------ ------------------------------------------------------------------- 
+  :24    Relation 'postagens' is not found in App\Models\User model.        
+         🪪  larastan.relationExistence                                     
+  :24    Relation 'seguidores' is not found in App\Models\User model.       
+         🪪  larastan.relationExistence                                     
+  :24    Relation 'seguindo' is not found in App\Models\User model.         
+         🪪  larastan.relationExistence                                     
+  :40    Relation 'evento' is not found in App\Models\Bilhete model.        
+         🪪  larastan.relationExistence                                     
+  :40    Relation 'pedido' is not found in App\Models\Bilhete model.        
+         🪪  larastan.relationExistence                                     
+  :40    Relation 'tipoIngresso' is not found in App\Models\Bilhete model.  
+         🪪  larastan.relationExistence                                     
+  :262   Relation 'categoria' is not found in App\Models\Evento model.      
+         🪪  larastan.relationExistence                                     
+  :262   Relation 'tiposIngresso' is not found in App\Models\Evento model.  
+         🪪  larastan.relationExistence                                     
+ ------ ------------------------------------------------------------------- 
+
+ ------ ------------------------------------------------------------------- 
+  Line   Http\Controllers\ReservaController.php                             
+ ------ ------------------------------------------------------------------- 
+  :51    Relation 'tipoIngresso' is not found in App\Models\Reserva model.  
+         🪪  larastan.relationExistence                                     
+  :51    Relation 'user' is not found in App\Models\Reserva model.          
+         🪪  larastan.relationExistence                                     
+ ------ ------------------------------------------------------------------- 
+
+ ------ --------------------------------------------------------------------------------------- 
+  Line   Http\Controllers\SaldoController.php                                                   
+ ------ --------------------------------------------------------------------------------------- 
+  :25    Access to an undefined property App\Models\Reserva::$evento.                           
+         🪪  property.notFound                                                                  
+         💡  Learn more: https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :27    Access to an undefined property App\Models\Reserva::$preco_unitario.                   
+         🪪  property.notFound                                                                  
+         💡  Learn more: https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :46    Relation 'criador' is not found in App\Models\SaldoCriador model.                      
+         🪪  larastan.relationExistence                                                         
+  :46    Relation 'evento' is not found in App\Models\SaldoCriador model.                       
+         🪪  larastan.relationExistence                                                         
+  :56    Relation 'criador' is not found in App\Models\SaldoCriador model.                      
+         🪪  larastan.relationExistence                                                         
+ ------ --------------------------------------------------------------------------------------- 
+
+ ------ ---------------------------------------------------------------------------------------------------- 
+  Line   Http\Controllers\SiteController.php                                                                 
+ ------ ---------------------------------------------------------------------------------------------------- 
+  :38    Relation 'tipoIngresso' is not found in App\Models\Reserva model.                                   
+         🪪  larastan.relationExistence                                                                      
+  :39    Relation 'tipoIngresso' is not found in App\Models\Reserva model.                                   
+         🪪  larastan.relationExistence                                                                      
+  :58    Access to an undefined property App\Models\Reserva::$total_qtd.                                     
+         🪪  property.notFound                                                                               
+         💡  Learn more: https://phpstan.org/blog/solving-phpstan-access-to-undefined-property               
+  :58    Using nullsafe property access "?->total_qtd" on left side of ?? is unnecessary. Use -> instead.    
+         🪪  nullsafe.neverNull                                                                              
+  :59    Access to an undefined property App\Models\Reserva::$total_valor.                                   
+         🪪  property.notFound                                                                               
+         💡  Learn more: https://phpstan.org/blog/solving-phpstan-access-to-undefined-property               
+  :59    Using nullsafe property access "?->total_valor" on left side of ?? is unnecessary. Use -> instead.  
+         🪪  nullsafe.neverNull                                                                              
+  :60    Access to an undefined property App\Models\Reserva::$total_qtd.                                     
+         🪪  property.notFound                                                                               
+         💡  Learn more: https://phpstan.org/blog/solving-phpstan-access-to-undefined-property               
+  :60    Using nullsafe property access "?->total_qtd" on left side of ?? is unnecessary. Use -> instead.    
+         🪪  nullsafe.neverNull                                                                              
+  :61    Access to an undefined property App\Models\Reserva::$total_valor.                                   
+         🪪  property.notFound                                                                               
+         💡  Learn more: https://phpstan.org/blog/solving-phpstan-access-to-undefined-property               
+  :61    Using nullsafe property access "?->total_valor" on left side of ?? is unnecessary. Use -> instead.  
+         🪪  nullsafe.neverNull                                                                              
+  :67    Relation 'tipoIngresso' is not found in App\Models\Reserva model.                                   
+         🪪  larastan.relationExistence                                                                      
+  :77    Relation 'tiposIngresso' is not found in App\Models\Evento model.                                   
+         🪪  larastan.relationExistence                                                                      
+  :90    Access to an undefined property App\Models\Evento::$tiposIngresso.                                  
+         🪪  property.notFound                                                                               
+         💡  Learn more: https://phpstan.org/blog/solving-phpstan-access-to-undefined-property               
+  :91    Access to an undefined property App\Models\Evento::$tiposIngresso.                                  
+         🪪  property.notFound                                                                               
+         💡  Learn more: https://phpstan.org/blog/solving-phpstan-access-to-undefined-property               
+  :229   Relation 'evento' is not found in App\Models\Bilhete model.                                         
+         🪪  larastan.relationExistence                                                                      
+  :229   Relation 'pedido' is not found in App\Models\Bilhete model.                                         
+         🪪  larastan.relationExistence                                                                      
+  :229   Relation 'tipoIngresso' is not found in App\Models\Bilhete model.                                   
+         🪪  larastan.relationExistence                                                                      
+  :282   Relation 'evento' is not found in App\Models\Bilhete model.                                         
+         🪪  larastan.relationExistence                                                                      
+  :282   Relation 'tipoIngresso' is not found in App\Models\Bilhete model.                                   
+         🪪  larastan.relationExistence                                                                      
+ ------ ---------------------------------------------------------------------------------------------------- 
+
+ ------ --------------------------------------------------------------------------------------- 
+  Line   Http\Controllers\SocialController.php                                                  
+ ------ --------------------------------------------------------------------------------------- 
+  :48    Relation 'user' is not found in App\Models\Curtida model.                              
+         🪪  larastan.relationExistence                                                         
+  :49    Access to an undefined property App\Models\Curtida::$user.                             
+         🪪  property.notFound                                                                  
+         💡  Learn more: https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+ ------ --------------------------------------------------------------------------------------- 
+
+ ------ ------------------------------------------------------------ 
+  Line   Http\Controllers\SugestaoController.php                     
+ ------ ------------------------------------------------------------ 
+  :37    Relation 'user' is not found in App\Models\Sugestao model.  
+         🪪  larastan.relationExistence                              
+ ------ ------------------------------------------------------------ 
+
+ ------ ---------------------------------------------------------------------------------------------------------- 
+  Line   Http\Controllers\TicketController.php                                                                     
+ ------ ---------------------------------------------------------------------------------------------------------- 
+  :16    Relation 'bilhetes' is not found in App\Models\Pedido model.                                              
+         🪪  larastan.relationExistence                                                                            
+  :16    Relation 'user' is not found in App\Models\Pedido model.                                                  
+         🪪  larastan.relationExistence                                                                            
+  :27    Access to an undefined property App\Models\Pedido::$bilhetes.                                             
+         🪪  property.notFound                                                                                     
+         💡  Learn more: https://phpstan.org/blog/solving-phpstan-access-to-undefined-property                     
+  :39    Relation 'evento' is not found in App\Models\Bilhete model.                                               
+         🪪  larastan.relationExistence                                                                            
+  :39    Relation 'pedido' is not found in App\Models\Bilhete model.                                               
+         🪪  larastan.relationExistence                                                                            
+  :39    Relation 'tipoIngresso' is not found in App\Models\Bilhete model.                                         
+         🪪  larastan.relationExistence                                                                            
+  :49    Access to an undefined property App\Models\Bilhete|Illuminate\Database\Eloquent\Collection<(int|string),  
+         App\Models\Bilhete>::$pedido.                                                                             
+         🪪  property.notFound                                                                                     
+         💡  Learn more: https://phpstan.org/blog/solving-phpstan-access-to-undefined-property                     
+  :57    Access to an undefined property App\Models\Bilhete|Illuminate\Database\Eloquent\Collection<(int|string),  
+         App\Models\Bilhete>::$evento.                                                                             
+         🪪  property.notFound                                                                                     
+         💡  Learn more: https://phpstan.org/blog/solving-phpstan-access-to-undefined-property                     
+  :77    Access to an undefined property App\Models\Bilhete|Illuminate\Database\Eloquent\Collection<(int|string),  
+         App\Models\Bilhete>::$evento.                                                                             
+         🪪  property.notFound                                                                                     
+         💡  Learn more: https://phpstan.org/blog/solving-phpstan-access-to-undefined-property                     
+  :92    Access to an undefined property App\Models\Bilhete|Illuminate\Database\Eloquent\Collection<(int|string),  
+         App\Models\Bilhete>::$qr_code.                                                                            
+         🪪  property.notFound                                                                                     
+         💡  Learn more: https://phpstan.org/blog/solving-phpstan-access-to-undefined-property                     
+  :111   Relation 'pedido' is not found in App\Models\Bilhete model.                                               
+         🪪  larastan.relationExistence                                                                            
+  :116   Access to an undefined property App\Models\Bilhete|Illuminate\Database\Eloquent\Collection<(int|string),  
+         App\Models\Bilhete>::$pedido.                                                                             
+         🪪  property.notFound                                                                                     
+         💡  Learn more: https://phpstan.org/blog/solving-phpstan-access-to-undefined-property                     
+ ------ ---------------------------------------------------------------------------------------------------------- 
+
+ ------ ------------------------------------------ 
+  Line   Http\Middleware\UpdateUserLastSeen.php    
+ ------ ------------------------------------------ 
+  :43    Cannot call method isFuture() on string.  
+         🪪  method.nonObject                      
+  :47    Cannot call method format() on string.    
+         🪪  method.nonObject                      
+ ------ ------------------------------------------ 
+
+ ------ ------------------------------------------ 
+  Line   Http\Requests\Auth\LoginRequest.php       
+ ------ ------------------------------------------ 
+  :50    Cannot call method isFuture() on string.  
+         🪪  method.nonObject                      
+  :52    Cannot call method format() on string.    
+         🪪  method.nonObject                      
+ ------ ------------------------------------------ 
+
+ ------ --------------------------------------------------------------------------------------------------------------- 
+  Line   Livewire\EventoForm.php                                                                                        
+ ------ --------------------------------------------------------------------------------------------------------------- 
+  :175   Relation 'categoria' is not found in App\Models\Evento model.                                                  
+         🪪  larastan.relationExistence                                                                                 
+  :175   Relation 'tiposIngresso' is not found in App\Models\Evento model.                                              
+         🪪  larastan.relationExistence                                                                                 
+  :185   Ternary operator condition is always true.                                                                     
+         🪪  ternary.alwaysTrue                                                                                         
+         💡  Because the type is coming from a PHPDoc, you can turn off this check by setting treatPhpDocTypesAsCertain  
+         : false in your phpstan.neon.                                                                                  
+  :196   Access to an undefined property App\Models\Evento::$categoria.                                                 
+         🪪  property.notFound                                                                                          
+         💡  Learn more: https://phpstan.org/blog/solving-phpstan-access-to-undefined-property                          
+  :198   Expression on left side of ?? is not nullable.                                                                 
+         🪪  nullCoalesce.expr                                                                                          
+  :235   Access to an undefined property App\Models\Evento::$tiposIngresso.                                             
+         🪪  property.notFound                                                                                          
+         💡  Learn more: https://phpstan.org/blog/solving-phpstan-access-to-undefined-property                          
+  :238   Access to an undefined property App\Models\Evento::$tiposIngresso.                                             
+         🪪  property.notFound                                                                                          
+         💡  Learn more: https://phpstan.org/blog/solving-phpstan-access-to-undefined-property                          
+  :239   Access to an undefined property App\Models\Evento::$tiposIngresso.                                             
+         🪪  property.notFound                                                                                          
+         💡  Learn more: https://phpstan.org/blog/solving-phpstan-access-to-undefined-property                          
+  :293   Relation 'subcategorias' is not found in App\Models\Categoria model.                                           
+         🪪  larastan.relationExistence                                                                                 
+  :294   Access to an undefined property App\Models\Categoria::$subcategorias.                                          
+         🪪  property.notFound                                                                                          
+         💡  Learn more: https://phpstan.org/blog/solving-phpstan-access-to-undefined-property                          
+  :502   Property App\Livewire\EventoForm::$pessoas (array) on left side of ?? is not nullable.                         
+         🪪  nullCoalesce.property                                                                                      
+ ------ --------------------------------------------------------------------------------------------------------------- 
+
+ ------ --------------------------------------------------------------- 
+  Line   Models\Comentario.php                                          
+ ------ --------------------------------------------------------------- 
+  :25    Relation 'likes' is not found in App\Models\Comentario model.  
+         🪪  larastan.relationExistence                                 
+  :25    Relation 'user' is not found in App\Models\Comentario model.   
+         🪪  larastan.relationExistence                                 
+ ------ --------------------------------------------------------------- 
+
+ ------ ------------------------------------------------------------------- 
+  Line   Models\Evento.php                                                  
+ ------ ------------------------------------------------------------------- 
+  :106   Relation 'likes' is not found in App\Models\Comentario model.      
+         🪪  larastan.relationExistence                                     
+  :106   Relation 'respostas' is not found in App\Models\Comentario model.  
+         🪪  larastan.relationExistence                                     
+  :106   Relation 'user' is not found in App\Models\Comentario model.       
+         🪪  larastan.relationExistence                                     
+  :134   Relation 'tipoIngresso' is not found in App\Models\Reserva model.  
+         🪪  larastan.relationExistence                                     
+ ------ ------------------------------------------------------------------- 
+
+ ------ --------------------------------------------------------------------------- 
+  Line   Models\Postagem.php                                                        
+ ------ --------------------------------------------------------------------------- 
+  :37    Relation 'respostas' is not found in App\Models\PostagemComentario model.  
+         🪪  larastan.relationExistence                                             
+  :37    Relation 'user' is not found in App\Models\PostagemComentario model.       
+         🪪  larastan.relationExistence                                             
+ ------ --------------------------------------------------------------------------- 
+
+ ------ ---------------------------------------------------------------------- 
+  Line   Models\PostagemComentario.php                                         
+ ------ ---------------------------------------------------------------------- 
+  :28    Relation 'user' is not found in App\Models\PostagemComentario model.  
+         🪪  larastan.relationExistence                                        
+ ------ ---------------------------------------------------------------------- 
+
+ ------ ----------------------------------------------- 
+  Line   Models\User.php                                
+ ------ ----------------------------------------------- 
+  :37    Cannot call method diffInMinutes() on string.  
+         🪪  method.nonObject                           
+  :45    Cannot call method isFuture() on string.       
+         🪪  method.nonObject                           
+ ------ ----------------------------------------------- 
+
+ ------ --------------------------------------------------------------------------------------- 
+  Line   Notifications\EventCommentNotification.php                                             
+ ------ --------------------------------------------------------------------------------------- 
+  :29    Access to an undefined property App\Models\Comentario::$user.                          
+         🪪  property.notFound                                                                  
+         💡  Learn more: https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :32    Access to an undefined property App\Models\Comentario::$evento.                        
+         🪪  property.notFound                                                                  
+         💡  Learn more: https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+ ------ --------------------------------------------------------------------------------------- 
+
+ ------ --------------------------------------------------------------------------------------- 
+  Line   Notifications\EventLikedNotification.php                                               
+ ------ --------------------------------------------------------------------------------------- 
+  :28    Access to an undefined property App\Models\Curtida::$user.                             
+         🪪  property.notFound                                                                  
+         💡  Learn more: https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :31    Access to an undefined property App\Models\Curtida::$evento.                           
+         🪪  property.notFound                                                                  
+         💡  Learn more: https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+ ------ --------------------------------------------------------------------------------------- 
+
+ ------ --------------------------------------------------------------------------------------- 
+  Line   Notifications\FollowedUserLikedEventNotification.php                                   
+ ------ --------------------------------------------------------------------------------------- 
+  :30    Access to an undefined property App\Models\Curtida::$evento.                           
+         🪪  property.notFound                                                                  
+         💡  Learn more: https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+ ------ --------------------------------------------------------------------------------------- 
+
+ ------ --------------------------------------------------------------------------------------- 
+  Line   Notifications\NewMessageNotification.php                                               
+ ------ --------------------------------------------------------------------------------------- 
+  :29    Access to an undefined property App\Models\Message::$user.                             
+         🪪  property.notFound                                                                  
+         💡  Learn more: https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+ ------ --------------------------------------------------------------------------------------- 
+
+ ------ --------------------------------------------------------------------------------------------------- 
+  Line   Notifications\NovoPedidoNotification.php                                                           
+ ------ --------------------------------------------------------------------------------------------------- 
+  :27    Access to an undefined property App\Models\Reserva::$tipoIngresso.                                 
+         🪪  property.notFound                                                                              
+         💡  Learn more: https://phpstan.org/blog/solving-phpstan-access-to-undefined-property              
+  :32    Using nullsafe property access "?->name" on left side of ?? is unnecessary. Use -> instead.        
+         🪪  nullsafe.neverNull                                                                             
+  :33    Using nullsafe property access "?->avatar_url" on left side of ?? is unnecessary. Use -> instead.  
+         🪪  nullsafe.neverNull                                                                             
+ ------ --------------------------------------------------------------------------------------------------- 
+
+ ------ --------------------------------------------------------------------------------------- 
+  Line   Notifications\PedidoAprovadoNotification.php                                           
+ ------ --------------------------------------------------------------------------------------- 
+  :23    Access to an undefined property App\Models\Reserva::$tipoIngresso.                     
+         🪪  property.notFound                                                                  
+         💡  Learn more: https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+ ------ --------------------------------------------------------------------------------------- 
+
+ ------ --------------------------------------------------------------------------------------- 
+  Line   Notifications\PostagemComentarioNotification.php                                       
+ ------ --------------------------------------------------------------------------------------- 
+  :29    Access to an undefined property App\Models\PostagemComentario::$user.                  
+         🪪  property.notFound                                                                  
+         💡  Learn more: https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+ ------ --------------------------------------------------------------------------------------- 
+
+ ------ --------------------------------------------------------------------------------------- 
+  Line   Notifications\PostagemLikedNotification.php                                            
+ ------ --------------------------------------------------------------------------------------- 
+  :30    Access to an undefined property App\Models\PostagemReacao::$user.                      
+         🪪  property.notFound                                                                  
+         💡  Learn more: https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+ ------ --------------------------------------------------------------------------------------- 
+
+ ------ --------------------------------------------------------------------------------------------------- 
+  Line   Notifications\TicketPurchasedNotification.php                                                      
+ ------ --------------------------------------------------------------------------------------------------- 
+  :29    Access to an undefined property App\Models\Reserva::$tipoIngresso.                                 
+         🪪  property.notFound                                                                              
+         💡  Learn more: https://phpstan.org/blog/solving-phpstan-access-to-undefined-property              
+  :33    Using nullsafe property access "?->name" on left side of ?? is unnecessary. Use -> instead.        
+         🪪  nullsafe.neverNull                                                                             
+  :34    Using nullsafe property access "?->avatar_url" on left side of ?? is unnecessary. Use -> instead.  
+         🪪  nullsafe.neverNull                                                                             
+ ------ --------------------------------------------------------------------------------------------------- 
+
+ [ERROR] Found 152 errors                                                                                              
+

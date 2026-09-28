@@ -237,6 +237,11 @@
                 <div class="adm-title">Gestão de <span>Membros</span></div>
                 <div class="adm-sub">Gere roles, verifica contas e monitoriza utilizadores</div>
             </div>
+            {{-- ✅ Acesso rápido à gestão de Categorias/Subcategorias --}}
+            <a href="{{ route('admin.categorias.index') }}"
+               style="display:flex;align-items:center;gap:6px;padding:9px 14px;border-radius:11px;font-size:12px;font-weight:700;text-decoration:none;background:rgba(56,189,248,.12);border:1px solid rgba(56,189,248,.3);color:var(--sky);white-space:nowrap;flex-shrink:0;">
+                🏷️ Categorias
+            </a>
         </div>
     </div>
 

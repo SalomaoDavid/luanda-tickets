@@ -46,6 +46,12 @@
 .sec-count { font-size:11px; color:#94a3b8; font-weight:600; background:rgba(15,23,42,0.90); border:1px solid rgba(59,130,246,0.2); border-radius:20px; padding:3px 10px; }
 
 .cat-strip { display:flex; gap:10px; overflow-x:auto; scrollbar-width:none; margin-bottom:24px; padding-bottom:4px; }
+/* Em ecrãs grandes, os itens crescem para preencher a largura disponível,
+   continuando todos na mesma linha (só entra scroll se não houver espaço
+   nem no tamanho mínimo). Mobile fica exactamente como estava. */
+@media(min-width:1024px){
+    .cat-strip-item{ flex-grow:1; flex-shrink:0; flex-basis:0; }
+}
 .cat-strip::-webkit-scrollbar { display:none; }
 .cat-strip-item { flex-shrink:0; display:flex; flex-direction:column; align-items:center; gap:5px; padding:12px 14px; border-radius:14px; min-width:80px; border:1px solid rgba(59,130,246,0.2); background:rgba(15,23,42,0.92); cursor:pointer; transition:all 0.22s; text-align:center; text-decoration:none; }
 .cat-strip-item:hover { background:rgba(20,30,55,0.97); transform:translateY(-2px); }
@@ -108,9 +114,15 @@
 
 /* Modal vídeo fullscreen */
 .ev-video-modal { display:none; position:fixed; inset:0; z-index:99999; background:rgba(0,0,0,.95); align-items:center; justify-content:center; flex-direction:column; }
+/* Em ecrãs a partir de 768px (onde o sidebar e o cabeçalho aparecem),
+   o modal fica confinado só à zona de conteúdo — não tapa o sidebar
+   (288px, igual ao md:ml-72 do layout) nem o cabeçalho (64px). */
+@media(min-width:768px){
+    .ev-video-modal{ top:64px; left:288px; right:0; bottom:0; }
+}
 .ev-video-modal.open { display:flex; }
 .ev-video-modal-close { position:absolute; top:16px; right:16px; width:40px; height:40px; border-radius:50%; background:rgba(255,255,255,.15); border:none; color:#fff; font-size:20px; cursor:pointer; display:flex; align-items:center; justify-content:center; }
-.ev-video-modal iframe { width:90vw; max-width:800px; height:50vw; max-height:450px; border-radius:16px; border:none; }
+.ev-video-modal iframe { width:92%; max-width:1200px; aspect-ratio:16/9; max-height:85vh; border-radius:20px; border:none; box-shadow:0 20px 60px rgba(0,0,0,.6); }
 
 .ev-badges { position:absolute; top:10px; left:10px; right:10px; display:flex; justify-content:space-between; align-items:flex-start; z-index:2; }
 .ev-badge { font-size:9px; font-weight:700; letter-spacing:0.6px; text-transform:uppercase; padding:3px 8px; border-radius:20px; }
@@ -239,8 +251,15 @@
     background:radial-gradient(circle at 50% 20%, rgba(6,182,212,.22), transparent 65%);
     animation:glowBreatheOpacity 3.5s ease-in-out infinite;
 }
+/* Anula o padding de 40px que o <main> do layout aplica (md:p-10), dando um
+   espaçamento menor e controlado só a esta página — sem mexer no
+   app.blade.php, que é partilhado por todas as páginas. */
+@media(min-width:768px){
+    .page-tight{margin:-40px -40px 0;padding:16px;}
+}
 </style>
 
+<div class="page-tight">
 @php $catAtiva = request('categoria'); $subAtiva = request('subcategoria'); @endphp
 
 {{-- HERO --}}
@@ -585,72 +604,12 @@
         </div>
     </div>
 </div>
+</div>
 
+<script src="{{ asset('js/feed-modals.js') }}"></script>
 <script>
-// ── Modais ───────────────────────────────────────────────
-function abrirModal(id) {
-    const m = document.getElementById(id);
-    m.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;display:flex;align-items:center;justify-content:center;z-index:99999;';
-    m.classList.remove('hidden');
-    document.body.appendChild(m);
-}
-function fecharModal(id) {
-    const m = document.getElementById(id);
-    m.style.display = 'none'; m.classList.add('hidden');
-}
-function toggleResposta(id) {
-    const f = document.getElementById(id);
-    f.classList.toggle('hidden');
-    if (!f.classList.contains('hidden')) f.querySelector('input').focus();
-}
-document.addEventListener('click', function(e) {
-    ['modal-curtidas-','modal-comentarios-'].forEach(p => {
-        document.querySelectorAll(`[id^="${p}"]`).forEach(m => {
-            if (e.target === m) fecharModal(m.id);
-        });
-    });
-});
-
-// ── Modal vídeo ──────────────────────────────────────────
-function abrirVideoModal(id) {
-    const modal = document.getElementById(id);
-    if (!modal) return;
-    // iframe URL externa
-    const iframe = modal.querySelector('iframe');
-    if (iframe && iframe.dataset.src && !iframe.src) iframe.src = iframe.dataset.src;
-    // video local — só define src ao abrir (evita autoplay escondido)
-    const video = modal.querySelector('video[data-local]');
-    if (video && video.dataset.local) {
-        video.src = video.dataset.local;
-        video.style.display = 'block';
-        video.muted = false;
-        video.play().catch(function(){});
-    }
-    modal.classList.add('open');
-    document.body.style.overflow = 'hidden';
-}
-function fecharVideoModal(id) {
-    const modal = document.getElementById(id);
-    if (!modal) return;
-    // Parar iframe
-    const iframe = modal.querySelector('iframe');
-    if (iframe) iframe.src = '';
-    // Parar e limpar video local
-    const video = modal.querySelector('video[data-local]');
-    if (video) {
-        video.pause();
-        video.src = '';
-        video.style.display = 'none';
-    }
-    modal.classList.remove('open');
-    document.body.style.overflow = '';
-}
-document.addEventListener('click', function(e) {
-    document.querySelectorAll('.ev-video-modal.open').forEach(m => { if (e.target === m) fecharVideoModal(m.id); });
-});
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') document.querySelectorAll('.ev-video-modal.open').forEach(m => fecharVideoModal(m.id));
-});
+// ── Modais / toggleResposta / clique-fora / vídeo modal (abrir, fechar, Escape)
+// → ver public/js/feed-modals.js (partilhado com welcome.blade.php)
 
 // ── Vídeo no card (hover) ─────────────────────────────────
 function activarVideo(cardImg) {

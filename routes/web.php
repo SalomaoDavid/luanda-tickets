@@ -13,8 +13,11 @@ use App\Http\Controllers\PostagemController;
 use App\Http\Controllers\TicketController;
 use App\Http\Controllers\AdminEventoController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\CategoriaController;
 use App\Http\Controllers\SaldoController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\SugestaoController;
+use App\Http\Controllers\PushSubscriptionController;
 
 /*
 |--------------------------------------------------------------------------
@@ -80,9 +83,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::patch('/profile',              [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile',             [ProfileController::class, 'destroy'])->name('profile.destroy');
 
+    // Definições
+    Route::get('/definicoes', [ProfileController::class, 'definicoes'])->name('definicoes');
+    // Sugestões — "Fale Connosco"
+    Route::post('/sugestoes', [SugestaoController::class, 'store'])->name('sugestoes.guardar');
+
     // Dados bancários
     Route::post('/dados-bancarios', [SaldoController::class, 'guardarDadosCriador'])->name('dados-bancarios.guardar');
 
+    Route::post('/push/subscribe', [PushSubscriptionController::class, 'store'])->name('push.subscribe');
+    Route::post('/push/unsubscribe', [PushSubscriptionController::class, 'destroy'])->name('push.unsubscribe');
     // Mensagens
     Route::get('/mensagens/{conversation?}', \App\Livewire\Messages\MessagesIndex::class)
         ->where('conversation', '[0-9]+')
@@ -111,6 +121,20 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
 
     // Notícias — só admin
     Route::get('/noticias/sincronizar', [NewsController::class, 'sincronizar'])->name('noticias.sincronizar');
+
+    // Categorias e Subcategorias — só admin
+    Route::get('/categorias',                          [CategoriaController::class, 'index'])->name('admin.categorias.index');
+    Route::post('/categorias',                          [CategoriaController::class, 'store'])->name('admin.categorias.store');
+    Route::put('/categorias/{categoria}',                [CategoriaController::class, 'update'])->name('admin.categorias.update');
+    Route::patch('/categorias/{categoria}/ativo',        [CategoriaController::class, 'toggleAtivo'])->name('admin.categorias.ativo');
+    Route::delete('/categorias/{categoria}',             [CategoriaController::class, 'destroy'])->name('admin.categorias.destroy');
+    Route::post('/categorias/{categoria}/subcategorias', [CategoriaController::class, 'storeSubcategoria'])->name('admin.subcategorias.store');
+    Route::put('/subcategorias/{subcategoria}',          [CategoriaController::class, 'updateSubcategoria'])->name('admin.subcategorias.update');
+    Route::patch('/subcategorias/{subcategoria}/ativo',  [CategoriaController::class, 'toggleAtivoSubcategoria'])->name('admin.subcategorias.ativo');
+    Route::delete('/subcategorias/{subcategoria}',       [CategoriaController::class, 'destroySubcategoria'])->name('admin.subcategorias.destroy');
+    // Sugestões — só admin
+    Route::get('/sugestoes',            [SugestaoController::class, 'index'])->name('admin.sugestoes');
+    Route::patch('/sugestoes/{id}/lida', [SugestaoController::class, 'marcarLida']);
 
     // Saldos e contas bancárias — só admin
     Route::get('/saldos',                   [SaldoController::class, 'index'])->name('admin.saldos');

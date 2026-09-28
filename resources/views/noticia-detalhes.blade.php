@@ -38,7 +38,7 @@
 
     <div class="prose prose-blue prose-lg max-w-none text-gray-700 leading-relaxed">
         {{-- O {!! !!} permite que o HTML vindo do RSS (negritos, parágrafos) funcione --}}
-        {!! $noticia->conteudo !!}
+        {!! clean($noticia->conteudo) !!}
     </div>
 
     <footer class="mt-16 pt-8 border-t border-gray-100">

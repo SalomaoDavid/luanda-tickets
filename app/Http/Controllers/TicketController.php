@@ -37,12 +37,13 @@ class TicketController extends Controller
     public function downloadIndividual($id)
     {
         $bilhete = Bilhete::with([
-            'evento:id,titulo,localizacao,data_evento,hora_inicio,hora_fim,imagem_capa,user_id,descricao',
-            'evento.user:id,name',
-            'tipoIngresso:id,nome,preco',
+            'evento:id,titulo,localizacao,data_evento,hora_inicio,hora_fim,imagem_capa,user_id,descricao,categoria_id,meta',
+            'evento.user:id,name,avatar',
+            'evento.categoria:id,nome',
+            'tipoIngresso:id,nome,preco,dias_validos',
             'pedido:id,user_id',
         ])
-            ->select('id', 'pedido_id', 'evento_id', 'tipo_ingressos_id', 'codigo_unico', 'validado_em')
+            ->select('id', 'pedido_id', 'evento_id', 'tipo_ingressos_id', 'codigo_unico', 'validado_em', 'numero_dia')
             ->findOrFail($id);
 
         if (!$bilhete->pedido || $bilhete->pedido->user_id !== auth()->id()) {
@@ -67,11 +68,38 @@ class TicketController extends Controller
             }
         }
 
+        // ✅ Foto/ícone do criador do evento — mesmo padrão de base64 usado na
+        // capa acima, porque o motor de PDF não consegue carregar URLs remotas.
+        $criadorAvatarBase64 = null;
+        $criadorAvatarMime   = null;
+
+        if (
+            $bilhete->evento &&
+            $bilhete->evento->user &&
+            $bilhete->evento->user->avatar &&
+            Storage::disk('public')->exists($bilhete->evento->user->avatar)
+        ) {
+            try {
+                $caminhoAvatar        = Storage::disk('public')->path($bilhete->evento->user->avatar);
+                $conteudoAvatar       = file_get_contents($caminhoAvatar);
+                $criadorAvatarBase64  = base64_encode($conteudoAvatar);
+                $criadorAvatarMime    = Storage::disk('public')->mimeType($bilhete->evento->user->avatar);
+            } catch (\Exception $e) {
+                \Log::error("Erro ao processar avatar do criador no PDF: " . $e->getMessage());
+            }
+        }
+
         $bilhete->qr_code = base64_encode(
             QrCode::format('svg')->size(200)->margin(1)->errorCorrection('H')->generate($bilhete->codigo_unico)
         );
 
-        $pdf = Pdf::loadView('pdf.bilhete-unico', compact('bilhete', 'capaBase64', 'tipoMime'));
+        $pdf = Pdf::loadView('pdf.bilhete-unico', compact(
+            'bilhete',
+            'capaBase64',
+            'tipoMime',
+            'criadorAvatarBase64',
+            'criadorAvatarMime'
+        ));
         $pdf->setPaper([0, 0, 750, 310], 'landscape');
 
         return $pdf->download("bilhete-{$bilhete->codigo_unico}.pdf");

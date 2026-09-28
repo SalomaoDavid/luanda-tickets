@@ -10,47 +10,50 @@ use Illuminate\Support\Facades\DB;
 class MessagesIndex extends Component 
 {
     public $selectedConversation;
-    // ✅ NOVA PROPRIEDADE: Controlar a reatividade do ChatBox por ID único e estável
     public $selectedConversationId; 
     public $searchUser = '';
     public $searchResults = [];
+    public $forcarMostrarChat = false;
 
-    protected $listeners = ['refresh' => '$refresh', 'refresh-list' => '$refresh'];
+    protected $listeners = [
+        'refresh' => '$refresh',
+        'refresh-list' => '$refresh',
+        'loadConversation' => 'onChatListSelected',
+        'delete-conversation-request' => 'onChatListDeleteRequested',
+        // ✅ NOVO — o ChatBox avisa aqui quando uma conversa que só existia
+        // em memória (ver startChat) é finalmente gravada na BD.
+        'conversation-created' => 'onConversationCreated',
+    ];
 
     public function mount($conversation = null)
     {
-        // Bypass total: Lendo direto da URL do navegador
         $urlUserId = $_GET['user_id'] ?? null;
         $urlEventoId = $_GET['evento_id'] ?? null;
 
         if ($urlUserId && $urlUserId != auth()->id()) {
-            // Chamamos o startChat e forçamos a execução
             $this->startChat($urlUserId, $urlEventoId);
-            
-            // Se a conversa foi preenchida, injetamos o ID reativo e paramos
+
             if ($this->selectedConversation) {
-                $this->selectedConversationId = $this->selectedConversation->id;
+                $this->forcarMostrarChat = true; // veio de um link direto — é intencional
                 return;
             }
         }
 
-        // Se o bypass falhar ou não houver parâmetros, segue a vida normal
         if ($conversation) {
-            $this->selectedConversation = \App\Models\Conversation::find($conversation);
+            $c = \App\Models\Conversation::find($conversation);
+            $this->selectedConversation = ($c && $c->temParticipante(auth()->id())) ? $c : null;
+            $this->forcarMostrarChat = true;
         } else {
             $this->selectedConversation = auth()->user()->conversations()
                 ->orderBy('updated_at', 'desc')
                 ->first();
         }
 
-        // Garante que o ID reativo inicial está preenchido
         if ($this->selectedConversation) {
             $this->selectedConversationId = $this->selectedConversation->id;
         }
     }
 
-    // ✅ Botão "Voltar" no mobile faz $set('selectedConversationId', null).
-    // Sem isto o show-chat nunca desligava, porque o CSS depende de $selectedConversation.
     public function updatedSelectedConversationId($value)
     {
         if (!$value) {
@@ -65,13 +68,21 @@ class MessagesIndex extends Component
             return;
         }
 
+        $authId = auth()->id();
+
         $this->searchResults = User::where('name', 'like', '%' . $value . '%')
-            ->where('id', '!=', auth()->id())
+            ->where('id', '!=', $authId)
+            ->where(function ($q) use ($authId) {
+                $q->whereIn('id', function ($sub) use ($authId) {
+                    $sub->select('seguido_id')->from('seguidores')->where('seguidor_id', $authId);
+                })->orWhereIn('id', function ($sub) use ($authId) {
+                    $sub->select('seguidor_id')->from('seguidores')->where('seguido_id', $authId);
+                });
+            })
             ->take(5)
             ->get();
     }
 
-    // ✅ APELIDO CRIADO: Agora aceita o clique de 'selectConversation' vindo do Blade
     public function selectConversation($id)
     {
         $this->loadConversation($id);
@@ -79,7 +90,6 @@ class MessagesIndex extends Component
 
     public function loadConversation($id)
     {
-        // Verifica se a conversa pertence ao usuário logado
         $this->selectedConversation = Conversation::where('id', $id)
             ->where(function($query) {
                 $query->where('sender_id', auth()->id())
@@ -87,7 +97,6 @@ class MessagesIndex extends Component
             })->first();
 
         if ($this->selectedConversation) {
-            // ✅ Sincroniza o ID reativo para redesenhar o Chat Box instantaneamente
             $this->selectedConversationId = $this->selectedConversation->id;
 
             $this->selectedConversation->messages()
@@ -104,19 +113,20 @@ class MessagesIndex extends Component
         $authId = auth()->id();
         $authUser = auth()->user();
 
-        // --- LÓGICA DE DECISÃO PRIORIZANDO O EVENTO ---
         $tipoDefinido = 'pessoal'; 
 
         if ($eventoId) {
-            // Se existe um ID de evento, o contexto É o evento (Venda/Interesse)
             $tipoDefinido = 'evento'; 
         } elseif ($authUser->role === 'admin') {
-            // Se não for evento e for admin, é um aviso oficial
             $tipoDefinido = 'aviso_admin'; 
         }
 
-        // 2. Busca a conversa existente
-        $conversation = \App\Models\Conversation::where('evento_id', $eventoId)
+        // Busca a conversa existente
+        $conversation = \App\Models\Conversation::when(
+                $eventoId,
+                fn ($q) => $q->where('evento_id', $eventoId),
+                fn ($q) => $q->whereNull('evento_id')
+            )
             ->where(function($q) use ($authId, $userId) {
                 $q->where(function($inner) use ($authId, $userId) {
                     $inner->where('sender_id', $authId)->where('receiver_id', $userId);
@@ -125,35 +135,45 @@ class MessagesIndex extends Component
                 });
             })->first();
 
-        // 3. Criação com o título específico de "Evento"
-        if (!$conversation) {
-            // Alterado para App\Models\Event se o seu model de Eventos for no singular inglês
-            $evento = \App\Models\Evento::find($eventoId) ?? \App\Models\Evento::find($eventoId);
-            
-            $conversation = \App\Models\Conversation::create([
-                'sender_id'   => $authId,
-                'receiver_id' => $userId,
-                'evento_id'   => $eventoId,
-                'titulo'      => $evento ? "Interesse: " . $evento->titulo : "Conversa sobre Evento",
-                'tipo'        => $tipoDefinido,
-            ]);
+        if ($conversation) {
+            // ✅ Já existe (com ou sem mensagens ainda) — reaproveita sempre.
+            $this->selectedConversation = $conversation;
+            $this->selectedConversationId = $conversation->id;
+            return;
         }
 
+        // ✅ NOVO — já não grava nada na BD aqui. Só monta o objeto em
+        // memória; só é persistido a sério quando a 1ª mensagem for
+        // enviada (ver ChatBox::sendMessage). Isto elimina as "conversas
+        // fantasma" vazias que ficavam por criar quando alguém abria o
+        // chat e desistia sem escrever nada.
+        $evento = \App\Models\Evento::find($eventoId);
+
+        $conversation = new \App\Models\Conversation([
+            'sender_id'   => $authId,
+            'receiver_id' => $userId,
+            'evento_id'   => $eventoId,
+            'titulo'      => $evento ? "Interesse: " . $evento->titulo : "Conversa sobre Evento",
+            'tipo'        => $tipoDefinido,
+        ]);
+
         $this->selectedConversation = $conversation;
-        $this->selectedConversationId = $conversation->id;
+        // Chave sintética (a conversa ainda não tem ID real) — muda sempre
+        // que se tenta falar com uma pessoa/evento diferente, para o
+        // wire:key do ChatBox forçar o remount correto.
+        $this->selectedConversationId = 'novo-' . $userId . '-' . ($eventoId ?? '0');
     }
 
     public function render()
     {
         $userId = auth()->id();
         
-        // Buscamos conversas com contagem de mensagens não lidas
         $conversations = Conversation::where('sender_id', $userId)
             ->orWhere('receiver_id', $userId)
             ->withCount(['messages as unread_count' => function($query) use ($userId) {
                 $query->where('user_id', '!=', $userId)->whereNull('read_at');
             }])
-            ->orderBy('updated_at', 'desc') // Garante que quem mandou mensagem agora suba para o topo
+            ->orderBy('updated_at', 'desc')
             ->get();
 
         return view('livewire.messages.messages-index', [
@@ -164,19 +184,41 @@ class MessagesIndex extends Component
     public function deleteConversation($id)
     {
         $conversation = Conversation::find($id);
-        if ($conversation) {
+        if ($conversation && $conversation->temParticipante(auth()->id())) {
             $conversation->messages()->delete(); 
             $conversation->delete();
 
             if ($this->selectedConversation && $this->selectedConversation->id == $id) {
                 $this->selectedConversation = null;
                 $this->selectedConversationId = null;
-                // Notifica o ChatBox para resetar o estado
                 $this->dispatch('reset-chat'); 
             }
             
-            // Atualiza a própria lista lateral
             $this->dispatch('refresh-list');
         }
+    }
+
+    public function onChatListSelected($conversationId)
+    {
+        $this->forcarMostrarChat = true;
+        $this->loadConversation($conversationId);
+    }
+
+    public function onlineUserClicked($userId)
+    {
+        $this->forcarMostrarChat = true;
+        $this->startChat($userId);
+    }
+
+    public function onChatListDeleteRequested($id)
+    {
+        $this->deleteConversation($id);
+    }
+
+    // ✅ NOVO — o ChatBox chama isto quando persiste, a sério, uma conversa
+    // que até aí só existia em memória (1ª mensagem confirmada).
+    public function onConversationCreated($conversationId)
+    {
+        $this->selectedConversationId = $conversationId;
     }
 }

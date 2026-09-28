@@ -46,6 +46,54 @@ tr:hover td{background:var(--b1);}
 .form-label{display:block;font-size:10px;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px;}
 .form-input{width:100%;background:var(--s2);border:1px solid var(--b2);border-radius:10px;padding:10px 12px;font-size:13px;color:var(--t1);outline:none;margin-bottom:14px;font-family:inherit;}
 .form-input:focus{border-color:var(--sky);}
+
+/* ══════════════════════════════════════════════
+   NOVAS MELHORIAS
+   ══════════════════════════════════════════════ */
+
+/* stats responsivo */
+@media(max-width:640px){ .stats{grid-template-columns:1fr 1fr;} }
+
+/* mensagens de erro agora tratadas pelo toast global do app.blade.php — nada a fazer aqui */
+
+/* pesquisa + exportar */
+.tools-row{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;}
+.search-box{flex:1;min-width:180px;display:flex;align-items:center;gap:8px;background:var(--s2);border:1px solid var(--b2);border-radius:10px;padding:8px 12px;}
+.search-box input{flex:1;background:none;border:none;outline:none;color:var(--t1);font-size:12px;font-family:inherit;}
+.exp-btn{padding:8px 13px;border-radius:10px;font-size:11.5px;font-weight:700;border:1px solid var(--b2);background:var(--s2);color:var(--sky);cursor:pointer;font-family:inherit;}
+.empty-filtered{display:none;text-align:center;padding:20px;color:var(--t3);font-size:12px;}
+.empty-filtered.show{display:block;}
+
+/* botão desativado sem dados bancários */
+.btn.disabled{opacity:.5;cursor:not-allowed;background:var(--s2);color:var(--t3);border:1px solid var(--b2);}
+
+/* valor destacado no modal */
+.valor-destaque{background:rgba(56,189,248,.08);border:1.5px solid var(--b2);border-radius:14px;padding:14px 16px;margin-bottom:16px;text-align:center;}
+.valor-destaque-lbl{font-size:10px;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;}
+.valor-destaque-val{font-family:var(--mono);font-size:26px;font-weight:700;color:var(--sky);line-height:1;}
+.valor-destaque-nome{font-size:12px;color:var(--t2);margin-top:6px;}
+
+/* IBAN com copiar, dentro do modal */
+.modal-iban-row{display:flex;align-items:center;gap:8px;background:var(--s2);border:1px solid var(--b2);border-radius:10px;padding:10px 12px;margin-bottom:14px;}
+.modal-iban-val{font-family:var(--mono);font-size:12px;color:var(--sky);flex:1;word-break:break-all;}
+.copy-btn{background:var(--b1);border:1px solid var(--b2);color:var(--sky);border-radius:7px;padding:5px 9px;font-size:10px;font-weight:700;cursor:pointer;flex-shrink:0;}
+.copy-btn.copied{background:rgba(16,185,129,.15);border-color:rgba(16,185,129,.4);color:var(--green);}
+
+/* aviso + checkbox de confirmação real antes de marcar como pago */
+.confirm-box{background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.3);border-radius:12px;padding:12px 14px;margin-bottom:16px;}
+.confirm-box-title{font-size:12px;font-weight:800;color:var(--amber);margin-bottom:4px;}
+.confirm-box-text{font-size:11.5px;color:var(--t2);line-height:1.5;}
+.confirm-checkbox-row{display:flex;align-items:flex-start;gap:8px;margin-top:10px;}
+.confirm-checkbox-row input{margin-top:2px;}
+.confirm-checkbox-row label{font-size:11.5px;color:var(--t1);line-height:1.4;}
+
+/* loading no botão de confirmar */
+.btn.loading{opacity:.7;pointer-events:none;}
+.mini-spin{display:none;width:11px;height:11px;border-radius:50%;border:2px solid rgba(0,0,0,.25);border-top-color:#000;animation:spin .6s linear infinite;margin-right:4px;}
+.btn.loading .mini-spin{display:inline-block;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.char-count{font-size:10px;color:var(--t3);text-align:right;margin-top:-10px;margin-bottom:14px;}
 </style>
 
 <div class="wrap">
@@ -56,12 +104,6 @@ tr:hover td{background:var(--b1);}
             <a href="{{ route('admin.dashboard') }}" class="btn">← Dashboard</a>
         </div>
     </div>
-
-    @if(session('success'))
-    <div style="background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.25);border-radius:10px;padding:12px 16px;margin-bottom:16px;color:#34d399;font-size:13px;">
-        ✅ {{ session('success') }}
-    </div>
-    @endif
 
     {{-- STATS --}}
     <div class="stats">
@@ -84,8 +126,15 @@ tr:hover td{background:var(--b1);}
         <div class="panel-head">
             <div class="panel-title">Resumo por Criador</div>
         </div>
+        <div class="panel-body" style="padding-bottom:0;">
+            <div class="tools-row">
+                <div class="search-box">
+                    🔍 <input type="text" id="criadorSearch" placeholder="Buscar por nome do criador..." oninput="filtrarCriadores()">
+                </div>
+            </div>
+        </div>
         <div style="overflow-x:auto;">
-            <table>
+            <table id="criadoresTable">
                 <thead>
                     <tr>
                         <th>Criador</th>
@@ -97,7 +146,7 @@ tr:hover td{background:var(--b1);}
                 </thead>
                 <tbody>
                     @forelse($porCriador as $item)
-                    <tr>
+                    <tr data-nome="{{ strtolower($item->criador->name) }}">
                         <td>
                             <div style="font-weight:700;">{{ $item->criador->name }}</div>
                         </td>
@@ -114,10 +163,18 @@ tr:hover td{background:var(--b1);}
                             {{ number_format($item->total_devido,0,',','.') }} Kz
                         </td>
                         <td>
-                            <button onclick="abrirModalPagar({{ $item->criador_id }}, '{{ addslashes($item->criador->name) }}', '{{ number_format($item->total_devido,0,',','.') }}')"
+                            {{-- botão desativado quando não há dados bancários — não faz sentido "marcar como pago" uma transferência para uma conta que não existe --}}
+                            @if($item->criador->dadosBancarios)
+                            <button onclick="abrirModalPagar({{ $item->criador_id }}, '{{ addslashes($item->criador->name) }}', '{{ number_format($item->total_devido,0,',','.') }}', '{{ addslashes($item->criador->dadosBancarios->iban) }}', '{{ addslashes($item->criador->dadosBancarios->nome_banco) }}')"
                                     class="btn primary" style="font-size:11px;padding:6px 12px;">
                                 💸 Marcar como pago
                             </button>
+                            @else
+                            <button type="button" class="btn disabled" style="font-size:11px;padding:6px 12px;"
+                                    onclick="alert('Este criador não tem dados bancários registados — não é possível confirmar um pagamento sem saber para onde foi transferido.')">
+                                💸 Marcar como pago
+                            </button>
+                            @endif
                         </td>
                     </tr>
                     @empty
@@ -125,6 +182,7 @@ tr:hover td{background:var(--b1);}
                     @endforelse
                 </tbody>
             </table>
+            <div class="empty-filtered" id="criadoresEmptyFiltered">🔍 Nenhum criador encontrado.</div>
         </div>
     </div>
 
@@ -134,8 +192,13 @@ tr:hover td{background:var(--b1);}
             <div class="panel-title">Histórico Recente</div>
             <span style="font-size:10px;color:var(--t2);">{{ $saldosPendentes->total() }} registos</span>
         </div>
+        <div class="panel-body" style="padding-bottom:0;">
+            <div class="tools-row">
+                <button type="button" class="exp-btn" onclick="exportarHistoricoCsv()">⬇ Exportar CSV (visíveis)</button>
+            </div>
+        </div>
         <div style="overflow-x:auto;">
-            <table>
+            <table id="historicoTable">
                 <thead>
                     <tr>
                         <th>Reserva</th>
@@ -169,33 +232,114 @@ tr:hover td{background:var(--b1);}
             </table>
         </div>
         @if($saldosPendentes->hasPages())
-        <div style="padding:12px 18px;">{{ $saldosPendentes->links() }}</div>
+        <div style="padding:12px 18px;">{{ $saldosPendentes->links('paginacao.tema') }}</div>
         @endif
     </div>
 </div>
 
 {{-- MODAL MARCAR PAGO --}}
-<div class="modal-overlay" id="modal-pagar" onclick="if(event.target===this)this.classList.remove('open')">
+<div class="modal-overlay" id="modal-pagar" onclick="if(event.target===this)fecharModalPagar()">
     <div class="modal-box">
         <div class="modal-title">💸 Registar Pagamento</div>
-        <div class="modal-sub" id="modal-pagar-sub">A pagar ao criador...</div>
+
+        {{-- valor bem destacado — é a informação mais importante a conferir --}}
+        <div class="valor-destaque">
+            <div class="valor-destaque-lbl">Valor a transferir</div>
+            <div class="valor-destaque-val" id="modal-valor">—</div>
+            <div class="valor-destaque-nome">para <span id="modal-nome">—</span></div>
+        </div>
+
+        <div class="modal-iban-row">
+            <span class="modal-iban-val" id="modal-iban">—</span>
+            <button type="button" class="copy-btn" onclick="copiarIbanModal(this)">📋 Copiar</button>
+        </div>
+
+        <div class="confirm-box">
+            <div class="confirm-box-title">⚠️ Antes de continuares</div>
+            <div class="confirm-box-text">Isto só regista que o pagamento foi feito — <b>não transfere dinheiro nenhum</b>. Confirma que já concluíste a transferência bancária real antes de marcares como pago.</div>
+            <div class="confirm-checkbox-row">
+                <input type="checkbox" id="confirmPagoCheck" onchange="document.getElementById('btnConfirmarPagamento').disabled = !this.checked">
+                <label for="confirmPagoCheck">Já efetuei a transferência bancária para esta conta</label>
+            </div>
+        </div>
+
         <form method="POST" id="form-pagar" action="">
             @csrf
             <label class="form-label">Referência da transferência (opcional)</label>
-            <input type="text" name="referencia" class="form-input" placeholder="Ex: REF-2026-001">
+            <input type="text" name="referencia" id="referenciaInput" class="form-input" placeholder="Ex: REF-2026-001" maxlength="100" oninput="atualizarContadorRef()">
+            <div class="char-count"><span id="refCount">0</span>/100</div>
             <div style="display:flex;gap:8px;justify-content:flex-end;">
-                <button type="button" class="btn" onclick="document.getElementById('modal-pagar').classList.remove('open')">Cancelar</button>
-                <button type="submit" class="btn primary">✅ Confirmar Pagamento</button>
+                <button type="button" class="btn" onclick="fecharModalPagar()">Cancelar</button>
+                <button type="submit" class="btn primary" id="btnConfirmarPagamento" disabled>
+                    <span class="mini-spin"></span>✅ Confirmar Pagamento
+                </button>
             </div>
         </form>
     </div>
 </div>
 
 <script>
-function abrirModalPagar(criadorId, nome, total) {
-    document.getElementById('modal-pagar-sub').textContent = nome + ' — ' + total + ' Kz';
+function abrirModalPagar(criadorId, nome, total, iban, banco) {
+    document.getElementById('modal-valor').textContent = total + ' Kz';
+    document.getElementById('modal-nome').textContent = nome;
+    document.getElementById('modal-iban').textContent = (banco ? banco + ' · ' : '') + iban;
     document.getElementById('form-pagar').action = '/admin/saldos/' + criadorId + '/pagar';
+    document.getElementById('confirmPagoCheck').checked = false;
+    document.getElementById('btnConfirmarPagamento').disabled = true;
+    document.getElementById('referenciaInput').value = '';
+    document.getElementById('refCount').textContent = '0';
     document.getElementById('modal-pagar').classList.add('open');
+}
+function fecharModalPagar() {
+    document.getElementById('modal-pagar').classList.remove('open');
+}
+function copiarIbanModal(btn) {
+    const texto = document.getElementById('modal-iban').textContent;
+    navigator.clipboard.writeText(texto.includes('·') ? texto.split('·')[1].trim() : texto);
+    const original = btn.textContent;
+    btn.textContent = '✅ Copiado!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = original; btn.classList.remove('copied'); }, 1800);
+}
+function atualizarContadorRef() {
+    document.getElementById('refCount').textContent = document.getElementById('referenciaInput').value.length;
+}
+
+// protege contra duplo clique — o formulário continua a submeter normalmente,
+// só mostra um estado de carregamento enquanto o servidor responde
+document.getElementById('form-pagar').addEventListener('submit', function () {
+    const btn = document.getElementById('btnConfirmarPagamento');
+    btn.classList.add('loading');
+    btn.disabled = true;
+});
+
+// pesquisa por criador (filtra a página atual carregada)
+function filtrarCriadores() {
+    const q = document.getElementById('criadorSearch').value.toLowerCase();
+    let visiveis = 0;
+    document.querySelectorAll('#criadoresTable tbody tr').forEach(tr => {
+        if (!tr.dataset.nome) return;
+        const visivel = tr.dataset.nome.includes(q);
+        tr.style.display = visivel ? '' : 'none';
+        if (visivel) visiveis++;
+    });
+    document.getElementById('criadoresEmptyFiltered').classList.toggle('show', visiveis === 0);
+}
+
+// exportar histórico visível para CSV
+function exportarHistoricoCsv() {
+    const linhas = ['Reserva,Criador,Evento,Total,Admin,Criador,Estado'];
+    document.querySelectorAll('#historicoTable tbody tr').forEach(tr => {
+        const cols = tr.querySelectorAll('td');
+        if (cols.length < 7) return;
+        const vals = Array.from(cols).map(td => td.textContent.trim().replace(/"/g, "'"));
+        linhas.push(vals.map(v => `"${v}"`).join(','));
+    });
+    const blob = new Blob([linhas.join('\n')], { type: 'text/csv;charset=utf-8;' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'pagamentos_' + new Date().toISOString().slice(0,10) + '.csv';
+    a.click();
 }
 </script>
 @endsection

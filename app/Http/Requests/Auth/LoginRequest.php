@@ -21,6 +21,7 @@ class LoginRequest extends FormRequest
         return [
             'email'    => ['required', 'string', 'email'],
             'password' => ['required', 'string'],
+            'cf-turnstile-response' => ['required', new \Coderflex\LaravelTurnstile\Rules\TurnstileCheck()],
         ];
     }
 
@@ -29,7 +30,8 @@ class LoginRequest extends FormRequest
         $this->ensureIsNotRateLimited();
 
         if (!Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
-            RateLimiter::hit($this->throttleKey());
+            // 300 segundos (5 minutos) de bloqueio, em vez dos 60 segundos padrão
+            RateLimiter::hit($this->throttleKey(), 300);
 
             throw ValidationException::withMessages([
                 'email' => trans('auth.failed'),

@@ -105,6 +105,33 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-
 .sc-btn-upload:hover{border-color:var(--purple);color:var(--purple);}
 .sc-btn-upload input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
 
+/* ══ NOVAS FUNCIONALIDADES (proteções e melhorias, tudo frontend) ══ */
+
+/* linha secundária de botões: lanterna + trocar câmara */
+.sc-cam-tools{display:none;gap:8px;margin-top:8px;}
+.sc-cam-tools.show{display:grid;grid-template-columns:1fr 1fr;}
+.sc-tool-btn{padding:10px;border-radius:12px;background:var(--s2);border:1.5px solid var(--border2);color:var(--muted2);font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:6px;}
+.sc-tool-btn:hover{border-color:var(--cyan);color:var(--cyan);}
+.sc-tool-btn.on{background:rgba(255,190,0,.12);border-color:rgba(255,190,0,.4);color:var(--gold);}
+
+/* aviso de continuar/reiniciar câmara após validar */
+.sc-resume-hint{display:none;text-align:center;font-size:11px;color:var(--muted2);font-weight:600;padding:8px 0 2px;}
+.sc-resume-hint.show{display:block;animation:fadeIn .3s ease;}
+.sc-resume-hint b{color:var(--cyan);}
+
+/* aviso de sem ligação / bibliotecas por carregar */
+.sc-offline-banner{display:none;background:rgba(255,190,0,.1);border:1px solid rgba(255,190,0,.35);border-radius:14px;padding:12px 14px;margin-bottom:14px;font-size:12px;color:var(--gold);line-height:1.5;}
+.sc-offline-banner.show{display:block;animation:fadeIn .3s ease;}
+.sc-offline-banner b{display:block;margin-bottom:2px;font-size:13px;}
+
+/* fila de pendentes por enviar (sem rede) */
+.sc-pending-banner{display:none;background:rgba(0,212,255,.08);border:1px solid var(--border2);border-radius:14px;padding:10px 14px;margin-bottom:14px;font-size:11px;color:var(--cyan);display:flex;align-items:center;justify-content:space-between;gap:10px;}
+.sc-pending-banner.show{display:flex;animation:fadeIn .3s ease;}
+.sc-pending-retry{background:var(--cyan);color:#000;border:none;border-radius:8px;padding:6px 12px;font-size:10px;font-weight:800;cursor:pointer;text-transform:uppercase;letter-spacing:.5px;flex-shrink:0;}
+
+/* exportar histórico */
+.sc-history-export{font-size:10px;color:var(--cyan);cursor:pointer;font-weight:700;background:none;border:none;padding:0;font-family:'Outfit',sans-serif;margin-right:14px;}
+
 .sc-result{border-radius:20px;padding:20px;margin-bottom:16px;display:none;border:1px solid;animation:popIn .3s ease;}
 @keyframes popIn{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
 .sc-result.success{background:rgba(0,255,136,.08);border-color:rgba(0,255,136,.3);}
@@ -156,6 +183,18 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-
         <a href="{{ route('admin.eventos') }}" class="sc-back-btn">← Voltar</a>
     </div>
 
+    {{-- 8: aviso se as bibliotecas de scanner não carregarem (ex: sem internet) --}}
+    <div class="sc-offline-banner" id="offlineBanner">
+        <b>⚠️ Câmara/leitura de imagem indisponível</b>
+        As bibliotecas de leitura de QR não carregaram (provavelmente por falta de ligação à internet). A validação por código manual continua a funcionar normalmente.
+    </div>
+
+    {{-- 3: fila de validações por enviar (sem rede no momento) --}}
+    <div class="sc-pending-banner" id="pendingBanner">
+        <span id="pendingText">0 validações por enviar</span>
+        <button class="sc-pending-retry" onclick="reenviarPendentes()">🔁 Tentar agora</button>
+    </div>
+
     <div class="sc-stats">
         <div class="sc-stat"><div class="sc-stat-num" id="statTotal" style="color:var(--cyan)">0</div><div class="sc-stat-lbl">Validados</div></div>
         <div class="sc-stat"><div class="sc-stat-num" id="statOk" style="color:var(--green)">0</div><div class="sc-stat-lbl">Aceites</div></div>
@@ -177,6 +216,8 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-
             <div class="sc-scan-line" id="scanLine"></div>
         </div>
 
+        <div class="sc-resume-hint" id="resumeHint">A câmara reinicia em <b id="resumeCount">3</b>s...</div>
+
         <div class="sc-input-wrap">
             <span class="sc-input-icon">🔍</span>
             <input type="text" id="codigoInput" class="sc-input"
@@ -186,7 +227,7 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-
 
         <div class="sc-loading" id="loadingState">
             <div class="sc-loading-spinner"></div>
-            <div class="sc-loading-text">A validar bilhete...</div>
+            <div class="sc-loading-text" id="loadingText">A validar bilhete...</div>
         </div>
 
         <div class="sc-result" id="resultBox">
@@ -208,6 +249,12 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-
             <span id="cameraBtnText">Ativar Câmera (Scanner QR)</span>
         </button>
 
+        {{-- 5, 13: lanterna e trocar câmara — só aparecem com a câmara ligada --}}
+        <div class="sc-cam-tools" id="camTools">
+            <button class="sc-tool-btn" id="btnTorch" onclick="toggleLanterna()">🔦 Lanterna</button>
+            <button class="sc-tool-btn" onclick="trocarCamera()">🔄 Trocar câmara</button>
+        </div>
+
         {{-- Upload de imagem com QR Code --}}
         <div class="sc-btn-upload" title="Carregar imagem ou PDF com QR Code">
             <input type="file" accept="image/*,application/pdf" id="uploadQR" onchange="lerImagemQR(this)">
@@ -217,8 +264,11 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-
 
     <div class="sc-history">
         <div class="sc-history-title">
-            Últimas Validações
-            <button class="sc-history-clear" onclick="limparHistorico()">Limpar</button>
+            <span>Últimas Validações</span>
+            <span>
+                <button class="sc-history-export" onclick="exportarHistorico()">⬇ Exportar</button>
+                <button class="sc-history-clear" onclick="limparHistorico()">Limpar</button>
+            </span>
         </div>
         <div class="sc-history-list" id="historyList">
             <div style="text-align:center;padding:20px 0;font-size:11px;color:var(--muted);">
@@ -232,14 +282,29 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-
 const CSRF    = '{{ csrf_token() }}';
 const API_URL = '{{ route("admin.scanner.validar") }}';
 
-let stats     = { total: 0, ok: 0, err: 0 };
-let historico = [];
-let cameraAtiva = false;
-let html5QrCode = null;
+// 2: stats e histórico persistem no telemóvel (sobrevivem a recarregar a página)
+let stats       = JSON.parse(localStorage.getItem('sc_stats')     || '{"total":0,"ok":0,"err":0}');
+let historico   = JSON.parse(localStorage.getItem('sc_historico') || '[]');
+let filaOffline = JSON.parse(localStorage.getItem('sc_fila')      || '[]');
+
+let cameraAtiva  = false;
+let html5QrCode  = null;
+let requestPendente = false;   // 2 (lista nova): trava de duplo envio
+let torchLigada  = false;
+let cameraFacing = 'environment';
+let resumeTimer  = null;
+const HISTORICO_MAX = 200;     // 7: limite de memória do histórico
+
+function guardarEstado() {
+    localStorage.setItem('sc_stats', JSON.stringify(stats));
+    localStorage.setItem('sc_historico', JSON.stringify(historico.slice(0, HISTORICO_MAX)));
+    localStorage.setItem('sc_fila', JSON.stringify(filaOffline));
+}
 
 // ── Validar por código manual ─────────────────────────────
 async function validarCodigo() {
-    const codigo = document.getElementById('codigoInput').value.trim();
+    if (requestPendente) return; // 2: ignora cliques repetidos enquanto já há um pedido em curso
+    const codigo = document.getElementById('codigoInput').value.trim().toUpperCase(); // 11: normalizado
     if (!codigo) {
         mostrarResultado('error', '⚠️', 'Campo vazio', 'Digita ou lê um código QR primeiro.', []);
         return;
@@ -249,8 +314,20 @@ async function validarCodigo() {
 
 // ── Enviar para o servidor ────────────────────────────────
 async function enviarValidacao(codigo) {
-    mostrarLoading(true);
+    if (requestPendente) return;
+    requestPendente = true;
+    mostrarLoading(true, 'A validar bilhete...');
     esconderResultado();
+
+    // 3: sem rede — guarda para reenviar depois, em vez de simplesmente falhar
+    if (!navigator.onLine) {
+        requestPendente = false;
+        mostrarLoading(false);
+        adicionarPendente(codigo);
+        mostrarResultado('warning', '📡', 'Sem ligação à internet',
+            'Guardámos este código. Assim que a ligação voltar, toca em "Tentar agora".', [{ lbl: 'Código', val: codigo }]);
+        return;
+    }
 
     try {
         const resp = await fetch(API_URL, {
@@ -275,27 +352,65 @@ async function enviarValidacao(codigo) {
             adicionarHistorico(codigo, data.cliente ?? 'Convidado', 'ok');
             stats.ok++;
             vibrar([200]);
+            tocarSom('ok'); // 4
         } else if (data.status === 'warning') {
             mostrarResultado('warning', '⚠️', 'Bilhete Já Utilizado', data.message, [{ lbl: 'Código', val: codigo }]);
             adicionarHistorico(codigo, 'Já utilizado', 'warn');
             stats.err++;
             vibrar([100, 50, 100]);
+            tocarSom('warn'); // 4
         } else {
             mostrarResultado('error', '❌', 'Acesso Negado', data.message, [{ lbl: 'Código', val: codigo }]);
             adicionarHistorico(codigo, 'Inválido', 'err');
             stats.err++;
             vibrar([300]);
+            tocarSom('err'); // 4
         }
 
         stats.total++;
         atualizarStats();
+        guardarEstado();
         document.getElementById('codigoInput').value = '';
 
     } catch (e) {
         mostrarLoading(false);
-        mostrarResultado('error', '🔌', 'Erro de conexão', 'Não foi possível contactar o servidor.', []);
+        adicionarPendente(codigo); // 3: guarda para reenviar
+        mostrarResultado('error', '🔌', 'Erro de conexão', 'Não foi possível contactar o servidor. O código foi guardado para reenvio.', []);
+    }
+
+    requestPendente = false;
+
+    // 1: se a câmara estava ligada, reinicia sozinha para o próximo convidado
+    if (cameraAtiva === 'pausada') agendarRetomaCamera();
+}
+
+// ── 3: fila de códigos por reenviar quando a rede falha ────
+function adicionarPendente(codigo) {
+    filaOffline.push({ codigo, hora: new Date().toLocaleTimeString('pt-PT') });
+    guardarEstado();
+    atualizarPendentesUI();
+}
+function atualizarPendentesUI() {
+    const banner = document.getElementById('pendingBanner');
+    if (filaOffline.length > 0) {
+        banner.classList.add('show');
+        document.getElementById('pendingText').textContent =
+            filaOffline.length + (filaOffline.length === 1 ? ' validação por enviar' : ' validações por enviar');
+    } else {
+        banner.classList.remove('show');
     }
 }
+async function reenviarPendentes() {
+    if (!navigator.onLine || !filaOffline.length) return;
+    const fila = [...filaOffline];
+    filaOffline = [];
+    guardarEstado();
+    atualizarPendentesUI();
+    for (const item of fila) {
+        await enviarValidacao(item.codigo);
+    }
+}
+window.addEventListener('online', reenviarPendentes);
 
 // ── Câmera com html5-qrcode ───────────────────────────────
 async function toggleCamera() {
@@ -309,6 +424,8 @@ async function toggleCamera() {
 async function iniciarCamera() {
     const btn = document.getElementById('btnCamera');
     const scanLine = document.getElementById('scanLine');
+    clearTimeout(resumeTimer);
+    document.getElementById('resumeHint').classList.remove('show');
 
     try {
         html5QrCode = new Html5Qrcode('qr-reader');
@@ -321,13 +438,14 @@ async function iniciarCamera() {
         };
 
         await html5QrCode.start(
-            { facingMode: 'environment' }, // câmera traseira
+            { facingMode: cameraFacing }, // 13: agora pode ser trocada
             config,
             async (decodedText) => {
-                // QR lido com sucesso — para câmera e valida
-                await pararCamera();
-                document.getElementById('codigoInput').value = decodedText;
-                await enviarValidacao(decodedText);
+                // QR lido com sucesso — pausa a câmara (não desliga) e valida
+                const codigoLimpo = decodedText.trim().toUpperCase(); // 11
+                await pausarCameraTemporariamente();
+                document.getElementById('codigoInput').value = codigoLimpo;
+                await enviarValidacao(codigoLimpo);
             },
             (errorMessage) => {
                 // Erros de leitura são normais — ignorar
@@ -335,9 +453,11 @@ async function iniciarCamera() {
         );
 
         cameraAtiva = true;
+        torchLigada = false;
         btn.classList.add('ativo');
         document.getElementById('cameraBtnText').textContent = '⏹ Parar Câmera';
         scanLine.style.display = 'block';
+        document.getElementById('camTools').classList.add('show'); // 5, 13
 
     } catch (err) {
         mostrarResultado('error', '📷', 'Câmera indisponível',
@@ -345,9 +465,40 @@ async function iniciarCamera() {
     }
 }
 
+// 1: pausa a câmara (usada logo após ler um QR) sem desligar tudo — reinicia sozinha a seguir
+async function pausarCameraTemporariamente() {
+    const scanLine = document.getElementById('scanLine');
+    if (html5QrCode) {
+        try { await html5QrCode.stop(); } catch (e) {}
+    }
+    cameraAtiva = 'pausada';
+    scanLine.style.display = 'none';
+}
+function agendarRetomaCamera() {
+    const hint = document.getElementById('resumeHint');
+    const count = document.getElementById('resumeCount');
+    let seg = 3;
+    hint.classList.add('show');
+    count.textContent = seg;
+    clearTimeout(resumeTimer);
+    const tick = () => {
+        seg--;
+        if (seg <= 0) {
+            hint.classList.remove('show');
+            iniciarCamera();
+            return;
+        }
+        count.textContent = seg;
+        resumeTimer = setTimeout(tick, 1000);
+    };
+    resumeTimer = setTimeout(tick, 1000);
+}
+
 async function pararCamera() {
     const btn = document.getElementById('btnCamera');
     const scanLine = document.getElementById('scanLine');
+    clearTimeout(resumeTimer);
+    document.getElementById('resumeHint').classList.remove('show');
 
     if (html5QrCode) {
         try {
@@ -358,15 +509,53 @@ async function pararCamera() {
     }
 
     cameraAtiva = false;
+    torchLigada = false;
     btn.classList.remove('ativo');
     document.getElementById('cameraBtnText').textContent = 'Ativar Câmera (Scanner QR)';
     scanLine.style.display = 'none';
+    document.getElementById('camTools').classList.remove('show');
+}
+
+// 5: lanterna (torch) — suportado pela maioria dos telemóveis Android; iOS Safari é limitado
+async function toggleLanterna() {
+    if (!html5QrCode) return;
+    try {
+        torchLigada = !torchLigada;
+        await html5QrCode.applyVideoConstraints({ advanced: [{ torch: torchLigada }] });
+        document.getElementById('btnTorch').classList.toggle('on', torchLigada);
+    } catch (e) {
+        mostrarResultado('warning', '🔦', 'Lanterna indisponível', 'Este dispositivo/navegador não permite controlar a lanterna.', []);
+    }
+}
+
+// 13: trocar entre câmara traseira e frontal
+async function trocarCamera() {
+    cameraFacing = cameraFacing === 'environment' ? 'user' : 'environment';
+    if (cameraAtiva) {
+        await pararCamera();
+        await iniciarCamera();
+    }
+}
+
+// ── 4: som de confirmação/erro (Web Audio API, sem ficheiros externos) ──
+function tocarSom(tipo) {
+    try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const o = ctx.createOscillator();
+        const g = ctx.createGain();
+        o.connect(g); g.connect(ctx.destination);
+        o.type = 'sine';
+        if (tipo === 'ok')   { o.frequency.value = 880; g.gain.value = .15; o.start(); setTimeout(() => o.stop(), 140); }
+        if (tipo === 'warn') { o.frequency.value = 520; g.gain.value = .15; o.start(); setTimeout(() => o.stop(), 220); }
+        if (tipo === 'err')  { o.frequency.value = 220; g.gain.value = .18; o.start(); setTimeout(() => o.stop(), 320); }
+    } catch (e) { /* Web Audio indisponível — segue sem som */ }
 }
 
 // ── UI Helpers ────────────────────────────────────────────
-function mostrarLoading(show) {
+function mostrarLoading(show, texto) {
     document.getElementById('loadingState').style.display = show ? 'block' : 'none';
-    document.getElementById('btnValidar').disabled = show;
+    if (texto) document.getElementById('loadingText').textContent = texto;
+    document.getElementById('btnValidar').disabled = show || requestPendente;
 }
 function esconderResultado() {
     document.getElementById('resultBox').style.display = 'none';
@@ -389,6 +578,7 @@ function atualizarStats() {
 }
 function adicionarHistorico(codigo, nome, tipo) {
     historico.unshift({ codigo, nome, tipo, hora: new Date().toLocaleTimeString('pt-PT', { hour:'2-digit', minute:'2-digit', second:'2-digit' }) });
+    if (historico.length > HISTORICO_MAX) historico = historico.slice(0, HISTORICO_MAX); // 7
     renderHistorico();
 }
 function renderHistorico() {
@@ -405,24 +595,46 @@ function renderHistorico() {
     ).join('');
 }
 function limparHistorico() {
+    if (!confirm('Limpar todo o histórico e estatísticas desta sessão?')) return;
     historico = []; stats = { total:0, ok:0, err:0 };
-    atualizarStats(); renderHistorico(); esconderResultado();
+    atualizarStats(); renderHistorico(); esconderResultado(); guardarEstado();
+}
+// 10: exportar histórico completo da sessão em CSV
+function exportarHistorico() {
+    if (!historico.length) { alert('Ainda não há validações para exportar.'); return; }
+    const linhas = ['Código,Nome,Estado,Hora'];
+    historico.forEach(h => linhas.push(`"${h.codigo}","${h.nome}","${h.tipo}","${h.hora}"`));
+    const blob = new Blob([linhas.join('\n')], { type: 'text/csv;charset=utf-8;' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'validacoes_' + new Date().toISOString().slice(0,10) + '.csv';
+    a.click();
 }
 function vibrar(pattern) {
     if (navigator.vibrate) navigator.vibrate(pattern);
 }
 
 document.getElementById('codigoInput').addEventListener('keydown', function(e) {
-    if (e.key === 'Enter') validarCodigo();
+    if (e.key === 'Enter' && !requestPendente) validarCodigo(); // 2: trava Enter repetido
 });
 
 // ── Upload de imagem ou PDF com QR Code ──────────────────
+const TAMANHO_MAX_MB = 8; // 12
 async function lerImagemQR(input) {
     const file = input.files[0];
     if (!file) return;
 
+    // 12: aviso antes de processar ficheiros grandes
+    const tamanhoMB = file.size / (1024 * 1024);
+    if (tamanhoMB > TAMANHO_MAX_MB) {
+        mostrarResultado('error', '📦', 'Ficheiro demasiado grande',
+            `Este ficheiro tem ${tamanhoMB.toFixed(1)}MB — o máximo é ${TAMANHO_MAX_MB}MB. Tenta uma imagem mais pequena.`, []);
+        input.value = '';
+        return;
+    }
+
     if (cameraAtiva) await pararCamera();
-    mostrarLoading(true);
+    mostrarLoading(true, 'A procurar QR na imagem...'); // 9 (lista anterior): texto específico
     esconderResultado();
 
     try {
@@ -437,8 +649,9 @@ async function lerImagemQR(input) {
         mostrarLoading(false);
 
         if (resultado) {
-            document.getElementById('codigoInput').value = resultado;
-            await enviarValidacao(resultado);
+            const codigoLimpo = resultado.trim().toUpperCase(); // 11
+            document.getElementById('codigoInput').value = codigoLimpo;
+            await enviarValidacao(codigoLimpo);
         } else {
             mostrarResultado('error', '🖼', 'QR não detectado',
                 'Não foi possível encontrar o QR Code. Tenta uma imagem mais nítida ou digita o código manualmente.', []);
@@ -533,10 +746,27 @@ async function pdfParaCanvas(file) {
     return canvas;
 }
 
-// Ocultar linha de scan inicialmente
+// Ocultar linha de scan inicialmente + restaurar estado da sessão anterior
 document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('scanLine').style.display = 'none';
     document.getElementById('codigoInput').focus();
+
+    // 2: restaura contadores e histórico guardados (sobrevive a recarregar a página)
+    atualizarStats();
+    renderHistorico();
+    atualizarPendentesUI();
+
+    // 6, 8: se as bibliotecas de QR não carregaram (ex: sem internet ao abrir a página),
+    // avisa claramente em vez de deixar os botões de câmara/upload falhar silenciosamente
+    if (typeof Html5Qrcode === 'undefined' || typeof jsQR === 'undefined') {
+        document.getElementById('offlineBanner').classList.add('show');
+        document.getElementById('btnCamera').disabled = true;
+        document.getElementById('btnCamera').style.opacity = '.4';
+        document.getElementById('btnCamera').style.cursor = 'not-allowed';
+    }
+
+    // 3: tenta reenviar pendentes logo ao abrir, caso já haja ligação
+    if (filaOffline.length) reenviarPendentes();
 });
 </script>
 

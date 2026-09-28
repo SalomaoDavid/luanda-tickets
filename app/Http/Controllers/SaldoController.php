@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use App\Http\Requests\DadosBancariosRequest;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Cache;
 
 class SaldoController extends Controller
 {
@@ -106,7 +107,7 @@ class SaldoController extends Controller
 
         $logo = null;
         if ($request->hasFile('logo')) {
-            $logo = $request->file('logo')->getClientOriginalName();
+            $logo = $request->file('logo')->hashName();
             $request->file('logo')->move(public_path('images/bancos'), $logo);
         }
 
@@ -119,6 +120,10 @@ class SaldoController extends Controller
             'ordem'        => $request->ordem ?? 0,
             'activa'       => true,
         ]);
+
+        // Limpa o cache que a página evento-detalhes usa — sem isto, a conta nova
+        // só apareceria no modal de pagamento dos compradores até 10 min depois
+        Cache::forget('contas_bancarias_activas');
 
         return back()->with('success', 'Conta bancária adicionada!');
     }
@@ -138,7 +143,7 @@ class SaldoController extends Controller
         ]);
 
         if ($request->hasFile('logo')) {
-            $logo = $request->file('logo')->getClientOriginalName();
+            $logo = $request->file('logo')->hashName();
             $request->file('logo')->move(public_path('images/bancos'), $logo);
             $conta->logo = $logo;
         }
@@ -152,12 +157,21 @@ class SaldoController extends Controller
             'ordem'        => $request->ordem ?? $conta->ordem,
         ]);
 
+        // Limpa o cache — é aqui que o toggle "activa" precisa de se refletir
+        // imediatamente na página evento-detalhes, não só 10 min depois
+        Cache::forget('contas_bancarias_activas');
+
         return back()->with('success', 'Conta actualizada!');
     }
 
     public function destroyConta($id)
     {
         ContaBancaria::findOrFail($id)->delete();
+
+        // Limpa o cache — sem isto, uma conta eliminada continuaria a aparecer
+        // no modal de pagamento até 10 min depois de já não existir
+        Cache::forget('contas_bancarias_activas');
+
         return back()->with('success', 'Conta removida.');
     }
 

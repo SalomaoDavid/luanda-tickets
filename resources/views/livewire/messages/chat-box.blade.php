@@ -23,6 +23,10 @@
                 <p class="text-[10px] text-blue-400 font-bold uppercase tracking-wider truncate">
                     🎟 {{ $conversation->evento->titulo }}
                 </p>
+            @elseif($conversation->tipo === 'aviso_admin')
+                <p class="text-[10px] text-cyan-400 font-bold uppercase tracking-wider truncate">
+                    🛡 Aviso Oficial
+                </p>
             @else
                 <p class="text-[10px] font-semibold {{ $receiver->isOnline() ? 'text-green-400' : 'text-gray-500' }}">
                     {{ $receiver->isOnline() ? '● Online agora' : '● Offline' }}
@@ -57,7 +61,11 @@
 @if($conversation->is_blocked)
 <div class="px-4 py-2 text-center text-xs font-bold text-red-400 uppercase tracking-widest flex-shrink-0"
      style="background: rgba(239,68,68,0.1); border-bottom: 1px solid rgba(239,68,68,0.2);">
-    🔒 Esta conversa está bloqueada
+    @if($euBloqueei)
+        🔒 Bloqueaste esta conversa
+    @else
+        🔒 Foste bloqueado nesta conversa
+    @endif
 </div>
 @endif
 
@@ -69,8 +77,22 @@
             background: linear-gradient(180deg, rgba(2,6,23,0.3) 0%, rgba(15,23,42,0.2) 100%);
             scrollbar-width: thin; scrollbar-color: rgba(59,130,246,0.3) transparent;">
 
+    @php $ultimaDataMostrada = null; @endphp
     @foreach($messages as $msg)
-    @php $isMine = $msg->user_id === auth()->id(); @endphp
+    @php
+        $isMine = $msg->user_id === auth()->id();
+        $dataMsg = $msg->created_at->format('Y-m-d');
+        $mostrarSeparador = $dataMsg !== $ultimaDataMostrada;
+        $ultimaDataMostrada = $dataMsg;
+    @endphp
+    @if($mostrarSeparador)
+    <div class="flex justify-center my-2">
+        <span class="text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full"
+              style="background: rgba(59,130,246,0.1); color: #7dd3fc;">
+            {{ $msg->created_at->isToday() ? 'Hoje' : ($msg->created_at->isYesterday() ? 'Ontem' : $msg->created_at->translatedFormat('d \d\e F')) }}
+        </span>
+    </div>
+    @endif
     <div class="flex {{ $isMine ? 'justify-end' : 'justify-start' }} items-end gap-2">
         @if(!$isMine)
         <img src="{{ $receiver->avatar ? asset('storage/'.$receiver->avatar) : 'https://ui-avatars.com/api/?name='.urlencode($receiver->name).'&background=0ea5e9&color=fff&size=64' }}"
@@ -125,7 +147,6 @@
             </div>
 
             <textarea id="message-input"
-                    wire:model.live="messageBody"
                     placeholder="Escreve uma mensagem..."
                     rows="1"
                     class="flex-1 rounded-2xl text-sm text-white placeholder-gray-500 outline-none transition resize-none"
@@ -138,11 +159,16 @@
                     style="width: 38px; height: 38px; min-width: 38px;
                         background: linear-gradient(135deg, #2563eb, #1d4ed8);
                         box-shadow: 0 3px 10px rgba(37,99,235,0.4);">
-                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="white" viewBox="0 0 24 24">
+                <svg id="send-icon" xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="white" viewBox="0 0 24 24">
                     <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
                 </svg>
+                <span id="send-spinner" style="display:none;width:15px;height:15px;border-radius:50%;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;animation:chat-spin .7s linear infinite;"></span>
             </button>
         </form>
     @endif
+
+    <style>
+    @keyframes chat-spin { to { transform: rotate(360deg); } }
+    </style>
 </footer>
 </div>

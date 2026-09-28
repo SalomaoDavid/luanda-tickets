@@ -36,6 +36,31 @@ body{background:var(--bg);color:var(--t1);font-family:'Outfit',sans-serif;}
 .modal-overlay.open{display:flex;}
 .modal-box{background:#0c1220;border:1px solid var(--b2);border-radius:18px;padding:24px;max-width:480px;width:100%;max-height:90vh;overflow-y:auto;}
 .modal-title{font-size:16px;font-weight:800;color:var(--t1);margin-bottom:18px;}
+
+/* ══════════════════════════════════════════════
+   NOVAS MELHORIAS
+   ══════════════════════════════════════════════ */
+@media(max-width:640px){ .g2{grid-template-columns:1fr;} }
+
+/* mensagens de erro agora tratadas pelo toast global do app.blade.php — nada a fazer aqui */
+
+/* contador de contas ativas + aviso de última conta */
+.active-counter{font-size:12px;color:var(--t2);margin-bottom:12px;font-family:var(--mono);}
+.active-counter b{color:var(--green);}
+.warn-last-active{display:none;background:rgba(244,63,94,.1);border:1px solid rgba(244,63,94,.35);border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:12px;color:#fda4af;line-height:1.5;}
+.warn-last-active.show{display:block;}
+
+/* copiar IBAN em cada cartão */
+.copy-btn-sm{background:rgba(56,189,248,.1);border:1px solid var(--b2);color:var(--sky);border-radius:6px;padding:2px 7px;font-size:9px;font-weight:700;cursor:pointer;margin-left:6px;font-family:inherit;}
+.copy-btn-sm.copied{background:rgba(16,185,129,.15);border-color:rgba(16,185,129,.4);color:var(--green);}
+
+/* preview do logo antes de submeter */
+.logo-preview{display:none;margin-top:8px;width:52px;height:52px;border-radius:10px;object-fit:contain;background:#fff;padding:4px;}
+.logo-preview.show{display:block;}
+
+/* dica de formato do IBAN */
+.field-hint{font-size:10px;color:var(--t3);margin-top:4px;}
+.field-hint.warn{color:var(--amber);}
 </style>
 
 <div class="wrap">
@@ -47,11 +72,11 @@ body{background:var(--bg);color:var(--t1);font-family:'Outfit',sans-serif;}
         </div>
     </div>
 
-    @if(session('success'))
-    <div style="background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.25);border-radius:10px;padding:12px 16px;margin-bottom:16px;color:#34d399;font-size:13px;">
-        ✅ {{ session('success') }}
+    @php $numAtivas = $contas->where('activa', true)->count(); @endphp
+    <div class="active-counter">👁️ <b>{{ $numAtivas }}</b> conta(s) visível(eis) no modal de pagamento dos compradores agora</div>
+    <div class="warn-last-active" id="warnUltimaConta">
+        ⚠️ <b>Esta é a última conta ativa!</b> Se a eliminares ou desativares, os compradores deixam de ter forma nenhuma de pagar bilhetes até ativares outra conta.
     </div>
-    @endif
 
     {{-- LISTA DE CONTAS --}}
     <div class="panel">
@@ -60,7 +85,7 @@ body{background:var(--bg);color:var(--t1);font-family:'Outfit',sans-serif;}
         </div>
         <div class="panel-body">
             @forelse($contas as $conta)
-            <div class="conta-card">
+            <div class="conta-card" data-id="{{ $conta->id }}" data-activa="{{ $conta->activa ? '1' : '0' }}">
                 @if($conta->logo)
                     <img src="{{ asset('images/bancos/'.$conta->logo) }}" class="conta-logo" alt="{{ $conta->nome_banco }}">
                 @else
@@ -74,7 +99,10 @@ body{background:var(--bg);color:var(--t1);font-family:'Outfit',sans-serif;}
                         </span>
                     </div>
                     <div class="conta-titular">{{ $conta->titular }}</div>
-                    <div class="conta-iban">{{ $conta->iban }}</div>
+                    <div class="conta-iban">
+                        {{ $conta->iban }}
+                        <button type="button" class="copy-btn-sm" onclick="copiarIbanConta(this, '{{ $conta->iban }}')">📋</button>
+                    </div>
                     @if($conta->numero_conta)
                     <div style="font-size:11px;color:var(--t3);">Conta: {{ $conta->numero_conta }}</div>
                     @endif
@@ -85,7 +113,7 @@ body{background:var(--bg);color:var(--t1);font-family:'Outfit',sans-serif;}
                         ✏️
                     </button>
                     <form method="POST" action="{{ route('admin.contas-bancarias.destroy', $conta->id) }}"
-                          onsubmit="return confirm('Eliminar esta conta?')">
+                          onsubmit="return confirmarEliminarConta(event, {{ $conta->activa ? 'true' : 'false' }}, '{{ addslashes($conta->nome_banco) }}')">
                         @csrf @method('DELETE')
                         <button type="submit" class="btn danger" style="font-size:11px;padding:5px 10px;">🗑</button>
                     </form>
@@ -118,7 +146,8 @@ body{background:var(--bg);color:var(--t1);font-family:'Outfit',sans-serif;}
             </div>
             <div class="form-group">
                 <label class="form-label">IBAN</label>
-                <input type="text" name="iban" class="form-input" placeholder="AO06 0006 0000 0000 0000 1014 3" required>
+                <input type="text" name="iban" class="form-input" placeholder="AO06 0006 0000 0000 0000 1014 3" pattern="^AO\d{2}[\d\s]{20,25}$" required>
+                <div class="field-hint">Formato angolano: começa por "AO" + 23 dígitos</div>
             </div>
             <div class="g2">
                 <div class="form-group">
@@ -132,7 +161,8 @@ body{background:var(--bg);color:var(--t1);font-family:'Outfit',sans-serif;}
             </div>
             <div class="form-group">
                 <label class="form-label">Logo do banco (PNG/JPG · máx 512KB)</label>
-                <input type="file" name="logo" class="form-input" accept="image/png,image/jpg,image/webp">
+                <input type="file" name="logo" class="form-input" accept="image/png,image/jpg,image/webp" onchange="previewLogo(this, 'preview-add')">
+                <img class="logo-preview" id="preview-add" alt="Pré-visualização do logo">
             </div>
             <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:6px;">
                 <button type="button" class="btn" onclick="document.getElementById('modal-add').classList.remove('open')">Cancelar</button>
@@ -160,7 +190,8 @@ body{background:var(--bg);color:var(--t1);font-family:'Outfit',sans-serif;}
             </div>
             <div class="form-group">
                 <label class="form-label">IBAN</label>
-                <input type="text" name="iban" id="edit-iban" class="form-input" required>
+                <input type="text" name="iban" id="edit-iban" class="form-input" pattern="^AO\d{2}[\d\s]{20,25}$" required>
+                <div class="field-hint">Formato angolano: começa por "AO" + 23 dígitos</div>
             </div>
             <div class="g2">
                 <div class="form-group">
@@ -174,10 +205,11 @@ body{background:var(--bg);color:var(--t1);font-family:'Outfit',sans-serif;}
             </div>
             <div class="form-group">
                 <label class="form-label">Novo Logo (opcional)</label>
-                <input type="file" name="logo" class="form-input" accept="image/png,image/jpg,image/webp">
+                <input type="file" name="logo" class="form-input" accept="image/png,image/jpg,image/webp" onchange="previewLogo(this, 'preview-edit')">
+                <img class="logo-preview" id="preview-edit" alt="Pré-visualização do logo">
             </div>
             <div class="form-group" style="display:flex;align-items:center;gap:10px;">
-                <input type="checkbox" name="activa" id="edit-activa" value="1" style="width:16px;height:16px;">
+                <input type="checkbox" name="activa" id="edit-activa" value="1" style="width:16px;height:16px;" onchange="avisarSeUltimaAtiva(this)">
                 <label for="edit-activa" style="font-size:13px;color:var(--t2);cursor:pointer;">Conta activa (visível no modal de pagamento)</label>
             </div>
             <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:6px;">
@@ -189,15 +221,60 @@ body{background:var(--bg);color:var(--t1);font-family:'Outfit',sans-serif;}
 </div>
 
 <script>
+// Rota de edição — usa route() do Blade com id "0" como marcador e troca-se pelo id real,
+// em vez de adivinhar o caminho completo à mão (a store/destroy já usavam route(), esta convenção segue a mesma)
+const EDIT_URL_TEMPLATE = "{{ route('admin.contas-bancarias.update', 0) }}";
+
 function abrirEditar(id, nome, titular, iban, conta, activa, ordem) {
-    document.getElementById('form-editar').action = '/admin/contas-bancarias/' + id;
+    document.getElementById('form-editar').action = EDIT_URL_TEMPLATE.replace(/\/0$/, '/' + id);
     document.getElementById('edit-nome').value    = nome;
     document.getElementById('edit-titular').value = titular;
     document.getElementById('edit-iban').value    = iban;
     document.getElementById('edit-conta').value   = conta || '';
     document.getElementById('edit-ordem').value   = ordem;
     document.getElementById('edit-activa').checked = activa;
+    document.getElementById('preview-edit').classList.remove('show');
     document.getElementById('modal-editar').classList.add('open');
+}
+
+// pré-visualização do logo antes de submeter (adicionar e editar)
+function previewLogo(input, previewId) {
+    const file = input.files[0];
+    const img = document.getElementById(previewId);
+    if (!file) { img.classList.remove('show'); return; }
+    const reader = new FileReader();
+    reader.onload = (e) => { img.src = e.target.result; img.classList.add('show'); };
+    reader.readAsDataURL(file);
+}
+
+// avisa se estás a desativar a última conta ativa (o modal de pagamento ficaria sem nenhuma)
+function contarContasAtivas() {
+    return document.querySelectorAll('.conta-card[data-activa="1"]').length;
+}
+function avisarSeUltimaAtiva(checkbox) {
+    const warnBox = document.getElementById('warnUltimaConta');
+    if (!checkbox.checked && contarContasAtivas() <= 1) {
+        warnBox.classList.add('show');
+    } else {
+        warnBox.classList.remove('show');
+    }
+}
+
+// confirmação ao eliminar — reforça o aviso se for a última conta ativa
+function confirmarEliminarConta(event, ehAtiva, nomeBanco) {
+    if (ehAtiva && contarContasAtivas() <= 1) {
+        return confirm('⚠️ "' + nomeBanco + '" é a ÚLTIMA conta ativa!\n\nSe a eliminares, os compradores deixam de ter forma nenhuma de pagar bilhetes até ativares outra conta.\n\nEliminar mesmo assim?');
+    }
+    return confirm('Eliminar a conta "' + nomeBanco + '"?');
+}
+
+// copiar IBAN de cada cartão
+function copiarIbanConta(btn, iban) {
+    navigator.clipboard.writeText(iban);
+    const original = btn.textContent;
+    btn.textContent = '✅';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = original; btn.classList.remove('copied'); }, 1500);
 }
 </script>
 @endsection

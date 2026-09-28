@@ -1,0 +1,14 @@
+{
+  "name": "Luanda Tickets",
+  "short_name": "Luanda Tickets",
+  "description": "Eventos e bilhetes em Luanda",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#04070f",
+  "theme_color": "#2563eb",
+  "icons": [
+    { "src": "/logo-glossy-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/logo-glossy-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

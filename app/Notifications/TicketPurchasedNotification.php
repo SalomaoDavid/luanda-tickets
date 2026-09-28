@@ -41,7 +41,7 @@ class TicketPurchasedNotification extends Notification implements ShouldQueue
 
     public function via(object $notifiable): array
     {
-        return ['database', 'broadcast'];
+        return ['database', 'broadcast', \App\Channels\WebPushChannel::class];
     }
 
     public function toDatabase(object $notifiable): array
@@ -61,5 +61,15 @@ class TicketPurchasedNotification extends Notification implements ShouldQueue
     public function toBroadcast(object $notifiable): BroadcastMessage
     {
         return new BroadcastMessage($this->toDatabase($notifiable));
+    }
+
+    public function toWebPush(object $notifiable): array
+    {
+        return [
+            'title' => 'Bilhete vendido 🎟️',
+            'body'  => "{$this->compradorNome} comprou {$this->quantidade}x bilhete(s) para \"{$this->eventoTitulo}\".",
+            'url'   => \App\Support\NotificationLinks::adminReservas(),
+            'icon'  => $this->compradorFoto ? asset('storage/'.$this->compradorFoto) : asset('logos.png'),
+        ];
     }
 }

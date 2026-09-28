@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Http\Requests\ProfileUpdateRequest;
 use App\Models\User;
 use App\Models\Bilhete;
+use App\Notifications\PerfilDenunciadoNotification;
+use App\Notifications\NewFollowerNotification;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -144,6 +146,8 @@ class ProfileController extends Controller
         } else {
             $user->seguindo()->attach($alvo->id);
             $seguindo = true;
+
+            $alvo->notify(NewFollowerNotification::fromSeguidor($user));
         }
 
         $totalSeguidores = $alvo->seguidores()->count();
@@ -209,8 +213,9 @@ class ProfileController extends Controller
         ]);
 
         // Notifica admins
-        User::where('role','admin')->each(function($admin) use ($alvo, $request) {
-            $admin->notify(PerfilDenunciadoNotification::fromUsers($denunciado, $denunciante, $motivo));
+        $denunciante = auth()->user();
+        User::where('role', 'admin')->get()->each(function ($admin) use ($alvo, $denunciante, $request) {
+            $admin->notify(PerfilDenunciadoNotification::fromUsers($alvo, $denunciante, $request->motivo));
         });
 
         return response()->json(['success' => true, 'message' => 'Denúncia enviada. Vamos analisar.']);
@@ -293,5 +298,13 @@ class ProfileController extends Controller
             'Curtidos', $eventos->total(),
             'Seguidores', $user->seguidores_count ?? 0,
         ];
+    }
+
+    /**
+     * Página de Definições — Sobre Nós, Fale Connosco, e futuramente mais opções.
+     */
+    public function definicoes()
+    {
+        return view('definicoes');
     }
 }

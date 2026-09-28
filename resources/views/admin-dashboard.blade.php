@@ -24,7 +24,7 @@ body{background:var(--bg);font-family:var(--sans);color:var(--t1);min-height:100
     background-size:40px 40px;}
 
 .adm-wrap{position:relative;z-index:1;width:100%;padding:16px 8px 80px;}
-@@media(min-width:768px){.adm-wrap{padding:28px 20px 80px;}}
+@media(min-width:768px){.adm-wrap{padding:28px 20px 80px;}}
 
 /* ── TOPBAR ── */
 .adm-topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:24px;flex-wrap:wrap;}
@@ -63,7 +63,7 @@ body{background:var(--bg);font-family:var(--sans);color:var(--t1);min-height:100
 
 /* ── KPI GRID ── */
 .kpi-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:20px;}
-@@media(min-width:640px){.kpi-grid{grid-template-columns:repeat(4,1fr);gap:14px;}}
+@media(min-width:640px){.kpi-grid{grid-template-columns:repeat(4,1fr);gap:14px;}}
 .kpi-card{
     position:relative;background:var(--s1);border:1px solid var(--b2);
     border-radius:16px;padding:16px;overflow:hidden;
@@ -88,7 +88,7 @@ body{background:var(--bg);font-family:var(--sans);color:var(--t1);min-height:100
 
 /* ── SEGURANÇA KPIs ── */
 .sec-kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:20px;}
-@@media(min-width:768px){.sec-kpi-grid{grid-template-columns:repeat(6,1fr);}}
+@media(min-width:768px){.sec-kpi-grid{grid-template-columns:repeat(6,1fr);}}
 .sec-kpi{
     background:var(--s1);border:1px solid var(--b1);border-radius:12px;
     padding:12px;text-align:center;
@@ -101,7 +101,7 @@ body{background:var(--bg);font-family:var(--sans);color:var(--t1);min-height:100
 
 /* ── LAYOUT COLS ── */
 .adm-cols{display:grid;grid-template-columns:1fr;gap:14px;}
-@@media(min-width:1024px){.adm-cols{grid-template-columns:1fr 320px;gap:18px;}}
+@media(min-width:1024px){.adm-cols{grid-template-columns:1fr 320px;gap:18px;}}
 
 /* ── PANEL ── */
 .adm-panel{background:var(--s1);border:1px solid var(--b2);border-radius:16px;overflow:hidden;margin-bottom:14px;}
@@ -113,7 +113,7 @@ body{background:var(--bg);font-family:var(--sans);color:var(--t1);min-height:100
 
 /* ── PERFORMANCE ── */
 .perf-grid{display:grid;grid-template-columns:1fr;gap:10px;}
-@@media(min-width:640px){.perf-grid{grid-template-columns:repeat(2,1fr);}}
+@media(min-width:640px){.perf-grid{grid-template-columns:repeat(2,1fr);}}
 .perf-card{background:var(--s2);border:1px solid var(--b1);border-radius:12px;padding:14px;}
 .perf-card-name{font-size:12px;font-weight:700;color:var(--t1);margin-bottom:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .perf-row{margin-bottom:8px;}
@@ -170,12 +170,90 @@ body{background:var(--bg);font-family:var(--sans);color:var(--t1);min-height:100
 .modal-box img{width:100%;border-radius:12px;margin-bottom:16px;max-height:300px;object-fit:contain;background:var(--s2);}
 .modal-close{width:32px;height:32px;border-radius:8px;background:var(--b1);border:1px solid var(--b2);color:var(--t2);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:all .2s;}
 .modal-close:hover{background:rgba(244,63,94,.12);color:var(--red);}
+
+/* ══════════════════════════════════════════════
+   NOVAS MELHORIAS
+   ══════════════════════════════════════════════ */
+[x-cloak]{display:none!important;}
+
+/* 12: mensagens flash do controller */
+/* mensagens de sucesso/erro agora tratadas pelo toast global do app.blade.php — nada a fazer aqui */
+
+/* 6: última atualização + atualizar */
+.adm-refresh-row{display:flex;align-items:center;justify-content:space-between;font-size:10.5px;color:var(--t3);margin-bottom:12px;}
+.adm-refresh-row .dot{width:6px;height:6px;border-radius:50%;background:var(--green);display:inline-block;margin-right:5px;animation:pulse-r 2s infinite;}
+.adm-refresh-btn{font-size:10px;color:var(--sky);background:none;border:1px solid var(--b2);border-radius:8px;padding:4px 10px;cursor:pointer;font-family:var(--mono);}
+.adm-refresh-btn:hover{border-color:var(--b3);}
+.adm-refresh-btn.loading{opacity:.6;pointer-events:none;}
+
+/* 5: filtro de período */
+.period-filters{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin-bottom:16px;}
+.period-filters::-webkit-scrollbar{display:none;}
+.pfbtn{flex-shrink:0;padding:7px 13px;border-radius:9px;font-size:11px;font-weight:700;border:1px solid var(--b2);background:var(--s2);color:var(--t2);cursor:pointer;text-decoration:none;font-family:var(--sans);}
+.pfbtn.active{border-color:var(--sky);color:var(--sky);background:var(--b1);}
+
+/* 8: badge de pendentes reposicionado */
+.kpi-delta.warn{cursor:default;}
+
+/* 9: tooltip explicativo (HMAC e outros termos técnicos) */
+.info-icon{display:inline-flex;align-items:center;justify-content:center;width:13px;height:13px;border-radius:50%;background:var(--b1);border:1px solid var(--b2);color:var(--sky);font-size:8.5px;cursor:pointer;margin-left:4px;position:relative;vertical-align:middle;}
+.info-icon .tip{display:none;position:absolute;bottom:130%;left:50%;transform:translateX(-50%);width:190px;background:#000;color:#fff;font-size:10px;font-weight:400;padding:8px 10px;border-radius:8px;line-height:1.5;z-index:20;box-shadow:0 4px 14px rgba(0,0,0,.5);text-transform:none;letter-spacing:normal;}
+.info-icon:hover .tip, .info-icon.open .tip{display:block;}
+
+/* 7: pesquisa na tabela de vendas */
+.tbl-search{display:flex;align-items:center;gap:8px;background:var(--s2);border:1px solid var(--b1);border-radius:10px;padding:8px 12px;margin-bottom:10px;}
+.tbl-search input{flex:1;background:none;border:none;outline:none;color:var(--t1);font-size:12px;font-family:var(--sans);}
+.tbl-empty-filtered{display:none;text-align:center;padding:20px;color:var(--t3);font-size:12px;}
+.tbl-empty-filtered.show{display:block;}
+
+/* 10: eliminar com loading + modal em vez de confirm() nativo */
+.tbl-btn.loading{opacity:.5;pointer-events:none;}
+.tbl-btn .mini-spin{display:none;width:10px;height:10px;border-radius:50%;border:2px solid rgba(244,63,94,.25);border-top-color:var(--red);animation:spin-mini .6s linear infinite;}
+.tbl-btn.loading .mini-spin{display:inline-block;}
+@keyframes spin-mini{to{transform:rotate(360deg)}}
+.del-modal-ov{display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.75);backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:20px;}
+.del-modal-ov.open{display:flex;}
+.del-modal-box{background:var(--s1);border:1px solid rgba(244,63,94,.4);border-radius:16px;padding:20px;max-width:300px;width:100%;text-align:center;}
+.del-modal-actions{display:flex;gap:8px;margin-top:14px;}
+.del-mbtn{flex:1;padding:10px;border-radius:10px;font-size:12px;font-weight:700;border:none;cursor:pointer;}
+.del-mbtn.cancel{background:var(--s3);color:var(--t2);}
+.del-mbtn.confirm{background:var(--red);color:#fff;}
+
+/* 3: aviso se o gráfico (CDN externo) não carregar */
+.chart-fallback{display:none;height:240px;border-radius:10px;background:var(--s2);align-items:center;justify-content:center;flex-direction:column;gap:6px;font-size:11px;color:var(--t3);text-align:center;padding:14px;}
+.chart-fallback.show{display:flex;}
+
+/* 14: cartões de segurança do topo clicáveis */
+a.sec-kpi{display:block;text-decoration:none;transition:border-color .2s,transform .2s;}
+a.sec-kpi:hover{border-color:var(--b3);transform:translateY(-2px);}
+
+/* 15: destaque de cor consistente nos atalhos rápidos */
+.qlink.c-green{border-color:rgba(16,185,129,.25);} .qlink.c-green .qlink-label{color:var(--green);}
+.qlink.c-amber{border-color:rgba(245,158,11,.25);} .qlink.c-amber .qlink-label{color:var(--amber);}
+.qlink.c-red{border-color:rgba(244,63,94,.25);} .qlink.c-red .qlink-label{color:var(--red);}
+.qlink.c-sky{border-color:rgba(56,189,248,.25);} .qlink.c-sky .qlink-label{color:var(--sky);}
 </style>
 
 <div class="adm-bg"></div>
 <div class="adm-grid"></div>
 
 <div class="adm-wrap" x-data="{ showModal:false, imgUrl:'', clienteNome:'', whatsapp:'' }">
+
+    {{-- 6: última atualização + recarregar --}}
+    <div class="adm-refresh-row">
+        <span><span class="dot"></span>Dados carregados às {{ now()->format('H:i') }}</span>
+        <button type="button" class="adm-refresh-btn" id="btnRefresh" onclick="recarregarDashboard()">🔄 ATUALIZAR</button>
+    </div>
+
+    {{-- 5: filtro de período — afeta as métricas financeiras e o desempenho por evento --}}
+    @php $periodoAtual = $periodo ?? 'tudo'; @endphp
+    <div class="period-filters">
+        <a href="{{ request()->fullUrlWithQuery(['periodo' => 'hoje']) }}" class="pfbtn {{ $periodoAtual === 'hoje' ? 'active' : '' }}">Hoje</a>
+        <a href="{{ request()->fullUrlWithQuery(['periodo' => '7dias']) }}" class="pfbtn {{ $periodoAtual === '7dias' ? 'active' : '' }}">7 dias</a>
+        <a href="{{ request()->fullUrlWithQuery(['periodo' => '30dias']) }}" class="pfbtn {{ $periodoAtual === '30dias' ? 'active' : '' }}">30 dias</a>
+        <a href="{{ request()->fullUrlWithQuery(['periodo' => 'mes']) }}" class="pfbtn {{ $periodoAtual === 'mes' ? 'active' : '' }}">Este mês</a>
+        <a href="{{ request()->fullUrlWithQuery(['periodo' => 'tudo']) }}" class="pfbtn {{ $periodoAtual === 'tudo' ? 'active' : '' }}">Tudo</a>
+    </div>
 
     {{-- MODAL COMPROVATIVO --}}
     <div class="modal-overlay" x-show="showModal" x-cloak x-on:click.self="showModal=false"
@@ -193,7 +271,11 @@ body{background:var(--bg);font-family:var(--sans);color:var(--t1);min-height:100
                 </div>
                 <button class="modal-close" x-on:click="showModal=false">✕</button>
             </div>
-            <img :src="imgUrl" alt="Comprovativo" onerror="this.style.display='none'">
+            {{-- 11: erro ao carregar já não desaparece em silêncio --}}
+            <img :src="imgUrl" alt="Comprovativo" id="comprovativoImg" onerror="mostrarErroComprovativo(this)" onload="mostrarErroComprovativo(this, false)">
+            <div id="comprovativoErro" style="display:none;text-align:center;padding:30px 0;color:var(--t3);font-size:12px;background:var(--s2);border-radius:12px;margin-bottom:16px;">
+                📂 Sem comprovativo ou não foi possível carregar a imagem.
+            </div>
             <a :href="imgUrl" target="_blank" style="display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;border-radius:10px;background:var(--b1);border:1px solid var(--b2);color:var(--t2);font-size:12px;font-weight:600;text-decoration:none;">
                 🔗 Abrir em novo separador
             </a>
@@ -225,32 +307,46 @@ body{background:var(--bg);font-family:var(--sans);color:var(--t1);min-height:100
     </div>
 
     {{-- KPIs FINANCEIROS --}}
+    @php
+        // 4: mostra o valor exato quando < 1000 Kz, em vez de arredondar sempre para "k"
+        $fmtKz = function ($valor) {
+            $valor = $valor ?? 0;
+            return $valor >= 1000
+                ? number_format($valor / 1000, 0, ',', '.') . 'k'
+                : number_format($valor, 0, ',', '.');
+        };
+    @endphp
     <div class="sec-label">métricas financeiras</div>
     <div class="kpi-grid" style="margin-bottom:20px;">
         <div class="kpi-card" style="--accent-color:var(--sky)">
             <div class="kpi-glow"></div>
             <div class="kpi-icon">💰</div>
             <div class="kpi-label">Receita Total</div>
-            <div class="kpi-value">{{ number_format(($receitaTotal ?? 0)/1000,0,',','.') }}k</div>
-            <div class="kpi-sub">Kz · todas as vendas</div>
+            <div class="kpi-value">{{ $fmtKz($receitaTotal ?? 0) }}</div>
+            @php
+                $periodoLbl = ['hoje'=>'hoje','7dias'=>'últimos 7 dias','30dias'=>'últimos 30 dias','mes'=>'este mês','tudo'=>'todas as vendas'][$periodoAtual] ?? 'todas as vendas';
+            @endphp
+            <div class="kpi-sub">Kz · {{ $periodoLbl }}</div>
         </div>
         <div class="kpi-card" style="--accent-color:var(--green)">
+            <div class="kpi-glow"></div>
+            <div class="kpi-delta up">✓ Recebido</div>
+            <div class="kpi-icon">📈</div>
+            <div class="kpi-label">Lucro LT</div>
+            <div class="kpi-value accent">{{ $fmtKz(($receitaTotal ?? 0)*.10) }}</div>
+            <div class="kpi-sub">Kz · taxa 10%</div>
+        </div>
+        {{-- 8: aviso de pendentes agora no cartão certo — quem está pendente de receber é o organizador, não a Luanda Tickets --}}
+        <div class="kpi-card" style="--accent-color:var(--amber)">
             <div class="kpi-glow"></div>
             @if(($pendentesCount ?? 0) > 0)
             <div class="kpi-delta warn">⚠ {{ $pendentesCount }} pendentes</div>
             @else
             <div class="kpi-delta up">✓ Em dia</div>
             @endif
-            <div class="kpi-icon">📈</div>
-            <div class="kpi-label">Lucro LT</div>
-            <div class="kpi-value accent">{{ number_format(($receitaTotal ?? 0)*.10/1000,0,',','.') }}k</div>
-            <div class="kpi-sub">Kz · taxa 10%</div>
-        </div>
-        <div class="kpi-card" style="--accent-color:var(--amber)">
-            <div class="kpi-glow"></div>
             <div class="kpi-icon">🏦</div>
             <div class="kpi-label">Repasse</div>
-            <div class="kpi-value">{{ number_format(($receitaTotal ?? 0)*.90/1000,0,',','.') }}k</div>
+            <div class="kpi-value">{{ $fmtKz(($receitaTotal ?? 0)*.90) }}</div>
             <div class="kpi-sub">Kz · líquido organizadores</div>
         </div>
         <div class="kpi-card" style="--accent-color:var(--purple)">
@@ -262,33 +358,38 @@ body{background:var(--bg);font-family:var(--sans);color:var(--t1);min-height:100
         </div>
     </div>
 
-    {{-- KPIs SEGURANÇA --}}
+    {{-- KPIs SEGURANÇA — agora clicáveis, levam à página de Análises --}}
     <div class="sec-label">segurança de bilhetes</div>
     <div class="sec-kpi-grid" style="margin-bottom:20px;">
-        <div class="sec-kpi ok">
+        <a href="{{ route('admin.analises') }}" class="sec-kpi ok">
             <div class="sec-kpi-val">{{ $totalBilhetes ?? 0 }}</div>
             <div class="sec-kpi-lbl">Total Bilhetes</div>
-        </div>
-        <div class="sec-kpi ok">
+        </a>
+        <a href="{{ route('admin.analises') }}" class="sec-kpi ok">
             <div class="sec-kpi-val">{{ $bilhetesComHmac ?? 0 }}</div>
-            <div class="sec-kpi-lbl">Com HMAC</div>
-        </div>
-        <div class="sec-kpi ok">
+            <div class="sec-kpi-lbl">
+                Com HMAC
+                <span class="info-icon" onclick="event.preventDefault(); this.classList.toggle('open')">?
+                    <span class="tip">HMAC é uma assinatura digital que impede que os bilhetes sejam falsificados ou alterados depois de emitidos.</span>
+                </span>
+            </div>
+        </a>
+        <a href="{{ route('admin.analises') }}" class="sec-kpi ok">
             <div class="sec-kpi-val">{{ $bilhetesValidados ?? 0 }}</div>
             <div class="sec-kpi-lbl">Validados</div>
-        </div>
-        <div class="sec-kpi ok">
+        </a>
+        <a href="{{ route('admin.analises') }}" class="sec-kpi ok">
             <div class="sec-kpi-val">{{ $lotesEmitidos ?? 0 }}</div>
             <div class="sec-kpi-lbl">Lotes</div>
-        </div>
-        <div class="sec-kpi {{ ($bilhetesBloqueados ?? 0) > 0 ? 'danger' : 'ok' }}">
+        </a>
+        <a href="{{ route('admin.analises') }}" class="sec-kpi {{ ($bilhetesBloqueados ?? 0) > 0 ? 'danger' : 'ok' }}">
             <div class="sec-kpi-val">{{ $bilhetesBloqueados ?? 0 }}</div>
             <div class="sec-kpi-lbl">Bloqueados</div>
-        </div>
-        <div class="sec-kpi {{ ($tentativasInvalidas ?? 0) > 0 ? 'warn' : 'ok' }}">
+        </a>
+        <a href="{{ route('admin.analises') }}" class="sec-kpi {{ ($tentativasInvalidas ?? 0) > 0 ? 'warn' : 'ok' }}">
             <div class="sec-kpi-val">{{ $tentativasInvalidas ?? 0 }}</div>
             <div class="sec-kpi-lbl">Tentativas</div>
-        </div>
+        </a>
     </div>
 
     {{-- LAYOUT PRINCIPAL --}}
@@ -346,11 +447,19 @@ body{background:var(--bg);font-family:var(--sans);color:var(--t1);min-height:100
                         <button class="adm-tab" onclick="switchTab('vendas',this)">📋 Vendas</button>
                     </div>
                     <div class="adm-tab-panel active" id="tab-grafico">
-                        <div style="height:240px;"><canvas id="chartReceita"></canvas></div>
+                        <div style="height:240px;" id="chartWrap"><canvas id="chartReceita"></canvas></div>
+                        <div class="chart-fallback" id="chartFallback">
+                            📡 Gráfico indisponível<br>
+                            <span style="font-size:10px;">A biblioteca de gráficos não carregou (provavelmente sem internet). Os números continuam disponíveis na aba "📋 Vendas".</span>
+                        </div>
                     </div>
                     <div class="adm-tab-panel" id="tab-vendas">
+                        {{-- 7: pesquisa por cliente (filtra a página atual carregada) --}}
+                        <div class="tbl-search">
+                            🔍 <input type="text" id="vendasSearch" placeholder="Buscar por cliente..." oninput="filtrarVendas()">
+                        </div>
                         <div style="overflow-x:auto;">
-                            <table class="adm-table">
+                            <table class="adm-table" id="vendasTable">
                                 <thead><tr>
                                     <th>Cliente</th><th>Evento</th>
                                     <th style="text-align:right;">Total</th>
@@ -358,7 +467,7 @@ body{background:var(--bg);font-family:var(--sans);color:var(--t1);min-height:100
                                 </tr></thead>
                                 <tbody>
                                     @forelse($vendasDetalhadas as $venda)
-                                    <tr>
+                                    <tr data-cliente="{{ strtolower($venda->nome_cliente) }}">
                                         <td><div class="td-name">{{ e($venda->nome_cliente) }}</div></td>
                                         <td><div class="td-event">{{ Str::limit(optional(optional($venda->tipoIngresso)->evento)->titulo??'—',22) }}</div></td>
                                         <td class="td-val">{{ number_format($venda->total,0,',','.') }} Kz</td>
@@ -367,9 +476,13 @@ body{background:var(--bg);font-family:var(--sans);color:var(--t1);min-height:100
                                             <div class="td-acts">
                                                 <button class="tbl-btn"
                                                     x-on:click="showModal=true;imgUrl='{{ asset('storage/'.($venda->comprovativo_path??'')) }}';clienteNome='{{ addslashes(e($venda->nome_cliente)) }}';whatsapp='{{ e($venda->whatsapp??'') }}'">📂</button>
-                                                <form action="{{ route('reserva.eliminar',$venda->id) }}" method="POST" onsubmit="return confirm('Apagar?')" style="display:inline;">
+                                                {{-- 2, 10: modal com nome do cliente + loading em vez de confirm() nativo --}}
+                                                <form action="{{ route('reserva.eliminar',$venda->id) }}" method="POST" id="form-del-{{ $venda->id }}" style="display:inline;">
                                                     @csrf @method('DELETE')
-                                                    <button type="submit" class="tbl-btn danger">🗑</button>
+                                                    <button type="button" class="tbl-btn danger" id="btn-del-{{ $venda->id }}"
+                                                        onclick="confirmarEliminarReserva({{ $venda->id }}, '{{ addslashes(e($venda->nome_cliente)) }}', '{{ number_format($venda->total,0,',','.') }} Kz')">
+                                                        🗑<span class="mini-spin"></span>
+                                                    </button>
                                                 </form>
                                             </div>
                                         </td>
@@ -379,6 +492,7 @@ body{background:var(--bg);font-family:var(--sans);color:var(--t1);min-height:100
                                     @endforelse
                                 </tbody>
                             </table>
+                            <div class="tbl-empty-filtered" id="vendasEmptyFiltered">🔍 Nenhum cliente encontrado nesta página.</div>
                         </div>
                     </div>
                 </div>
@@ -394,16 +508,16 @@ body{background:var(--bg);font-family:var(--sans);color:var(--t1);min-height:100
                 </div>
                 <div class="adm-panel-body">
                     <div class="qlink-grid">
-                        <a href="{{ route('admin.eventos.criar') }}" class="qlink"><div class="qlink-icon">➕</div><div class="qlink-label">Novo Evento</div></a>
-                        <a href="{{ route('admin.reservas') }}" class="qlink"><div class="qlink-icon">📋</div><div class="qlink-label">Reservas</div></a>
-                        <a href="{{ route('admin.pagos') }}" class="qlink"><div class="qlink-icon">💳</div><div class="qlink-label">Pagamentos</div></a>
-                        <a href="{{ route('admin.scanner') }}" class="qlink"><div class="qlink-icon">📷</div><div class="qlink-label">Scanner</div></a>
+                        <a href="{{ route('admin.eventos.criar') }}" class="qlink c-sky"><div class="qlink-icon">➕</div><div class="qlink-label">Novo Evento</div></a>
+                        <a href="{{ route('admin.reservas') }}" class="qlink c-green"><div class="qlink-icon">📋</div><div class="qlink-label">Reservas</div></a>
+                        <a href="{{ route('admin.pagos') }}" class="qlink c-amber"><div class="qlink-icon">💳</div><div class="qlink-label">Pagamentos</div></a>
+                        <a href="{{ route('admin.scanner') }}" class="qlink c-red"><div class="qlink-icon">📷</div><div class="qlink-label">Scanner</div></a>
                         @if($isAdmin)
-                        <a href="{{ route('admin.usuarios.index') }}" class="qlink"><div class="qlink-icon">👥</div><div class="qlink-label">Utilizadores</div></a>
+                        <a href="{{ route('admin.usuarios.index') }}" class="qlink c-sky"><div class="qlink-icon">👥</div><div class="qlink-label">Utilizadores</div></a>
                         @endif
                         <a href="{{ route('admin.analises') }}" class="qlink" style="border-color:rgba(167,139,250,.2);"><div class="qlink-icon">🔬</div><div class="qlink-label" style="color:var(--purple);">Análises</div></a>
-                        <a href="{{ route('admin.saldos') }}" class="qlink" style="border-color:rgba(245,158,11,.2);"><div class="qlink-icon">💰</div><div class="qlink-label" style="color:var(--amber);">Saldos</div></a>
-                        <a href="{{ route('admin.contas-bancarias') }}" class="qlink" style="border-color:rgba(6,182,212,.3);"><div class="qlink-icon">🏦</div><div class="qlink-label" style="color:var(--sky);">Contas Bancárias</div></a>
+                        <a href="{{ route('admin.saldos') }}" class="qlink c-amber"><div class="qlink-icon">💰</div><div class="qlink-label">Saldos</div></a>
+                        <a href="{{ route('admin.contas-bancarias') }}" class="qlink c-sky"><div class="qlink-icon">🏦</div><div class="qlink-label">Contas Bancárias</div></a>
                     </div>
                 </div>
             </div>
@@ -496,6 +610,19 @@ body{background:var(--bg);font-family:var(--sans);color:var(--t1);min-height:100
     </div>
 </div>
 
+{{-- 2, 10: modal de confirmação personalizado para eliminar reserva --}}
+<div class="del-modal-ov" id="delModalOv" onclick="if(event.target===this) fecharModalDelReserva()">
+    <div class="del-modal-box">
+        <div style="font-size:26px;margin-bottom:8px;">🗑️</div>
+        <div style="font-size:14px;font-weight:800;margin-bottom:6px;">Eliminar esta reserva?</div>
+        <div style="font-size:12px;color:var(--t2);line-height:1.5;" id="delModalText"></div>
+        <div class="del-modal-actions">
+            <button type="button" class="del-mbtn cancel" onclick="fecharModalDelReserva()">Cancelar</button>
+            <button type="button" class="del-mbtn confirm" id="delModalConfirmBtn">Eliminar</button>
+        </div>
+    </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
 // Relógio
@@ -514,30 +641,81 @@ function switchTab(id,btn){
     btn.classList.add('active');
 }
 
-// Gráfico
-const ctx=document.getElementById('chartReceita');
-if(ctx){
-    new Chart(ctx,{
-        type:'bar',
-        data:{
-            labels:['Normal','VIP'],
-            datasets:[{
-                label:'Receita (Kz)',
-                data:[{{ $valorTotalNormal ?? 0 }},{{ $valorTotalVip ?? 0 }}],
-                backgroundColor:['rgba(56,189,248,.5)','rgba(167,139,250,.5)'],
-                borderColor:['rgba(56,189,248,1)','rgba(167,139,250,1)'],
-                borderWidth:1,borderRadius:6,
-            }]
-        },
-        options:{
-            responsive:true,maintainAspectRatio:false,
-            plugins:{legend:{display:false},tooltip:{callbacks:{label:v=>v.raw.toLocaleString('pt-PT')+' Kz'}}},
-            scales:{
-                x:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#475569',font:{family:'Space Mono',size:10}}},
-                y:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#475569',font:{family:'Space Mono',size:10},callback:v=>v>=1000?Math.round(v/1000)+'k':v}}
+// 3: Gráfico — com aviso claro se o Chart.js (CDN) não tiver carregado
+if (typeof Chart === 'undefined') {
+    const wrap = document.getElementById('chartWrap');
+    const fallback = document.getElementById('chartFallback');
+    if (wrap) wrap.style.display = 'none';
+    if (fallback) fallback.classList.add('show');
+} else {
+    const ctx=document.getElementById('chartReceita');
+    if(ctx){
+        new Chart(ctx,{
+            type:'bar',
+            data:{
+                labels:['Normal','VIP'],
+                datasets:[{
+                    label:'Receita (Kz)',
+                    data:[{{ $valorTotalNormal ?? 0 }},{{ $valorTotalVip ?? 0 }}],
+                    backgroundColor:['rgba(56,189,248,.5)','rgba(167,139,250,.5)'],
+                    borderColor:['rgba(56,189,248,1)','rgba(167,139,250,1)'],
+                    borderWidth:1,borderRadius:6,
+                }]
+            },
+            options:{
+                responsive:true,maintainAspectRatio:false,
+                plugins:{legend:{display:false},tooltip:{callbacks:{label:v=>v.raw.toLocaleString('pt-PT')+' Kz'}}},
+                scales:{
+                    x:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#475569',font:{family:'Space Mono',size:10}}},
+                    y:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#475569',font:{family:'Space Mono',size:10},callback:v=>v>=1000?Math.round(v/1000)+'k':v}}
+                }
             }
-        }
+        });
+    }
+}
+
+// 6: recarregar dashboard (não há endpoint de dados ao vivo — recarrega a página inteira)
+function recarregarDashboard() {
+    const btn = document.getElementById('btnRefresh');
+    btn.classList.add('loading');
+    btn.textContent = '⏳ A ATUALIZAR...';
+    location.reload();
+}
+
+// 7: pesquisa na tabela de vendas (filtra a página atual carregada)
+function filtrarVendas() {
+    const q = document.getElementById('vendasSearch').value.toLowerCase();
+    let visiveis = 0;
+    document.querySelectorAll('#vendasTable tbody tr').forEach(tr => {
+        if (!tr.dataset.cliente) return; // ignora a linha "SEM REGISTOS"
+        const visivel = tr.dataset.cliente.includes(q);
+        tr.style.display = visivel ? '' : 'none';
+        if (visivel) visiveis++;
     });
+    document.getElementById('vendasEmptyFiltered').classList.toggle('show', visiveis === 0 && q.length > 0);
+}
+
+// 2, 10: eliminar reserva com nome do cliente + loading, em vez de confirm() nativo
+function confirmarEliminarReserva(id, nomeCliente, valor) {
+    document.getElementById('delModalText').innerHTML =
+        `A reserva de <b>${nomeCliente}</b> (${valor}) será apagada permanentemente.`;
+    const confirmBtn = document.getElementById('delModalConfirmBtn');
+    confirmBtn.onclick = function () {
+        fecharModalDelReserva();
+        const btn = document.getElementById('btn-del-' + id);
+        btn.classList.add('loading');
+        document.getElementById('form-del-' + id).submit();
+    };
+    document.getElementById('delModalOv').classList.add('open');
+}
+function fecharModalDelReserva() {
+    document.getElementById('delModalOv').classList.remove('open');
+}
+
+// 11: comprovativo — mostra aviso claro em vez de desaparecer em silêncio
+function mostrarErroComprovativo(img, comErro = true) {
+    document.getElementById('comprovativoErro').style.display = comErro ? 'block' : 'none';
+    img.style.display = comErro ? 'none' : 'block';
 }
 </script>
 @endsection

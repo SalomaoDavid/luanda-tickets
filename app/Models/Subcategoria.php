@@ -6,7 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Subcategoria extends Model
 {
-    protected $fillable = ['categoria_id', 'nome', 'slug'];
+    protected $fillable = ['categoria_id', 'nome', 'slug', 'ativo'];
+    protected $casts = ['ativo' => 'boolean'];
 
     public function categoria()
     {

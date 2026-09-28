@@ -4,7 +4,7 @@
 
 <style>
 .notif-page{max-width:600px;margin:0 auto;padding:16px 8px 80px;}
-@@media(min-width:768px){.notif-page{padding:0 0 60px;}}
+@media(min-width:768px){.notif-page{padding:0 0 60px;}}
 
 .notif-page-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
 .notif-page-title{font-size:18px;font-weight:800;color:#f0f6ff;}
@@ -36,6 +36,7 @@
 .notif-avatar-icon.like   {background:#2563eb;}
 .notif-avatar-icon.comment{background:#7c3aed;}
 .notif-avatar-icon.ticket {background:#10b981;}
+.notif-avatar-icon.follow {background:#f59e0b;}
 .notif-avatar-icon.default{background:#64748b;}
 
 .notif-body{flex:1;min-width:0;}
@@ -89,10 +90,24 @@
                 => isset($data['evento_id']) ? route('evento.detalhes', $data['evento_id']) : '#',
             'App\Notifications\TicketPurchasedNotification'
                 => isset($data['evento_id']) ? route('evento.detalhes', $data['evento_id']) : '#',
+            'App\Notifications\NovoPedidoNotification'
+                => route('admin.reservas'),
+            'App\Notifications\PedidoAprovadoNotification'
+                => isset($data['evento_id']) ? route('evento.detalhes', $data['evento_id']) : '#',
+            'App\Notifications\NewFollowerNotification'
+                => isset($data['seguidor_id']) ? route('profile.show', $data['seguidor_id']) : '#',
+            'App\Notifications\PostagemLikedNotification'
+            => isset($data['postagem_id'])
+                ? \App\Support\NotificationLinks::postagem($data['postagem_id'])
+                : route('home'),
+            'App\Notifications\PostagemComentarioNotification'
+                => isset($data['postagem_id'])
+                    ? \App\Support\NotificationLinks::postagem($data['postagem_id'])
+                    : route('home'),
             default => '#',
         };
 
-        $foto = $data['user_photo'] ?? $data['sender_photo'] ?? $data['comprador_foto'] ?? null;
+        $foto = $data['user_photo'] ?? $data['sender_photo'] ?? $data['comprador_foto'] ?? $data['seguidor_foto'] ?? null;
         $fotoUrl = $foto
             ? (str_starts_with($foto, 'http') ? $foto : asset('storage/'.$foto))
             : 'https://ui-avatars.com/api/?name=?&color=7F9CF5&background=EBF4FF';
@@ -103,6 +118,11 @@
             'App\Notifications\EventCommentNotification'           => 'comment',
             'App\Notifications\FollowedUserLikedEventNotification' => 'like',
             'App\Notifications\TicketPurchasedNotification'        => 'ticket',
+            'App\Notifications\NovoPedidoNotification'             => 'ticket',
+            'App\Notifications\PedidoAprovadoNotification'         => 'ticket',
+            'App\Notifications\NewFollowerNotification'            => 'follow',
+            'App\Notifications\PostagemLikedNotification'          => 'like',
+            'App\Notifications\PostagemComentarioNotification'     => 'comment',
             default => 'default',
         };
 
@@ -112,6 +132,11 @@
             'App\Notifications\EventCommentNotification'           => '💬',
             'App\Notifications\FollowedUserLikedEventNotification' => '❤️',
             'App\Notifications\TicketPurchasedNotification'        => '🎟',
+            'App\Notifications\NovoPedidoNotification'             => '🛒',
+            'App\Notifications\PedidoAprovadoNotification'         => '✅',
+            'App\Notifications\NewFollowerNotification'            => '➕',
+            'App\Notifications\PostagemLikedNotification'          => '👍',
+            'App\Notifications\PostagemComentarioNotification'     => '💬',
             default => '🔔',
         };
     @endphp
@@ -154,6 +179,29 @@
                         <strong>{{ $data['comprador_nome'] ?? '' }}</strong>
                         comprou {{ $data['quantidade'] ?? 1 }} bilhete{{ ($data['quantidade'] ?? 1) > 1 ? 's' : '' }}
                         <div class="notif-evento">{{ $data['evento_titulo'] ?? '' }}</div>
+                        @break
+                    @case('App\Notifications\NovoPedidoNotification')
+                        <strong>{{ $data['comprador_nome'] ?? '' }}</strong> fez um pedido de compra de bilhetes
+                        <div class="notif-evento">{{ $data['evento_titulo'] ?? '' }}</div>
+                        @break
+                    @case('App\Notifications\PedidoAprovadoNotification')
+                        O teu pedido foi aprovado, o bilhete já está no teu perfil
+                        <div class="notif-evento">{{ $data['evento_titulo'] ?? '' }}</div>
+                        @break
+                    @case('App\Notifications\NewFollowerNotification')
+                        <strong>{{ $data['seguidor_nome'] ?? '' }}</strong> começou a seguir-te
+                        @break
+                    @case('App\Notifications\PostagemLikedNotification')
+                        <strong>{{ $data['user_name'] ?? '' }}</strong> reagiu à tua publicação
+                        @if(!empty($data['postagem_preview']))
+                        <div class="notif-preview">{{ $data['postagem_preview'] }}</div>
+                        @endif
+                        @break
+                    @case('App\Notifications\PostagemComentarioNotification')
+                        <strong>{{ $data['user_name'] ?? '' }}</strong> comentou na tua publicação
+                        @if(!empty($data['preview']))
+                        <div class="notif-preview">{{ $data['preview'] }}</div>
+                        @endif
                         @break
                     @default
                         <span>Nova notificação</span>

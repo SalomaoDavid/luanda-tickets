@@ -10,8 +10,6 @@ use App\Models\Message;
 
 class ChatBox extends Component
 {
-    // Adicionamos 'reset-chat' para limpar a tela quando deletar na lateral
-    // E 'refresh' para forçar a re-renderização
     protected $listeners = [
         'loadConversation', 
         'refresh' => '$refresh', 
@@ -23,24 +21,24 @@ class ChatBox extends Component
 
     public function mount(Conversation $conversation = null)
     {
-        if ($conversation && $conversation->exists) {
+        if ($conversation) {
             $this->conversation = $conversation;
-            $this->messageBody = ''; // Garante campo limpo
-            $this->markAsRead();
+            $this->messageBody = '';
+
+            // ✅ Só marca como lida se já existir mesmo na BD — uma conversa
+            // ainda em memória (ver MessagesIndex::startChat) não tem
+            // mensagens para marcar.
+            if ($conversation->exists) {
+                $this->markAsRead();
+            }
         }
     }
 
-    /**
-     * Limpa o estado do chat (essencial para quando a conversa é deletada)
-     */
     public function resetChat()
     {
         $this->conversation = null;
     }
 
-    /**
-     * Carrega a conversa e marca como lida
-     */
     public function loadConversation($conversationId)
     {
         if (!$conversationId) {
@@ -48,25 +46,28 @@ class ChatBox extends Component
             return;
         }
 
-        $this->conversation = Conversation::find($conversationId);
+        $conversa = Conversation::find($conversationId);
+
+        if (!$conversa || !$conversa->temParticipante(auth()->id())) {
+            $this->resetChat();
+            return;
+        }
+
+        $this->conversation = $conversa;
         $this->markAsRead();
         
-        // Dispara o scroll para o fundo após carregar
         $this->dispatch('scroll-down'); 
     }
 
-    /**
-     * Alterna o status de bloqueio
-     */
     public function toggleBlock()
     {
-        if (!$this->conversation) return;
+        // ✅ Uma conversa ainda não gravada não pode ser bloqueada
+        if (!$this->conversation || !$this->conversation->exists) return;
 
         $userId = auth()->id();
 
-        // Só quem bloqueou pode desbloquear
         if ($this->conversation->is_blocked && $this->conversation->blocked_by !== $userId) {
-            return; // Não faz nada — não foi tu que bloqueaste
+            return;
         }
 
         $this->conversation->is_blocked = !$this->conversation->is_blocked;
@@ -80,26 +81,19 @@ class ChatBox extends Component
         $this->dispatch('refresh-list');
         $this->dispatch('$refresh');
     }
-    /**
-     * Limpa as mensagens (Mantém a conversa na lista)
-     */
+
     public function clearMessages()
     {
-        if (!$this->conversation) return;
+        // ✅ Sem mensagens gravadas, não há nada para limpar
+        if (!$this->conversation || !$this->conversation->exists) return;
 
-        // Deleta as mensagens
         $this->conversation->messages()->delete();
-
-        // Atualiza o timestamp da conversa
         $this->conversation->touch();
 
         $this->dispatch('$refresh');
         $this->dispatch('refresh-list');
     }
 
-    /**
-     * Marca mensagens como lidas
-     */
     public function markAsRead()
     {
         if (!$this->conversation) return;
@@ -109,7 +103,6 @@ class ChatBox extends Component
             ->whereNull('read_at')
             ->update(['read_at' => now()]);
 
-        // Marca notificações desta conversa como lidas
         auth()->user()->unreadNotifications()
             ->get()
             ->filter(fn($n) =>
@@ -120,9 +113,7 @@ class ChatBox extends Component
 
         $this->dispatch('refresh-list');
     }
-    /**
-     * Envia mensagem com trava de bloqueio
-     */
+
     public function sendMessage($body = null)
     {
         $text = trim($body !== null ? $body : $this->messageBody);
@@ -130,6 +121,14 @@ class ChatBox extends Component
         if (empty($text) || !$this->conversation) return;
 
         if ($this->conversation->is_blocked) return;
+
+        // ✅ NOVO — só agora, com a 1ª mensagem mesmo confirmada, é que a
+        // conversa passa a existir de verdade na BD (ver
+        // MessagesIndex::startChat, que só a monta em memória).
+        if (!$this->conversation->exists) {
+            $this->conversation->save();
+            $this->dispatch('conversation-created', conversationId: $this->conversation->id);
+        }
 
         $message = Message::create([
             'conversation_id' => $this->conversation->id,
@@ -140,12 +139,6 @@ class ChatBox extends Component
         $this->conversation->touch();
         $this->messageBody = '';
 
-        // ✅ Envia via WebSocket (ShouldBroadcastNow) para quem estiver com a
-        // conversa aberta do outro lado — chega quase instantaneamente,
-        // sem esperar pelo próximo wire:poll.
-        // Protegido em try/catch: se o Reverb/Pusher falhar por qualquer
-        // motivo (config, rede, etc.), a mensagem continua enviada na mesma
-        // — só perde-se o "empurrão" em tempo real, nunca a mensagem em si.
         try {
             broadcast(new \App\Events\MessageSent($message));
         } catch (\Throwable $e) {
@@ -155,7 +148,6 @@ class ChatBox extends Component
         $this->dispatch('scroll-down');
         $this->dispatch('refresh-list');
 
-        // Só notifica se o destinatário não leu ainda (não está na conversa)
         $receiverId = $this->conversation->sender_id === auth()->id()
             ? $this->conversation->receiver_id
             : $this->conversation->sender_id;
@@ -169,7 +161,7 @@ class ChatBox extends Component
             $receiver = \App\Models\User::find($receiverId);
             if ($receiver) {
                 try {
-                    $receiver->notify(new \App\Notifications\NewMessageNotification($message->id));
+                    $receiver->notify(\App\Notifications\NewMessageNotification::fromMessage($message));
                 } catch (\Throwable $e) {
                     report($e);
                 }
@@ -181,7 +173,7 @@ class ChatBox extends Component
     {
         $messages = collect();
         
-        if ($this->conversation) {
+        if ($this->conversation && $this->conversation->exists) {
             $messages = $this->conversation->messages()
                 ->with('user')
                 ->latest() 

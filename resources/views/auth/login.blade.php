@@ -1,18 +1,18 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="min-h-screen flex items-center justify-center p-6">
+<div class="min-h-[100dvh] flex items-center justify-center p-6" style="min-height:100vh;min-height:100dvh;">
     <div class="w-full max-w-md bg-white/5 border border-white/10 p-8 rounded-3xl backdrop-blur-xl">
         <h2 class="text-2xl font-bold mb-6 text-center text-white">Bem-vindo de <span class="text-sky-500">Volta</span></h2>
    
        @if ($errors->any())
-       <div class="bg-red-500/10 border border-red-500/50 text-red-500 p-4 rounded-xl mb-6 text-sm">
+       <div class="bg-red-500/10 border border-red-500/50 text-red-500 p-4 rounded-xl mb-6 text-sm" id="errorBox">
         @foreach ($errors->all() as $error)
             <p>{{ $error }}</p>
         @endforeach
        </div>
        @endif
-        <form method="POST" action="{{ route('login') }}">
+        <form method="POST" action="{{ route('login') }}" id="loginForm">
          
             @csrf
             <div class="mb-4">
@@ -34,10 +34,57 @@
                 @endif
             </div>
 
-            <button type="submit" class="w-full bg-sky-500 hover:bg-sky-400 py-4 rounded-xl font-black uppercase tracking-widest transition">
+            {{-- Espaço reservado com altura fixa — evita que o widget "salte" e desloque
+                 o resto do formulário quando o script do Cloudflare carrega, uns instantes
+                 depois da página aparecer (era provavelmente parte do "andar" que reparaste) --}}
+            <div class="mb-6 flex justify-center" style="min-height:65px;align-items:center;">
+                <div class="cf-turnstile" data-sitekey="{{ config('turnstile.turnstile_site_key') }}"></div>
+            </div>
+
+            <button type="submit" id="submitBtn" class="w-full bg-sky-500 hover:bg-sky-400 py-4 rounded-xl font-black uppercase tracking-widest transition">
                 Entrar no Sistema
             </button>
         </form>
     </div>
 </div>
+
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const errorBox = document.getElementById('errorBox');
+        if (!errorBox) return;
+
+        // Procura um número seguido de "seconds" na mensagem de erro
+        const match = errorBox.textContent.match(/(\d+)\s+seconds/);
+        if (!match) return;
+
+        let seconds = parseInt(match[1], 10);
+        const form = document.getElementById('loginForm');
+        const camposParaDesativar = form.querySelectorAll('input, button');
+
+        camposParaDesativar.forEach(function (campo) {
+            campo.disabled = true;
+        });
+
+        const contador = document.createElement('p');
+        contador.className = 'text-center text-xs text-slate-400 mt-4';
+        form.appendChild(contador);
+
+        function atualizarContador() {
+            if (seconds <= 0) {
+                camposParaDesativar.forEach(function (campo) {
+                    campo.disabled = false;
+                });
+                contador.remove();
+                return;
+            }
+            contador.textContent = 'Podes tentar novamente em ' + seconds + ' segundos.';
+            seconds--;
+            setTimeout(atualizarContador, 1000);
+        }
+
+        atualizarContador();
+    });
+</script>
 @endsection

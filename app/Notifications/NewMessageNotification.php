@@ -34,7 +34,7 @@ class NewMessageNotification extends Notification implements ShouldQueue
 
     public function via(object $notifiable): array
     {
-        return ['database', 'broadcast'];
+        return ['database', 'broadcast', \App\Channels\WebPushChannel::class];
     }
 
     public function toDatabase(object $notifiable): array
@@ -52,5 +52,15 @@ class NewMessageNotification extends Notification implements ShouldQueue
     public function toBroadcast(object $notifiable): BroadcastMessage
     {
         return new BroadcastMessage($this->toDatabase($notifiable));
+    }
+
+    public function toWebPush(object $notifiable): array
+    {
+        return [
+            'title' => $this->senderName,
+            'body'  => $this->preview,
+            'url'   => \App\Support\NotificationLinks::mensagem($this->senderId),
+            'icon'  => $this->senderPhoto ? asset('storage/'.$this->senderPhoto) : asset('logos.png'),
+        ];
     }
 }

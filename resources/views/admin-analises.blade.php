@@ -16,7 +16,7 @@
 body{background:var(--bg);font-family:var(--sans);color:var(--t1);min-height:100vh;}
 .adm-bg{position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse at 20% 30%,rgba(167,139,250,.07),transparent 45%),radial-gradient(ellipse at 80% 60%,rgba(6,182,212,.06),transparent 40%);}
 .an-wrap{position:relative;z-index:1;width:100%;padding:16px 8px 80px;}
-@@media(min-width:768px){.an-wrap{padding:28px 20px 80px;}}
+@media(min-width:768px){.an-wrap{padding:28px 20px 80px;}}
 .an-topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:24px;flex-wrap:wrap;}
 .an-title{font-family:var(--mono);font-size:14px;font-weight:700;color:var(--purple);letter-spacing:.1em;}
 .an-sub{font-family:var(--mono);font-size:11px;color:var(--t2);margin-top:2px;}
@@ -26,7 +26,7 @@ body{background:var(--bg);font-family:var(--sans);color:var(--t1);min-height:100
 .top-btn.purple:hover{background:rgba(167,139,250,.12);}
 .sec-label{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--t2);margin-bottom:10px;}
 .st-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:20px;}
-@@media(min-width:640px){.st-grid{grid-template-columns:repeat(6,1fr);}}
+@media(min-width:640px){.st-grid{grid-template-columns:repeat(6,1fr);}}
 .st-card{background:var(--s1);border:1px solid var(--b2);border-radius:12px;padding:14px;text-align:center;}
 .st-val{font-family:var(--mono);font-size:20px;font-weight:700;color:var(--t1);margin-bottom:4px;}
 .st-lbl{font-size:11px;color:var(--t2);letter-spacing:.04em;text-transform:uppercase;}
@@ -64,7 +64,7 @@ body{background:var(--bg);font-family:var(--sans);color:var(--t1);min-height:100
 .top-ev-stat-val{font-family:var(--mono);font-size:13px;font-weight:700;}
 .top-ev-stat-lbl{font-size:11px;color:var(--t2);}
 .an-cols{display:grid;grid-template-columns:1fr;gap:16px;}
-@@media(min-width:1024px){.an-cols{grid-template-columns:1fr 1fr;}}
+@media(min-width:1024px){.an-cols{grid-template-columns:1fr 1fr;}}
 .lote-row{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--s2);border-radius:10px;border:1px solid var(--b1);margin-bottom:6px;}
 .lote-row:last-child{margin-bottom:0;}
 .lote-id{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--sky);}
@@ -77,6 +77,50 @@ body{background:var(--bg);font-family:var(--sans);color:var(--t1);min-height:100
 .blk-code{font-family:var(--mono);font-size:11px;color:var(--red);margin-bottom:4px;}
 .blk-meta{font-size:12px;color:var(--t2);}
 .blk-tent{display:inline-flex;align-items:center;gap:4px;margin-top:6px;font-family:var(--mono);font-size:10px;color:var(--amber);background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.2);padding:3px 8px;border-radius:20px;}
+
+/* ══════════════════════════════════════════════
+   NOVAS MELHORIAS
+   ══════════════════════════════════════════════ */
+
+/* 2 (2ª lista): cor própria para tentativa_reuso — já não se confunde com "eliminado" (ambos eram roxo) */
+.acao-tentativa_reuso{background:rgba(236,72,153,.12);border:1px solid rgba(236,72,153,.25);color:#ec4899;}
+
+/* última atualização (mesmo padrão do dashboard) */
+.an-refresh-row{display:flex;align-items:center;justify-content:space-between;font-size:10.5px;color:var(--t3);margin-bottom:14px;}
+.an-refresh-row .dot{width:6px;height:6px;border-radius:50%;background:var(--green);display:inline-block;margin-right:5px;animation:pulse-r 2s infinite;}
+@keyframes pulse-r{0%,100%{opacity:1}50%{opacity:.3}}
+.an-refresh-btn{font-size:10px;color:var(--sky);background:none;border:1px solid var(--b2);border-radius:8px;padding:4px 10px;cursor:pointer;font-family:var(--mono);}
+.an-refresh-btn.loading{opacity:.6;pointer-events:none;}
+
+/* filtro + exportar CSV do log de auditoria */
+.an-export-row{display:flex;gap:8px;margin-bottom:10px;}
+.an-exp-btn{flex:1;padding:8px;border-radius:9px;font-size:10.5px;font-weight:700;border:1px solid var(--b2);background:var(--s2);color:var(--sky);cursor:pointer;text-align:center;font-family:var(--sans);}
+.an-filter-chips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin-bottom:10px;}
+.an-filter-chips::-webkit-scrollbar{display:none;}
+.an-chip{flex-shrink:0;padding:6px 12px;border-radius:8px;font-size:10.5px;font-weight:700;border:1px solid var(--b2);background:var(--s2);color:var(--t2);cursor:pointer;white-space:nowrap;font-family:var(--sans);}
+.an-chip.active{border-color:var(--sky);color:var(--sky);background:var(--b1);}
+.an-empty-filtered{display:none;text-align:center;padding:20px;color:var(--t3);font-size:12px;}
+.an-empty-filtered.show{display:block;}
+
+/* scanner: distinguir nome de IP */
+.scanner-cell{display:flex;align-items:center;gap:5px;}
+.scanner-icon{font-size:10px;flex-shrink:0;}
+
+/* bilhetes bloqueados com ação de correlação */
+.blk-actions{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;}
+.blk-btn{padding:5px 10px;border-radius:7px;font-size:9.5px;font-weight:700;border:1px solid var(--b2);background:var(--s2);color:var(--sky);cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:4px;}
+
+/* sombra a sugerir mais conteúdo no scroll dos lotes */
+.lote-scroll-wrap{position:relative;}
+.lote-fade{position:absolute;bottom:0;left:0;right:0;height:24px;background:linear-gradient(to top, var(--s1), transparent);pointer-events:none;}
+
+/* eliminados: destaque quando já tinha sido validado antes de apagado */
+.elim-row-critico{background:rgba(244,63,94,.06);}
+.elim-warn-tag{font-size:9px;font-weight:800;color:var(--red);background:rgba(244,63,94,.15);padding:2px 7px;border-radius:6px;margin-left:6px;white-space:nowrap;}
+
+/* top eventos clicável */
+a.top-ev-row{text-decoration:none;color:inherit;display:flex;border-radius:10px;transition:background .15s;}
+a.top-ev-row:hover{background:var(--b1);}
 </style>
 
 <div class="adm-bg"></div>
@@ -90,8 +134,15 @@ body{background:var(--bg);font-family:var(--sans);color:var(--t1);min-height:100
         </div>
         <div style="display:flex;align-items:center;gap:8px;">
             <a href="{{ route('admin.dashboard') }}" class="top-btn">← Dashboard</a>
-            <a href="{{ route('admin.analises.pdf') }}" target="_blank" class="top-btn purple">🖨️ Relatório PDF Completo</a>
+            {{-- 2 (1ª lista): aviso antes de gerar um PDF sem limite de registos --}}
+            <a href="#" class="top-btn purple" onclick="return avisarRelatorioPdf(this)" data-href="{{ route('admin.analises.pdf') }}">🖨️ Relatório PDF Completo</a>
         </div>
+    </div>
+
+    {{-- última atualização + atualizar --}}
+    <div class="an-refresh-row">
+        <span><span class="dot"></span>Dados carregados às {{ now()->format('H:i') }}</span>
+        <button type="button" class="an-refresh-btn" id="anRefreshBtn" onclick="recarregarAnalises()">🔄 ATUALIZAR</button>
     </div>
 
     <div class="sec-label">resumo de segurança</div>
@@ -113,17 +164,17 @@ body{background:var(--bg);font-family:var(--sans);color:var(--t1);min-height:100
         <div class="an-panel-body">
             @php $maxBilhetes = $topEventos->max('total_bilhetes') ?: 1; @endphp
             @forelse($topEventos as $i => $ev)
-            <div class="top-ev-row">
+            <a href="{{ route('evento.detalhes', $ev->id) }}" class="top-ev-row">
                 <div class="top-ev-rank">#{{ $i + 1 }}</div>
                 <div style="flex:1;min-width:0;">
-                    <div class="top-ev-name">{{ Str::limit($ev->titulo, 40) }}</div>
+                    <div class="top-ev-name" title="{{ $ev->titulo }}">{{ Str::limit($ev->titulo, 40) }}</div>
                     <div class="top-ev-bar-wrap"><div class="top-ev-bar" style="width:{{ ($ev->total_bilhetes / $maxBilhetes) * 100 }}%"></div></div>
                 </div>
                 <div style="display:flex;gap:18px;margin-left:12px;">
                     <div class="top-ev-stat"><div class="top-ev-stat-val" style="color:var(--sky)">{{ $ev->total_bilhetes }}</div><div class="top-ev-stat-lbl">emitidos</div></div>
                     <div class="top-ev-stat"><div class="top-ev-stat-val" style="color:var(--green)">{{ $ev->validados }}</div><div class="top-ev-stat-lbl">validados</div></div>
                 </div>
-            </div>
+            </a>
             @empty
             <p style="text-align:center;color:var(--t2);padding:24px 0;font-size:13px;">Sem dados ainda.</p>
             @endforelse
@@ -135,17 +186,30 @@ body{background:var(--bg);font-family:var(--sans);color:var(--t1);min-height:100
         {{-- LOG DE AUDITORIA --}}
         <div>
             <div class="sec-label">auditoria recente</div>
+
+            {{-- exportar CSV dos registos visíveis + filtro por tipo de ação --}}
+            <div class="an-export-row">
+                <button type="button" class="an-exp-btn" onclick="exportarAuditoriaCsv()">⬇ Exportar CSV (visíveis)</button>
+            </div>
+            <div class="an-filter-chips" id="auditFilterChips">
+                <button type="button" class="an-chip active" data-acao="" onclick="filtrarAuditoria(this)">Todos</button>
+                <button type="button" class="an-chip" data-acao="tentativa_invalida,hmac_invalido,acesso_negado" onclick="filtrarAuditoria(this)">⚠️ Inválidas</button>
+                <button type="button" class="an-chip" data-acao="tentativa_reuso,bloqueado_reuso" onclick="filtrarAuditoria(this)">♻️ Reuso</button>
+                <button type="button" class="an-chip" data-acao="bloqueado" onclick="filtrarAuditoria(this)">🔒 Bloqueados</button>
+                <button type="button" class="an-chip" data-acao="eliminado_pelo_utilizador" onclick="filtrarAuditoria(this)">🗑 Eliminados</button>
+            </div>
+
             <div class="an-panel">
                 <div class="an-panel-head">
                     <div class="an-panel-title"><div class="an-panel-dot" style="background:var(--purple);box-shadow:0 0 6px var(--purple);"></div>Log de Auditoria</div>
                     <span class="an-panel-head-badge">{{ $auditoria->count() }} REGISTOS</span>
                 </div>
                 <div style="overflow-x:auto;">
-                    <table class="an-table">
+                    <table class="an-table" id="auditoriaTable">
                         <thead><tr><th>Acção</th><th>Código</th><th>Scanner</th><th>Data</th><th></th></tr></thead>
                         <tbody>
                             @forelse($auditoria as $log)
-                            <tr>
+                            <tr data-acao="{{ $log->acao }}">
                                 <td>
                                     <span class="acao-badge acao-{{ $log->acao }}">
                                         @if($log->acao === 'emitido') 📤 emitido
@@ -162,8 +226,16 @@ body{background:var(--bg);font-family:var(--sans);color:var(--t1);min-height:100
                                     </span>
                                 </td>
                                 <td style="font-family:var(--mono);font-size:10px;color:var(--t2);">{{ substr($log->codigo_unico, 0, 13) }}…</td>
-                                <td style="font-size:12px;color:var(--t2);">{{ $log->scanner_nome ?? $log->scanner_ip ?? '—' }}</td>
-                                <td style="font-family:var(--mono);font-size:10px;color:var(--t2);">{{ \Carbon\Carbon::parse($log->created_at)->format('d/m H:i') }}</td>
+                                <td style="font-size:12px;color:var(--t2);">
+                                    {{-- ícone distingue nome de operador vs. IP desconhecido --}}
+                                    <span class="scanner-cell">
+                                        <span class="scanner-icon">{{ $log->scanner_nome ? '👤' : '🌐' }}</span>
+                                        {{ $log->scanner_nome ?? $log->scanner_ip ?? '—' }}
+                                    </span>
+                                </td>
+                                <td style="font-family:var(--mono);font-size:10px;color:var(--t2);" title="{{ \Carbon\Carbon::parse($log->created_at)->format('d/m/Y H:i:s') }}">
+                                    {{ \Carbon\Carbon::parse($log->created_at)->diffForHumans() }}
+                                </td>
                                 <td>
                                     <a href="{{ route('admin.analises.bilhete.pdf', $log->codigo_unico) }}" target="_blank"
                                        style="display:inline-flex;align-items:center;gap:4px;padding:4px 9px;border-radius:7px;background:rgba(167,139,250,.1);border:1px solid rgba(167,139,250,.25);color:var(--purple);font-size:10px;font-weight:700;text-decoration:none;">
@@ -176,6 +248,7 @@ body{background:var(--bg);font-family:var(--sans);color:var(--t1);min-height:100
                             @endforelse
                         </tbody>
                     </table>
+                    <div class="an-empty-filtered" id="auditoriaEmptyFiltered">🔍 Nenhum registo deste tipo nos {{ $auditoria->count() }} carregados.</div>
                 </div>
             </div>
         </div>
@@ -194,6 +267,10 @@ body{background:var(--bg);font-family:var(--sans);color:var(--t1);min-height:100
                         <div class="blk-code">{{ substr($blk->codigo_unico, 0, 20) }}…</div>
                         <div class="blk-meta">{{ Str::limit($blk->evento ?? '—', 30) }} · Lote: {{ $blk->lote_id ?? '—' }}</div>
                         <div class="blk-tent">⚠ {{ $blk->tentativas_invalidas }} tentativa(s)</div>
+                        {{-- correlação: histórico completo deste código no log de auditoria (reutiliza a rota do PDF individual) --}}
+                        <div class="blk-actions">
+                            <a href="{{ route('admin.analises.bilhete.pdf', $blk->codigo_unico) }}" target="_blank" class="blk-btn">🔗 Ver histórico</a>
+                        </div>
                     </div>
                     @empty
                     <div style="text-align:center;padding:20px;color:var(--green);font-size:13px;">✅ Nenhum bilhete bloqueado</div>
@@ -207,6 +284,7 @@ body{background:var(--bg);font-family:var(--sans);color:var(--t1);min-height:100
                     <div class="an-panel-title"><div class="an-panel-dot" style="background:var(--green);box-shadow:0 0 6px var(--green);"></div>Lotes Emitidos</div>
                     <span class="an-panel-head-badge">{{ $lotes->count() }} LOTES</span>
                 </div>
+                <div class="lote-scroll-wrap">
                 <div class="an-panel-body" style="max-height:380px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--b2) transparent;">
                     @forelse($lotes as $lote)
                     <div class="lote-row">
@@ -223,6 +301,11 @@ body{background:var(--bg);font-family:var(--sans);color:var(--t1);min-height:100
                     @empty
                     <p style="text-align:center;color:var(--t2);padding:20px 0;font-size:13px;">Sem lotes emitidos ainda.</p>
                     @endforelse
+                </div>
+                {{-- sombra a sugerir que há mais para deslizar --}}
+                @if($lotes->count() > 4)
+                <div class="lote-fade"></div>
+                @endif
                 </div>
             </div>
         </div>
@@ -254,8 +337,12 @@ body{background:var(--bg);font-family:var(--sans);color:var(--t1);min-height:100
                 </thead>
                 <tbody>
                     @forelse($bilhetesEliminados as $elim)
-                    <tr>
-                        <td style="font-family:var(--mono);font-size:10px;color:var(--purple);">{{ substr($elim->codigo_unico, 0, 16) }}…</td>
+                    @php $eraCritico = !is_null($elim->validado_em); @endphp
+                    <tr class="{{ $eraCritico ? 'elim-row-critico' : '' }}">
+                        <td style="font-family:var(--mono);font-size:10px;color:var(--purple);">
+                            {{ substr($elim->codigo_unico, 0, 16) }}…
+                            @if($eraCritico)<span class="elim-warn-tag">⚠ Usado e depois apagado</span>@endif
+                        </td>
                         <td style="font-size:12px;color:var(--t2);">{{ Str::limit(optional($elim->evento)->titulo ?? '—', 28) }}</td>
                         <td style="font-size:12px;color:var(--t2);">{{ optional($elim->tipoIngresso)->nome ?? '—' }}</td>
                         <td style="font-size:12px;color:var(--t2);">{{ optional(optional($elim->pedido)->user)->name ?? '—' }}</td>
@@ -271,5 +358,56 @@ body{background:var(--bg);font-family:var(--sans);color:var(--t1);min-height:100
     </div>
 
 </div>
+
+<script>
+// Aviso antes de gerar o PDF completo sem limite de registos
+function avisarRelatorioPdf(el) {
+    const ok = confirm('Este relatório não tem limite de registos e, em sistemas com muito histórico, pode demorar bastante tempo a gerar. Continuar mesmo assim?');
+    if (ok) window.open(el.dataset.href, '_blank');
+    return false;
+}
+
+// Recarregar página (não há endpoint de dados ao vivo — atualização manual)
+function recarregarAnalises() {
+    const btn = document.getElementById('anRefreshBtn');
+    btn.classList.add('loading');
+    btn.textContent = '⏳ A ATUALIZAR...';
+    location.reload();
+}
+
+// Filtrar o log de auditoria por tipo de ação (só afeta os registos já carregados nesta página)
+function filtrarAuditoria(btn) {
+    document.querySelectorAll('#auditFilterChips .an-chip').forEach(c => c.classList.remove('active'));
+    btn.classList.add('active');
+    const tipos = btn.dataset.acao ? btn.dataset.acao.split(',') : [];
+    let visiveis = 0;
+    document.querySelectorAll('#auditoriaTable tbody tr').forEach(tr => {
+        if (!tr.dataset.acao) return; // ignora a linha "sem registos"
+        const visivel = tipos.length === 0 || tipos.includes(tr.dataset.acao);
+        tr.style.display = visivel ? '' : 'none';
+        if (visivel) visiveis++;
+    });
+    document.getElementById('auditoriaEmptyFiltered').classList.toggle('show', visiveis === 0);
+}
+
+// Exportar para CSV só os registos de auditoria atualmente visíveis (respeita o filtro aplicado)
+function exportarAuditoriaCsv() {
+    const linhas = ['Acção,Código,Scanner,Data'];
+    document.querySelectorAll('#auditoriaTable tbody tr').forEach(tr => {
+        if (tr.style.display === 'none' || !tr.dataset.acao) return;
+        const cols = tr.querySelectorAll('td');
+        const acao = tr.dataset.acao;
+        const codigo = cols[1]?.textContent.trim() || '';
+        const scanner = cols[2]?.textContent.trim() || '';
+        const data = cols[3]?.getAttribute('title') || cols[3]?.textContent.trim() || '';
+        linhas.push(`"${acao}","${codigo}","${scanner}","${data}"`);
+    });
+    const blob = new Blob([linhas.join('\n')], { type: 'text/csv;charset=utf-8;' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'auditoria_' + new Date().toISOString().slice(0,10) + '.csv';
+    a.click();
+}
+</script>
 
 @endsection

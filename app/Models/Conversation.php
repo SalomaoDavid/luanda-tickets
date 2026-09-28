@@ -79,4 +79,18 @@ class Conversation extends Model
               ->orWhere('receiver_id', $user->id);
         });
     }
+
+        /**
+     * Segurança: este utilizador participa nesta conversa?
+     */
+    public function temParticipante(?int $userId): bool
+    {
+        if (!$userId) {
+            return false;
+        }
+
+        return (int) $this->sender_id === $userId
+            || (int) $this->receiver_id === $userId
+            || $this->users()->where('users.id', $userId)->exists();
+    }
 }

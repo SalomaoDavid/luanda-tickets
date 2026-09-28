@@ -1,0 +1,1 @@
+<img src="{{ asset('logos.png') }}" alt="{{ config('app.name', 'Luanda Tickets') }}" {{ $attributes->merge(['class' => 'w-10 h-10 object-contain']) }}>

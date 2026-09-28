@@ -113,4 +113,34 @@ class Evento extends Model
     {
         return $this->belongsToMany(User::class, 'comentarios', 'evento_id', 'user_id')->distinct();
     }
+
+        /**
+     * Regra de moderação: pode este utilizador pôr o evento neste estado?
+     */
+    public function podeMudarEstadoPara(?string $novo, \App\Models\User $user): bool
+    {
+        // Não muda nada: permitido
+        if ($novo === $this->status) {
+            return true;
+        }
+
+        // Só o admin publica
+        if ($novo === 'publicado' && $user->role !== 'admin') {
+            return false;
+        }
+
+        // Evento com reservas não volta a rascunho (protege os triggers)
+        if ($novo === 'rascunho' && $this->exists) {
+            $temReservas = \App\Models\Reserva::whereHas(
+                'tipoIngresso',
+                fn ($q) => $q->where('evento_id', $this->id)
+            )->exists();
+
+            if ($temReservas) {
+                return false;
+            }
+        }
+
+        return true;
+    }
 }
