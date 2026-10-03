@@ -93,8 +93,8 @@
                 ->select('id','name','avatar')
                 ->get();
         @endphp
-        @if($onlineUsers->count() > 0)
-        <div class="hidden md:block" style="border-bottom: 1px solid rgba(59,130,246,0.1);">
+            @if($onlineUsers->count() > 0)
+            <div style="border-bottom: 1px solid rgba(59,130,246,0.1);">
             <div style="padding: 8px 14px 0;">
                 <span style="font-size:9px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:#4a5568;">
                     🟢 Online · {{ $onlineUsers->count() }}
@@ -126,7 +126,7 @@
 
         {{-- Lista de conversas — vem do componente ChatList --}}
         <div class="flex-1 overflow-y-auto py-2"
-             style="scrollbar-width: thin; scrollbar-color: rgba(59,130,246,0.3) transparent;">
+             style="min-height: 0; "scrollbar-width: thin; scrollbar-color: rgba(59,130,246,0.3) transparent;">
             @livewire('messages.chat-list', ['selectedConversationId' => $selectedConversationId])
         </div>
     </aside>
@@ -160,6 +160,74 @@
         @endif
     </main>
 </div>
+
+{{-- ✅ MODAL DE CONFIRMAÇÃO PERSONALIZADO — substitui o confirm()/alert()
+     feio e padrão do navegador em todo o módulo de mensagens. Chama-se com
+     window.confirmarAcao('texto').then(ok => { ... }) de qualquer sítio
+     (Alpine @click, ou JS simples). Para um simples aviso (sem botão
+     cancelar), passa { somenteAviso: true } como segundo argumento. --}}
+{{-- ⚠️ CORRIGIDO — antes usava x-show, que ao "mostrar de novo" repunha
+     display:'' (bloco), perdendo o display:flex necessário para centrar
+     o popup. Agora o display é sempre calculado diretamente via :style a
+     partir de "open" — nunca depende do que o Alpine decidir repor — e o
+     style INICIAL já começa em "display:none" (não só via x-cloak), para
+     nunca aparecer a cobrir o ecrã nem por uma fração de segundo antes do
+     Alpine arrancar. Sem isto: (a) um "flash" de ecrã inteiro ao abrir a
+     lista de conversas, e (b) um toque podia atravessar para a conversa
+     por baixo, abrindo-a sem querer ao mesmo tempo que o pedido de
+     apagar. --}}
+<div x-data="{ open: false, mensagem: '', somenteAviso: false, resolve: null }"
+     x-cloak
+     @confirm-ask.window="
+        open = true;
+        mensagem = $event.detail.mensagem;
+        somenteAviso = $event.detail.somenteAviso;
+        resolve = $event.detail.resolve;
+     "
+     style="display:none; position: fixed; inset: 0; z-index: 99999; align-items:center; justify-content:center;
+            background: rgba(2,6,23,0.6); backdrop-filter: blur(4px); padding: 20px;"
+     :style="{ display: open ? 'flex' : 'none' }">
+    <div @click.outside="open = false; somenteAviso ? null : resolve(false)"
+         style="width: 100%; max-width: 340px; background: #0f172a; border: 1px solid rgba(59,130,246,0.25);
+                border-radius: 20px; padding: 22px; box-shadow: 0 20px 60px rgba(0,0,0,0.5);">
+        <p style="color: #e2e8f0; font-size: 14px; line-height: 1.5; text-align: center; margin-bottom: 18px;"
+           x-text="mensagem"></p>
+        <div style="display:flex; gap:10px;">
+            <template x-if="!somenteAviso">
+                <button type="button"
+                        @click="open = false; resolve(false)"
+                        style="flex:1; padding:10px; border-radius:12px; font-size:13px; font-weight:700;
+                               background: rgba(148,163,184,.12); color:#cbd5e1; border:1px solid rgba(148,163,184,.2);">
+                    Cancelar
+                </button>
+            </template>
+            <button type="button"
+                    @click="open = false; if (!somenteAviso) resolve(true)"
+                    style="flex:1; padding:10px; border-radius:12px; font-size:13px; font-weight:700;
+                           background: linear-gradient(135deg, #dc2626, #b91c1c); color:#fff; border:none;">
+                <span x-text="somenteAviso ? 'Ok' : 'Confirmar'"></span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ✅ Helper global — devolve uma Promise<boolean>. Usa-se assim:
+    // window.confirmarAcao('Apagar isto?').then(ok => { if (ok) { ... } });
+    // Para um aviso simples (sem escolha), passa { somenteAviso: true }.
+    window.confirmarAcao = function (mensagem, opcoes) {
+        opcoes = opcoes || {};
+        return new Promise(function (resolve) {
+            window.dispatchEvent(new CustomEvent('confirm-ask', {
+                detail: {
+                    mensagem: mensagem,
+                    somenteAviso: !!opcoes.somenteAviso,
+                    resolve: resolve
+                }
+            }));
+        });
+    };
+</script>
 
 <script>
 (function () {
@@ -247,6 +315,19 @@
         clearTimeout(window.__chatErrorToastTimeout);
         window.__chatErrorToastTimeout = setTimeout(() => toast.remove(), 3500);
     }
+    // Interruptor "Enviar como Comunicado Oficial" (só existe para admin).
+    // Delegado porque o botão é recriado a cada troca de conversa.
+    document.addEventListener('click', function (e) {
+        const btn = e.target.closest('#aviso-toggle');
+        if (!btn) return;
+        const ativo = btn.dataset.active === 'true';
+        btn.dataset.active = ativo ? 'false' : 'true';
+        btn.style.background = ativo ? 'rgba(148,163,184,.12)' : 'rgba(34,211,238,.15)';
+        btn.style.color = ativo ? '#94a3b8' : '#22d3ee';
+        btn.style.borderColor = ativo ? 'rgba(148,163,184,.25)' : 'rgba(34,211,238,.4)';
+        const dot = document.getElementById('aviso-toggle-dot');
+        if (dot) dot.style.background = ativo ? '#64748b' : '#22d3ee';
+    });
 
     let sending = false;
     async function chatHandleSend() {
@@ -262,7 +343,22 @@
         chatMostrarEstadoEnvio(true);
 
         try {
-            await component.call('sendMessage', val);
+            const toggleAviso = document.getElementById('aviso-toggle');
+            const comoAviso = toggleAviso ? toggleAviso.dataset.active === 'true' : false;
+
+            await component.call('sendMessage', val, comoAviso);
+
+            // Reset do interruptor após enviar — evita mandar a próxima mensagem
+            // normal sem querer marcada como oficial.
+            if (toggleAviso) {
+                toggleAviso.dataset.active = 'false';
+                toggleAviso.style.background = 'rgba(148,163,184,.12)';
+                toggleAviso.style.color = '#94a3b8';
+                toggleAviso.style.borderColor = 'rgba(148,163,184,.25)';
+                const dot = document.getElementById('aviso-toggle-dot');
+                if (dot) dot.style.background = '#64748b';
+            }
+
         } catch (err) {
             console.error('[chat] falhou o envio da mensagem:', err);
             chatMostrarErroEnvio();
@@ -327,33 +423,47 @@
         }
     });
 
-    // ✅ Eliminar conversa — feedback instantâneo (esconde já), sem esperar o servidor
+    // ✅ Eliminar conversa — feedback instantâneo (esconde já), sem esperar o
+    // servidor. Confirmação personalizada (window.confirmarAcao) em vez do
+    // confirm()/alert() nativo do navegador.
+    //
+    // ⚠️ CORRIGIDO — este handler estava no "document" na fase normal
+    // (bubbling), que só dispara DEPOIS de o clique já ter passado pela
+    // linha da conversa (que tem wire:click="selectConversation" ligado
+    // diretamente a ela). Por isso a conversa abria-se sozinha ao clicar
+    // no balde, mesmo com stopPropagation() — chegava tarde demais. Ao
+    // registar com "true" no fim (fase de CAPTURA), este código corre
+    // ANTES do clique sequer chegar à linha, por isso o stopPropagation()
+    // aqui impede mesmo o clique de lá chegar.
     document.addEventListener('click', function (e) {
         const btn = e.target.closest('.chat-delete-btn');
         if (!btn) return;
         e.preventDefault();
         e.stopPropagation();
+        e.stopImmediatePropagation();
 
-        if (!confirm('Tens a certeza que queres eliminar esta conversa?')) return;
+        window.confirmarAcao('Tens a certeza que queres eliminar esta conversa?').then(function (ok) {
+            if (!ok) return;
 
-        const convId = btn.getAttribute('data-conv-id');
-        const row = btn.closest('[data-nome]');
+            const convId = btn.getAttribute('data-conv-id');
+            const row = btn.closest('[data-nome]');
 
-        if (row) {
-            row.style.transition = 'opacity .15s, transform .15s';
-            row.style.opacity = '0';
-            row.style.transform = 'scale(0.96)';
-            setTimeout(() => { if (row) row.style.display = 'none'; }, 150);
-        }
+            if (row) {
+                row.style.transition = 'opacity .15s, transform .15s';
+                row.style.opacity = '0';
+                row.style.transform = 'scale(0.96)';
+                setTimeout(() => { if (row) row.style.display = 'none'; }, 150);
+            }
 
-        const component = chatFindComponent(btn);
-        if (component) {
-            component.call('requestDelete', convId).catch(() => {
-                if (row) { row.style.display = ''; row.style.opacity = ''; row.style.transform = ''; }
-                alert('Não foi possível eliminar a conversa. Tenta outra vez.');
-            });
-        }
-    });
+            const component = chatFindComponent(btn);
+            if (component) {
+                component.call('requestDelete', convId).catch(() => {
+                    if (row) { row.style.display = ''; row.style.opacity = ''; row.style.transform = ''; }
+                    window.confirmarAcao('Não foi possível eliminar a conversa. Tenta outra vez.', { somenteAviso: true });
+                });
+            }
+        });
+    }, true); // ← fase de captura, de propósito (ver comentário acima)
 
     document.addEventListener('livewire:updated', () => {
         setTimeout(chatScrollToBottomSeJaPerto, 50);
@@ -429,6 +539,22 @@
             if (id && id !== lastConvId) {
                 lastConvId = id;
                 subscribeRealtime(id);
+                // ✅ CORRIGIDO — ao entrar numa conversa (nova ou reaberta),
+                // limpa qualquer altura presa de uma leitura anterior do
+                // visualViewport (ver ajustarAlturaTeclado abaixo), para o
+                // CSS normal (100dvh) assumir de novo. Sem isto, entrar
+                // numa conversa vinda de fora da SPA (ex: eventos-detalhes)
+                // podia herdar uma altura pequena de mais, empurrando o
+                // rodapé (caixa de escrever) para fora da área visível,
+                // mesmo continuando presente no HTML.
+                // ⚠️ CORRIGIDO — "" (vazio) apagava também o "height:100%"
+                // original que vem do Blade, não só uma altura presa do
+                // teclado, e o container encolhia para o tamanho do
+                // conteúdo por um instante (o "quebra/reduz" que viste).
+                // Repor explicitamente "100%" restaura sempre o valor
+                // certo, nunca um vazio.
+                const msgContainerReset = document.getElementById('msg-container');
+                if (msgContainerReset) msgContainerReset.style.height = '100%';
             }
         };
         checkConv();
@@ -440,11 +566,34 @@
 
     if (window.visualViewport) {
         const msgContainer = document.getElementById('msg-container');
+        // Altura "cheia" conhecida, sem teclado — serve de referência para
+        // só encolher o contentor quando o teclado REALMENTE abrir, nunca
+        // por uma leitura transitória a mais pequena (ex: barra de endereço
+        // do telemóvel ainda a assentar logo após navegar de outra página).
+        let alturaCheia = window.visualViewport.height;
+
         function ajustarAlturaTeclado() {
-            if (msgContainer && msgContainer.classList.contains('show-chat') && window.innerWidth < 768) {
-                msgContainer.style.height = window.visualViewport.height + 'px';
+            if (!msgContainer || !msgContainer.classList.contains('show-chat') || window.innerWidth >= 768) {
+                return;
             }
+
+            const alturaAtual = window.visualViewport.height;
+
+            // Se a altura atual for maior ou igual à maior já vista,
+            // atualiza a referência e NÃO fixa altura nenhuma — deixa o
+            // CSS (100dvh) tratar disto normalmente.
+            if (alturaAtual >= alturaCheia) {
+                alturaCheia = alturaAtual;
+                msgContainer.style.height = '100%';
+                return;
+            }
+
+            // Só aqui, com a altura claramente mais pequena que o máximo
+            // visto (teclado a tapar parte do ecrã), é que encolhemos o
+            // contentor de propósito.
+            msgContainer.style.height = alturaAtual + 'px';
         }
+
         window.visualViewport.addEventListener('resize', ajustarAlturaTeclado);
         window.visualViewport.addEventListener('scroll', ajustarAlturaTeclado);
     }

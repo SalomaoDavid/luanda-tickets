@@ -7,10 +7,16 @@ use Illuminate\Support\Facades\Auth;
 
 class ChatList extends Component
 {
+    // ⚠️ CORRIGIDO — estava vazio. Sem isto, o ChatList nunca soube que uma
+    // conversa tinha sido escondida (isso acontece no MessagesIndex, que é
+    // um componente irmão/pai, não o ChatList), por isso a lista nunca
+    // voltava a consultar a base de dados — só o JS otimista escondia a
+    // linha na hora, e ela reaparecia assim que o ChatList fosse
+    // re-renderizado por qualquer outro motivo, com os dados antigos.
     protected $listeners = [
-    'startConversation',
-    'refresh-list' => '$refresh', // ✅ NOVO — sem isto, esta lista nunca soube quando algo mudava
-];
+        'refresh-list' => '$refresh',
+        'refresh' => '$refresh',
+    ];
 
     // Recebido do messages-index.blade.php, só para saber qual conversa destacar na lista
     public $selectedConversationId = null;
@@ -18,19 +24,18 @@ class ChatList extends Component
     public function render()
     {
         $userId = auth()->id();
-        $isAdmin = auth()->user()->role === 'admin';
 
-        // ✅ Admin acompanha todas as conversas do sistema; qualquer outro
-        // utilizador só vê as suas próprias — mesma estrutura (sender_id/
-        // receiver_id) que já funciona no resto do chat.
-        $query = Conversation::query();
-        if (!$isAdmin) {
-            $query->where(function ($q) use ($userId) {
-                $q->where('sender_id', $userId)->orWhere('receiver_id', $userId);
-            });
-        }
-
-        $conversations = $query
+        // Admin vê só as próprias conversas, como qualquer utilizador — sem
+        // bypass. Uma eventual tela de moderação de todas as conversas do
+        // sistema seria uma tela separada, nunca misturada na caixa de
+        // mensagens pessoal (era isso que listava conversas onde o admin
+        // não participava e não conseguia abrir).
+        $conversations = Conversation::visibleTo($userId)
+            // ✅ Uma conversa é criada assim que clicas em alguém (para o
+            // chat já abrir pronto), antes de qualquer mensagem ser
+            // enviada. Se desistires sem escrever nada, essa conversa
+            // vazia não deve aparecer na lista como "Sem mensagens".
+            ->whereHas('messages')
             ->withCount(['messages as unread_count' => function ($query) use ($userId) {
                 $query->where('user_id', '!=', $userId)->whereNull('read_at');
             }])
@@ -49,43 +54,26 @@ class ChatList extends Component
         $this->dispatch('loadConversation', conversationId: $id);
     }
 
-    // ✅ NOVO — só dispara o aviso; quem realmente elimina é o
-    // MessagesIndex::deleteConversation(), que já existia e já funcionava.
+    // ⚠️ AJUSTADO — antes só avisava o MessagesIndex e era ELE quem escondia
+    // a conversa. Isso criava uma "corrida": este componente (ChatList)
+    // respondia e redesenhava-se a si próprio ANTES de o aviso sequer
+    // chegar ao MessagesIndex, por isso a conversa aparecia escondida por
+    // um instante (JS otimista), voltava a aparecer (ChatList redesenhado
+    // com os dados antigos, ainda não escondidos) e só desaparecia de vez
+    // quando o segundo pedido (do MessagesIndex) terminava.
+    //
+    // Agora escondemos aqui mesmo, no mesmo pedido do clique — por isso o
+    // primeiro redesenho do ChatList já sai correto. Continuamos a avisar
+    // o MessagesIndex a seguir, para ele poder fechar o chat se esta era a
+    // conversa aberta (chamar hideFor() outra vez aí não tem problema —
+    // só volta a gravar a mesma data, não desfaz nada).
     public function requestDelete($id)
     {
-        $this->dispatch('delete-conversation-request', id: $id);
-    }
-
-    public function startConversation($userId)
-    {
-        $authId = auth()->id();
-
-        // ✅ CORRIGIDO — usava uma relação "users" (tabela pivot) que não existe
-        // na estrutura real (sender_id/receiver_id), por isso o Conversation::create()
-        // ia sem nenhum campo preenchido e rebentava com "Field 'sender_id' doesn't
-        // have a default value". Agora segue a mesma lógica já usada e testada em
-        // MessagesIndex::startChat().
-        $conversation = \App\Models\Conversation::whereNull('evento_id')
-            ->where(function ($q) use ($authId, $userId) {
-                $q->where(function ($inner) use ($authId, $userId) {
-                    $inner->where('sender_id', $authId)->where('receiver_id', $userId);
-                })->orWhere(function ($inner) use ($authId, $userId) {
-                    $inner->where('sender_id', $userId)->where('receiver_id', $authId);
-                });
-            })->first();
-
-        if (!$conversation) {
-            $conversation = \App\Models\Conversation::create([
-                'sender_id'   => $authId,
-                'receiver_id' => $userId,
-                'tipo'        => 'pessoal',
-            ]);
+        $conversation = Conversation::find($id);
+        if ($conversation && $conversation->temParticipante(auth()->id())) {
+            $conversation->hideFor(auth()->id());
         }
 
-        // ✅ CORRIGIDO — o nome do parâmetro tinha de ser "conversationId"
-        // (estava "conversation") para o MessagesIndex::onChatListSelected
-        // conseguir mesmo abrir a conversa.
-        $this->dispatch('loadConversation', conversationId: $conversation->id);
-        $this->dispatch('open-chat-modal');
+        $this->dispatch('delete-conversation-request', id: $id);
     }
 }
