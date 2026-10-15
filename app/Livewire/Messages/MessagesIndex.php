@@ -173,7 +173,11 @@ class MessagesIndex extends Component
     {
         $conversation = Conversation::find($id);
 
-        if (!$conversation || !$conversation->temParticipante(auth()->id())) {
+        if (!$conversation) {
+            return;
+        }
+
+        if (!$conversation->temParticipante(auth()->id())) {
             return;
         }
 

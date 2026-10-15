@@ -163,9 +163,22 @@
 
 {{-- ✅ MODAL DE CONFIRMAÇÃO PERSONALIZADO — substitui o confirm()/alert()
      feio e padrão do navegador em todo o módulo de mensagens. Chama-se com
-     window.confirmarAcao('texto').then(ok => { ... }) de qualquer sítio
+     window.ltconfrimChat('texto').then(ok => { ... }) de qualquer sítio
      (Alpine @click, ou JS simples). Para um simples aviso (sem botão
-     cancelar), passa { somenteAviso: true } como segundo argumento. --}}
+     cancelar), passa { somenteAviso: true } como segundo argumento.
+
+     ⚠️ RENOMEADO de window.confirmarAcao para window.ltconfrimChat —
+     o layouts/app.blade.php já define o SEU PRÓPRIO window.confirmarAcao
+     global (usado noutras páginas do site, com uma assinatura diferente,
+     baseado em SweetAlert2). Como o script do layout carrega DEPOIS deste
+     (o app.blade.php só injeta os scripts de rodapé depois do @yield do
+     conteúdo da página), ele estava a SOBRESCREVER a nossa função com a
+     dele — por isso o nosso .then(...) falhava com "Cannot read properties
+     of undefined (reading 'then')": não era o nosso código que estava
+     errado, era a nossa função a deixar de existir por já ter sido
+     substituída quando o clique acontecia. Usar um nome próprio e único
+     para o módulo de mensagens elimina a colisão sem mexer no
+     comportamento do resto do site. --}}
 {{-- ⚠️ CORRIGIDO — antes usava x-show, que ao "mostrar de novo" repunha
      display:'' (bloco), perdendo o display:flex necessário para centrar
      o popup. Agora o display é sempre calculado diretamente via :style a
@@ -178,7 +191,7 @@
      apagar. --}}
 <div x-data="{ open: false, mensagem: '', somenteAviso: false, resolve: null }"
      x-cloak
-     @confirm-ask.window="
+     @lt-confirm-chat.window="
         open = true;
         mensagem = $event.detail.mensagem;
         somenteAviso = $event.detail.somenteAviso;
@@ -212,13 +225,18 @@
 </div>
 
 <script>
-    // ✅ Helper global — devolve uma Promise<boolean>. Usa-se assim:
-    // window.confirmarAcao('Apagar isto?').then(ok => { if (ok) { ... } });
+    // ✅ Helper global ÚNICO para o módulo de mensagens — devolve uma
+    // Promise<boolean>. Usa-se assim:
+    // window.ltconfrimChat('Apagar isto?').then(ok => { if (ok) { ... } });
     // Para um aviso simples (sem escolha), passa { somenteAviso: true }.
-    window.confirmarAcao = function (mensagem, opcoes) {
+    //
+    // ⚠️ Nome escolhido de propósito para NUNCA colidir com o
+    // window.confirmarAcao já existente em layouts/app.blade.php (usado
+    // noutras páginas do site, com outra assinatura/comportamento).
+    window.ltconfrimChat = function (mensagem, opcoes) {
         opcoes = opcoes || {};
         return new Promise(function (resolve) {
-            window.dispatchEvent(new CustomEvent('confirm-ask', {
+            window.dispatchEvent(new CustomEvent('lt-confirm-chat', {
                 detail: {
                     mensagem: mensagem,
                     somenteAviso: !!opcoes.somenteAviso,
@@ -424,8 +442,8 @@
     });
 
     // ✅ Eliminar conversa — feedback instantâneo (esconde já), sem esperar o
-    // servidor. Confirmação personalizada (window.confirmarAcao) em vez do
-    // confirm()/alert() nativo do navegador.
+    // servidor. Confirmação personalizada (window.ltconfrimChat) em vez
+    // do confirm()/alert() nativo do navegador.
     //
     // ⚠️ CORRIGIDO — este handler estava no "document" na fase normal
     // (bubbling), que só dispara DEPOIS de o clique já ter passado pela
@@ -442,7 +460,7 @@
         e.stopPropagation();
         e.stopImmediatePropagation();
 
-        window.confirmarAcao('Tens a certeza que queres eliminar esta conversa?').then(function (ok) {
+        window.ltconfrimChat('Tens a certeza que queres eliminar esta conversa?').then(function (ok) {
             if (!ok) return;
 
             const convId = btn.getAttribute('data-conv-id');
@@ -459,11 +477,66 @@
             if (component) {
                 component.call('requestDelete', convId).catch(() => {
                     if (row) { row.style.display = ''; row.style.opacity = ''; row.style.transform = ''; }
-                    window.confirmarAcao('Não foi possível eliminar a conversa. Tenta outra vez.', { somenteAviso: true });
+                    window.ltconfrimChat('Não foi possível eliminar a conversa. Tenta outra vez.', { somenteAviso: true });
                 });
             }
         });
     }, true); // ← fase de captura, de propósito (ver comentário acima)
+
+    // ✅ NOVO — apagar conversa a partir de DENTRO do chat aberto (botão 🗑
+    // no cabeçalho do chat-box). Mesmo padrão delegado do bloco acima
+    // (.chat-delete-btn), em vez do @click inline do Alpine que deixou de
+    // disparar de forma fiável depois de o Livewire re-renderizar o
+    // chat-box (wire:poll.15s). Chama requestDelete diretamente no
+    // componente, tal como o botão da lista — sem passar por nenhum
+    // evento "delete-conversation-request" intermédio.
+    document.addEventListener('click', function (e) {
+        const btn = e.target.closest('.chat-delete-inchat-btn');
+        if (!btn) return;
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+
+        window.ltconfrimChat('Apagar esta conversa da tua lista?').then(function (ok) {
+            if (!ok) return;
+
+            const convId = btn.getAttribute('data-conv-id');
+            const component = chatFindComponent(btn);
+            if (component) {
+                component.call('requestDelete', convId).catch(() => {
+                    window.ltconfrimChat('Não foi possível eliminar a conversa. Tenta outra vez.', { somenteAviso: true });
+                });
+            }
+        });
+    }, true); // ← fase de captura, mesmo motivo do bloco de cima
+
+    // ✅ NOVO — bloquear/desbloquear conversa (botão 🔒/🔓 no cabeçalho do
+    // chat-box). Mesmo padrão delegado — substitui o @click inline do
+    // Alpine que deixou de disparar de forma fiável. Lê o estado atual
+    // a partir de data-eubloqueei (gravado pelo Blade no servidor) para
+    // escolher a mensagem certa, e chama toggleBlock() diretamente no
+    // componente Livewire do chat atual.
+    document.addEventListener('click', function (e) {
+        const btn = e.target.closest('.chat-block-toggle-btn');
+        if (!btn) return;
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+
+        const euBloqueei = btn.dataset.eubloqueei === '1';
+        const msg = euBloqueei ? 'Desbloquear esta conversa?' : 'Bloquear esta conversa?';
+
+        window.ltconfrimChat(msg).then(function (ok) {
+            if (!ok) return;
+
+            const component = chatFindComponent(btn);
+            if (component) {
+                component.call('toggleBlock').catch(() => {
+                    window.ltconfrimChat('Não foi possível atualizar o bloqueio. Tenta outra vez.', { somenteAviso: true });
+                });
+            }
+        });
+    }, true); // ← fase de captura, mesmo motivo do bloco de cima
 
     document.addEventListener('livewire:updated', () => {
         setTimeout(chatScrollToBottomSeJaPerto, 50);

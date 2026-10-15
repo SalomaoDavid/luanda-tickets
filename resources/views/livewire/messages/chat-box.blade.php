@@ -38,12 +38,20 @@
     <div class="flex gap-2 items-center flex-shrink-0 ml-2" x-show="!modoSelecao" x-cloak>
         {{-- ✅ Esconde a conversa só do MEU lado (mesmo mecanismo da lista)
              em vez de apagar as mensagens para os dois participantes. --}}
-        {{-- ✅ Confirmação personalizada (window.confirmarAcao, definida em
-             messages-index.blade.php) em vez do wire:confirm, que usa o
-             alerta feio e padrão do navegador. --}}
+        {{-- ⚠️ CORRIGIDO — antes usava @click inline do Alpine
+             (window.ltconfrimChat(...).then(...)) diretamente neste botão.
+             Isso deixou de disparar de forma fiável depois de o Livewire
+             re-renderizar este componente (o wire:poll.15s em #chat-content
+             relança isto a cada 15s) — o clique físico deixava de chegar
+             ao handler, mesmo o Alpine continuando visivelmente ligado ao
+             nó (confirmado via DevTools). Agora usa o MESMO mecanismo já
+             comprovado do botão de apagar na lista (.chat-delete-btn): um
+             listener delegado no document, em fase de captura, definido em
+             messages-index.blade.php — que não depende do Alpine manter a
+             ligação a este nó específico depois de um morph. --}}
         <button type="button"
-                @click="window.confirmarAcao('Apagar esta conversa da tua lista? (continua a existir para a outra pessoa)').then(ok => { if (ok) $dispatch('delete-conversation-request', { id: {{ $conversation->id }} }) })"
-                class="text-gray-400 hover:text-red-400 transition p-1.5"
+                class="chat-delete-inchat-btn text-gray-400 hover:text-red-400 active:text-red-400 active:bg-white/10 active:scale-90 transition-all duration-100 p-1.5 rounded-full"
+                data-conv-id="{{ $conversation->id }}"
                 title="Apagar conversa">🗑</button>
 
         @php
@@ -51,9 +59,12 @@
             $elaBloqueou = $conversation->is_blocked && $conversation->blocked_by !== auth()->id();
         @endphp
         @if(!$elaBloqueou)
+            {{-- ⚠️ CORRIGIDO — mesmo motivo do botão de apagar acima:
+                 @click inline trocado pelo mesmo padrão delegado
+                 (.chat-block-toggle-btn), tratado em messages-index.blade.php. --}}
             <button type="button"
-                    @click="window.confirmarAcao('{{ $euBloqueei ? 'Desbloquear esta conversa?' : 'Bloquear esta conversa?' }}').then(ok => { if (ok) $wire.toggleBlock() })"
-                    class="transition p-1.5 {{ $euBloqueei ? 'text-red-400' : 'text-gray-400 hover:text-yellow-400' }}">
+                    class="chat-block-toggle-btn active:bg-white/10 active:scale-90 transition-all duration-100 p-1.5 rounded-full {{ $euBloqueei ? 'text-red-400' : 'text-gray-400 hover:text-yellow-400' }}"
+                    data-eubloqueei="{{ $euBloqueei ? '1' : '0' }}">
                 {{ $euBloqueei ? '🔒' : '🔓' }}
             </button>
         @else
@@ -65,7 +76,7 @@
     <div class="flex items-center gap-3 flex-shrink-0 ml-2" x-show="modoSelecao" x-cloak>
         <button type="button"
                 @click="modoSelecao = false; selecionadas = []"
-                class="flex items-center justify-center rounded-full text-gray-300 hover:text-white transition"
+                class="flex items-center justify-center rounded-full text-gray-300 hover:text-white active:scale-90 active:bg-white/10 transition-all duration-100"
                 style="width:30px;height:30px;flex:0 0 30px;"
                 title="Cancelar seleção">✕</button>
 
@@ -73,7 +84,7 @@
 
         <button type="button"
                 @click="$wire.apagarSelecionadas(selecionadas); modoSelecao = false; selecionadas = [];"
-                class="flex items-center justify-center rounded-full text-red-400 hover:text-red-300 transition"
+                class="flex items-center justify-center rounded-full text-red-400 hover:text-red-300 active:scale-90 transition-all duration-100"
                 style="width:34px;height:34px;flex:0 0 34px;font-size:16px;line-height:1;background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.3);"
                 title="Apagar selecionadas">🗑</button>
     </div>
@@ -140,6 +151,11 @@
          @mouseup="clearTimeout(pressTimer)"
          @mouseleave="clearTimeout(pressTimer)"
          @contextmenu.prevent
+         {{-- ✅ NOVO — atalho para rato (desktop): dois cliques rápidos
+              (dblclick nativo do browser) ativam o modo de seleção na
+              hora, sem precisar de segurar o botão 250ms. A pressão longa
+              acima continua a funcionar na mesma (mobile e desktop). --}}
+         @dblclick="modoSelecao = true; if (!selecionadas.includes({{ $msg->id }})) selecionadas.push({{ $msg->id }})"
          @click="if (modoSelecao) { selecionadas.includes({{ $msg->id }}) ? selecionadas = selecionadas.filter(i => i !== {{ $msg->id }}) : selecionadas.push({{ $msg->id }}) }">
 
         {{-- Círculo/visto de seleção — tamanho sempre fixo, nunca estica --}}

@@ -70,6 +70,7 @@ class ChatList extends Component
     public function requestDelete($id)
     {
         $conversation = Conversation::find($id);
+
         if ($conversation && $conversation->temParticipante(auth()->id())) {
             $conversation->hideFor(auth()->id());
         }
