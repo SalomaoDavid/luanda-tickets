@@ -99,7 +99,7 @@
 .ev-video-wrap { position:absolute; inset:0; opacity:0; transition:opacity .3s; background:#000; z-index:1; pointer-events:none; }
 .ev-img:hover .ev-video-wrap { opacity:1; pointer-events:auto; }
 .ev-video-wrap iframe,
-.ev-video-wrap video { width:100%; height:100%; border:none; object-fit:cover; }
+.ev-video-wrap video { width:100%; height:100%; border:none; object-fit:contain; }
 
 /* Botão som */
 .ev-sound-btn { position:absolute; bottom:8px; right:8px; z-index:3; width:30px; height:30px; border-radius:50%; background:rgba(0,0,0,.6); backdrop-filter:blur(6px); border:1px solid rgba(255,255,255,.3); color:#fff; font-size:13px; display:none; align-items:center; justify-content:center; cursor:pointer; transition:all .2s; }
@@ -621,17 +621,27 @@ function activarVideo(cardImg) {
 
     if (localSrc) {
         const v = document.createElement('video');
-        // NÃO usar setAttribute('muted') — impede unmute posterior
-        v.loop   = true;
+        v.className = 'ev-vid-front';
+        v.loop = true;
         v.playsInline = true;
-        v.muted  = true;
+        v.muted = true;
         v.volume = 0;
-        v.style.cssText = 'width:100%;height:100%;object-fit:cover;pointer-events:none;border:none;';
+        v.style.cssText = 'position:absolute;inset:0;z-index:2;width:100%;height:100%;object-fit:contain;filter:none;pointer-events:none;border:none;';
         v.src = localSrc;
         wrap.appendChild(v);
-        v.muted  = true;
-        v.volume = 0;
         v.play().catch(function(){});
+
+        const bg = document.createElement('video');
+        bg.className = 'ev-vid-back';
+        bg.loop = true;
+        bg.playsInline = true;
+        bg.muted = true;
+        bg.volume = 0;
+        bg.style.cssText = 'position:absolute;inset:0;z-index:1;width:100%;height:100%;object-fit:cover;filter:blur(18px) brightness(.6);transform:scale(1.2);pointer-events:none;border:none;';
+        bg.src = localSrc;
+        wrap.appendChild(bg);
+        bg.play().catch(function(){});
+
     } else if (mudo) {
         const urlComApi = mudo.includes('enablejsapi') ? mudo : mudo + '&enablejsapi=1';
         const iframe = document.createElement('iframe');
@@ -651,7 +661,7 @@ function desactivarVideo(cardImg) {
     const iframe = wrap.querySelector('iframe');
     const video  = wrap.querySelector('video');
     if (iframe) { iframe.src = ''; iframe.remove(); }
-    if (video)  { video.pause(); video.muted = true; video.volume = 0; video.src = ''; video.remove(); }
+    wrap.querySelectorAll('video').forEach(function(x){ x.pause(); x.muted = true; x.volume = 0; x.src = ''; x.remove(); });
     const btn = cardImg.querySelector('.ev-sound-btn');
     if (btn) btn.textContent = '🔇';
 }
@@ -752,7 +762,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 var iframe = wrap.querySelector('iframe');
                 var video  = wrap.querySelector('video');
                 if (iframe) { iframe.src = ''; iframe.remove(); }
-                if (video)  { video.pause(); video.muted = true; video.volume = 0; }
+                wrap.querySelectorAll('video').forEach(function(x){ x.pause(); x.muted = true; x.volume = 0; })
                 var somBtn = entry.target.querySelector('.ev-sound-btn');
                 if (somBtn) somBtn.textContent = '🔇';
             });

@@ -121,6 +121,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
 
     // Notícias — só admin
     Route::get('/noticias/sincronizar', [NewsController::class, 'sincronizar'])->name('noticias.sincronizar');
+    Route::patch('/eventos/{id}/status',    [AdminEventoController::class, 'updateStatus'])->name('admin.eventos.status');
 
     // Categorias e Subcategorias — só admin
     Route::get('/categorias',                          [CategoriaController::class, 'index'])->name('admin.categorias.index');

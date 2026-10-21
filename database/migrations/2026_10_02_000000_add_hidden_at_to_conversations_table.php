@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('messages', function (Blueprint $table) {
+        Schema::table('conversations', function (Blueprint $table) {
             // Mesma lógica da conversa: esconder uma mensagem é por
             // utilizador, nunca apaga de verdade nem afeta o outro lado.
             // "sender"/"receiver" aqui referem-se aos papéis da CONVERSA
@@ -22,7 +22,7 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::table('messages', function (Blueprint $table) {
+        Schema::table('conversations', function (Blueprint $table) {
             $table->dropColumn(['hidden_for_sender_at', 'hidden_for_receiver_at']);
         });
     }

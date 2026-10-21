@@ -90,7 +90,7 @@ body{
     border-radius:24px;
     overflow:hidden;
     margin-bottom:8px;
-    height:260px;
+    height:560px;
     background:linear-gradient(135deg,#050d1a,#0a1f3a);
 }
 .hero img{
@@ -811,7 +811,7 @@ body{
     {{-- Camada de vídeo local: slot vazio, JS cria o <video> no hover --}}
     @if($videoLocal)
     <div id="heroLocalWrap" data-src="{{ $videoLocal }}"
-         style="position:absolute;inset:0;z-index:1;overflow:hidden;display:none;"></div>
+         style="position:absolute;inset:0;z-index:1;overflow:hidden;display:none;backdrop-filter:blur(18px) brightness(.7);-webkit-backdrop-filter:blur(18px) brightness(.7);"></div>
     @endif
 
     {{-- Botão ▶ (só se houver vídeo) — agora troca o texto pelo vídeo no próprio hero --}}
@@ -1503,7 +1503,7 @@ function heroHoverIn() {
                 v.playsInline = true;
                 v.muted  = true;
                 v.volume = 0;
-                v.style.cssText = 'width:100%;height:100%;object-fit:cover;pointer-events:none;';
+                v.style.cssText = 'width:100%;height:100%;object-fit:contain;pointer-events:none;';
                 v.src = wrap.dataset.src;
                 wrap.appendChild(v);
                 _heroVideoEl = v;
@@ -1572,7 +1572,7 @@ function tocarVideoNoHero() {
             var v = document.createElement('video');
             v.loop = true;
             v.playsInline = true;
-            v.style.cssText = 'width:100%;height:100%;object-fit:cover;';
+            v.style.cssText = 'width:100%;height:100%;object-fit:contain;';
             v.src = wrap.dataset.src;
             wrap.appendChild(v);
             _heroVideoEl = v;

@@ -49,7 +49,7 @@
 
 /* Banners maiores só em ecrãs grandes (PC/TV) — mobile e tablet ficam com os 160px de sempre */
 @media(min-width:1280px){
-    .ev-card-img{height:270px;}
+    .ev-card-img{height:350px;}
 }
 @media(min-width:1920px){
     .ev-card-img{height:480px;}
@@ -92,7 +92,7 @@
 .ev-card-img:hover .ev-card-video-wrap{opacity:1;}
 .ev-card-video-wrap iframe,
 .ev-card-video-wrap video{
-    width:100%;height:100%;border:none;object-fit:cover;
+    width:100%;height:100%;border:none;object-fit:contain;
 }
 
 /* Botão som no card */
@@ -715,24 +715,34 @@ function activarVideoCard(cardImg) {
 
         if (localSrc) {
             var v = document.createElement('video');
-            // SEM setAttribute('muted') para permitir unmute posterior
-            v.loop   = true;
+            v.className = 'ev-vid-front';
+            v.loop = true;
             v.playsInline = true;
-            v.muted  = true;
+            v.muted = true;
             v.volume = 0;
-            v.style.cssText = 'width:100%;height:100%;object-fit:cover;pointer-events:none;border:none;';
+            v.style.cssText = 'position:absolute;inset=0;z-index:2;width:100%;height:100%;object-fit:contain;filter:none;pointer-events:none;border:none';
             v.src = localSrc;
             wrap.appendChild(v);
-            v.muted  = true;
-            v.volume = 0;
             v.play().catch(function(){});
+
+            var bg = document.createElement('video');
+            bg.className = 'ev-vid-back';
+            bg.loop = true;
+            bg.playsInline = true;
+            bg.muted = true;
+            bg.volume = 0;
+            bg.style.cssText = 'position:absolute;inset:0;z-index:1;width:100%;height:100%;object-fit:cover;filter:blur(18px) brightness(.6);transform:scale(1.2);pointer-events:none;border:none;';
+            bg.src = localSrc;
+            wrap.appendChild(bg);
+            bg.play().catch(function(){});
+
         } else if (mudo) {
             var urlComApi = mudo.includes('enablejsapi') ? mudo : mudo + '&enablejsapi=1';
             var iframe = document.createElement('iframe');
             iframe.src = urlComApi;
             iframe.setAttribute('allow', 'autoplay');
             iframe.setAttribute('frameborder', '0');
-            iframe.style.cssText = 'width:100%;height:100%;border:none;';
+            iframe.style.cssText = 'width:100%;height:100%;border:none';
             iframe.dataset.mudo   = urlComApi;
             iframe.dataset.som    = wrap.dataset.som;
             iframe.dataset.isMudo = '1';
@@ -747,7 +757,7 @@ function desactivarVideoCard(cardImg) {
     var iframe = wrap.querySelector('iframe');
     var video  = wrap.querySelector('video');
     if (iframe) { iframe.src = ''; iframe.remove(); }
-    if (video)  { video.pause(); video.muted = true; video.volume = 0; video.src = ''; video.remove(); }
+    wrap.querySelectorAll('video').forEach(function(x){ x.pause(); x.muted = true; x.volume = 0; x.src=''; x.remove(); });
     var btn = cardImg.querySelector('.ev-sound-btn');
     if (btn) btn.textContent = '🔇';
 }

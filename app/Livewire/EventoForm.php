@@ -244,7 +244,7 @@ class EventoForm extends Component
                 'nome'       => $t->nome,
                 'preco'      => $t->preco,
                 'quantidade' => $t->quantidade_total,
-                'bloqueado'  => $evento->status === 'publicado',
+                'bloqueado'  => true,
             ])->toArray();
         }
     }
@@ -710,10 +710,6 @@ class EventoForm extends Component
         $novos = array_filter($this->ingressos, fn($i) => empty($i['id']) && !empty($i['nome']));
 
         if (!empty($novos)) {
-            if ($evento->status === 'publicado' && $this->editando) {
-                $this->addError('ingressos', 'Não podes adicionar bilhetes a um evento publicado.');
-                return;
-            }
             $ingressosDb = [];
             foreach ($novos as $ingresso) {
                 $base  = floatval($ingresso['preco']);

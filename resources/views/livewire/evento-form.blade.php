@@ -1248,18 +1248,16 @@
              PASSO 4 — BILHETES
         ════════════════════════════════ --}}
         <div class="sp {{ $step === 4 ? 'active' : '' }}">
-
-            @if($editando && $statusOriginal === 'publicado')
-            <div class="aviso-pub">
-                <div class="aviso-pub-icon">⚠️</div>
-                <div class="aviso-pub-txt">
-                    <div class="aviso-pub-title">Bilhetes bloqueados — evento publicado</div>
-                    Os bilhetes existentes são imutáveis por segurança. Podes apenas adicionar novos tipos.
+            @if($editando && collect($ingressos)->contains(fn($i) => !empty($i['bloqueado'])))
+                <div class="aviso-pub">
+                    <div class="aviso-pub-icon">⚠️</div>
+                    <div class="aviso-pub-txt">
+                        <div class="aviso-pub-title">Bilhetes existentes bloqueados</div>
+                        Os bilhetes já criados são imutáveis por segurança. Podes apenas adicionar novos tipos.
+                    </div>
                 </div>
-            </div>
             @endif
-
-            <div class="ev-card">
+           <div class="ev-card">
                 <div class="ev-card-head">
                     <div class="ev-card-icon">🎟️</div>
                     <div>

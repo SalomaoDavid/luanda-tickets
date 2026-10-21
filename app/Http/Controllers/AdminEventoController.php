@@ -209,9 +209,9 @@ class AdminEventoController extends Controller
     public function update(Request $request, $id)
     {
         // ✅ Select mínimo para verificar permissão
-        $evento = Evento::select('id','user_id')->findOrFail($id);
+        $evento = Evento::select('id','user_id','imagem_capa')->findOrFail($id);
 
-        if (auth()->user()->role !== 'admin' && $evento->user_id !== auth()->id()) {
+        if (auth()->user()->role !== 'admin' && $evento->user_id !==auth()->id()) {
             abort(403);
         }
 
@@ -263,6 +263,27 @@ class AdminEventoController extends Controller
         $evento->save();
 
         return redirect()->route('admin.eventos')->with('success', 'Evento atualizado com sucesso!');
+    }
+
+    public function updateStatus(Request $request, $id){
+        if(auth()->user()->role !=='admin'){
+            return response()->json(['success'  => false, 'message'  => 'Você não tem permissão para mudar o estado'], 403);
+        }
+
+        $request->validate([
+            'status' => 'required|in:rascunho,publicado,encerrado',
+        ]);
+
+        $evento = Evento::select('id', 'user_id', 'status')->findOrFail($id);
+        $evento->status = $request->status;
+        $evento->save();
+
+        $labels = ['publicado' => 'publicado', 'rascunho' => 'passado para o rascunho', 'encerrado' => 'encerrado'];
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Evento ' .$labels[$request->status] . ' !',
+        ]);
     }
 
     public function destroy($id)

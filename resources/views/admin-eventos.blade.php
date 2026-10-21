@@ -230,7 +230,8 @@ $encerrados  = $eventos->where('status','encerrado')->count();
                 @endif
             </div>
             <div class="ev-card-footer">
-                <div class="status-wrap">
+                    <div class="status-wrap">
+                @if(auth()->user()->role === 'admin')
                     <button class="status-toggle {{ $evento->status }}" id="status-toggle-{{ $evento->id }}"
                             onclick="toggleStatusMenu(event, {{ $evento->id }})">
                         @if($evento->status === 'publicado') ✅ Publicado
@@ -248,7 +249,15 @@ $encerrados  = $eventos->where('status','encerrado')->count();
                         </button>
                         @endforeach
                     </div>
-                </div>
+                @else
+                    <span class="status-toggle {{ $evento->status }}" style="cursor:default;">
+                        @if($evento->status === 'publicado') ✅ Publicado
+                        @elseif($evento->status === 'rascunho') 📝 Rascunho
+                        @else 🔒 Encerrado
+                        @endif
+                    </span>
+                @endif
+            </div>
                 <div class="ev-footer-actions">
                     <a href="{{ route('admin.eventos.editar', $evento->id) }}" class="ev-action-btn" title="Editar">✏️</a>
                     <a href="{{ route('evento.detalhes', $evento->id) }}" target="_blank" class="ev-action-btn" title="Ver">👁</a>
